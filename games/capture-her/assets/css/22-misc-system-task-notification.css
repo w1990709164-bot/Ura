@@ -1,15 +1,5 @@
-/* SYSTEM TASK NOTIFICATION */
-#task-notif {
-  position:fixed; top:60px; left:50%; transform:translateX(-50%);
-  z-index:6000; display:none; flex-direction:column; align-items:center;
-  pointer-events:none;
-}
-.task-notif-card {
-  background:var(--panel); border:1px solid var(--red);
-  border-radius:3px; padding:10px 16px; pointer-events:all;
-  box-shadow:0 0 30px var(--red-glow); max-width:320px; width:90vw;
-  animation:notif-drop 0.4s cubic-bezier(0.4,0,0.2,1);
-}
+#task-notif { position:fixed; top:60px; left:50%; transform:translateX(-50%); z-index:6000; display:none; flex-direction:column; align-items:center; pointer-events:none; }
+.task-notif-card { background:var(--panel); border:1px solid var(--red); border-radius:3px; padding:10px 16px; pointer-events:all; box-shadow:0 0 30px var(--red-glow); max-width:320px; width:90vw; animation:notif-drop 0.4s cubic-bezier(0.4,0,0.2,1); }
 @keyframes notif-drop { from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);} }
 .tnc-sys { font-family:var(--mono); font-size:8px; color:var(--red); letter-spacing:2px; margin-bottom:4px; }
 .tnc-char { font-family:var(--display); font-size:15px; font-weight:700; color:var(--white); margin-bottom:3px; }

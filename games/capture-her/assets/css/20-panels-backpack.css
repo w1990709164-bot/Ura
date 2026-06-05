@@ -1,24 +1,12 @@
-/* BACKPACK */
 .bp-tabs { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
-.bp-tab {
-  font-family:var(--mono); font-size:9px; letter-spacing:1px;
-  color:var(--text2); border:1px solid var(--border); border-radius:2px;
-  padding:4px 10px; cursor:pointer; background:var(--bg3); transition:all 0.2s;
-}
+.bp-tab { font-family:var(--mono); font-size:9px; letter-spacing:1px; color:var(--text2); border:1px solid var(--border); border-radius:2px; padding:4px 10px; cursor:pointer; background:var(--bg3); transition:all 0.2s; }
 .bp-tab.active { color:var(--red); border-color:var(--red-dim); background:var(--red-glow2); }
-.bp-item {
-  background:var(--panel); border:1px solid var(--border); border-radius:3px;
-  padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px;
-}
+.bp-item { background:var(--panel); border:1px solid var(--border); border-radius:3px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
 .bp-icon { font-size:20px; flex-shrink:0; }
 .bp-info { flex:1; min-width:0; }
 .bp-name { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--white); margin-bottom:2px; }
 .bp-desc { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:0.5px; line-height:1.5; }
 .bp-sender { font-family:var(--mono); font-size:9px; color:var(--red); margin-top:2px; }
-.bp-use {
-  font-family:var(--mono); font-size:9px; letter-spacing:1px; color:var(--red);
-  border:1px solid var(--red-dim); border-radius:2px; padding:4px 10px;
-  cursor:pointer; background:var(--red-glow2); flex-shrink:0; transition:all 0.2s;
-}
+.bp-use { font-family:var(--mono); font-size:9px; letter-spacing:1px; color:var(--red); border:1px solid var(--red-dim); border-radius:2px; padding:4px 10px; cursor:pointer; background:var(--red-glow2); flex-shrink:0; transition:all 0.2s; }
 .bp-use:active { background:var(--red); color:var(--bg); }
 .bp-empty { text-align:center; padding:40px; font-family:var(--cormo); font-style:italic; font-size:13px; color:var(--text3); }

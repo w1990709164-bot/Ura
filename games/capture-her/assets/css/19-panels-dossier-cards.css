@@ -1,48 +1,19 @@
-/* DOSSIER CARDS */
-.dossier-filter {
-  display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;
-}
-.df-btn {
-  font-family:var(--mono); font-size:9px; letter-spacing:1px;
-  color:var(--text2); border:1px solid var(--border); border-radius:2px;
-  padding:4px 10px; cursor:pointer; background:var(--bg3); transition:all 0.2s;
-}
+.dossier-filter { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.df-btn { font-family:var(--mono); font-size:9px; letter-spacing:1px; color:var(--text2); border:1px solid var(--border); border-radius:2px; padding:4px 10px; cursor:pointer; background:var(--bg3); transition:all 0.2s; }
 .df-btn.active { color:var(--red); border-color:var(--red-dim); background:var(--red-glow2); }
-
-.dossier-card {
-  background:var(--panel); border:1px solid var(--border); border-radius:3px;
-  padding:14px; margin-bottom:8px; position:relative; overflow:hidden; cursor:pointer;
-}
+.dossier-card { background:var(--panel); border:1px solid var(--border); border-radius:3px; padding:14px; margin-bottom:8px; position:relative; overflow:hidden; cursor:pointer; }
 .dossier-card::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; background:var(--red-dim); }
 .dc-header { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; }
-.dc-av {
-  width:40px; height:40px; border-radius:2px; background:var(--bg3);
-  border:1px solid var(--border2); display:flex; align-items:center;
-  justify-content:center; font-family:var(--mono); font-size:12px;
-  font-weight:700; color:var(--red); flex-shrink:0;
-}
+.dc-av { width:40px; height:40px; border-radius:2px; background:var(--bg3); border:1px solid var(--border2); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; font-weight:700; color:var(--red); flex-shrink:0; }
 .dc-info { flex:1; min-width:0; }
 .dc-name { font-family:var(--display); font-size:14px; font-weight:700; color:var(--white); margin-bottom:2px; }
 .dc-meta { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:0.5px; margin-bottom:4px; }
-.dc-status-badge {
-  font-family:var(--mono); font-size:8px; letter-spacing:1px;
-  padding:2px 6px; border-radius:1px; border:1px solid; flex-shrink:0;
-}
+.dc-status-badge { font-family:var(--mono); font-size:8px; letter-spacing:1px; padding:2px 6px; border-radius:1px; border:1px solid; flex-shrink:0; }
 .dc-status-badge.field { border-color:#3A6A3A; color:#6A9A6A; background:rgba(74,124,74,0.08); }
 .dc-status-badge.base { border-color:var(--blue-dim); color:var(--blue); background:var(--blue-glow); }
 .dc-status-badge.task { border-color:var(--red-dim); color:var(--red); background:var(--red-glow2); }
-
-.dc-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:4px;
-  font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:0.5px;
-}
+.dc-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:0.5px; }
 .dc-grid-item { display:flex; gap:4px; }
 .dc-grid-label { color:var(--text3); }
 .dc-grid-val { color:var(--text); }
-
-.dc-os {
-  margin-top:8px; padding:8px 10px;
-  background:var(--red-glow2); border-left:1px solid var(--red-dim);
-  font-family:var(--cormo); font-style:italic; font-size:12px;
-  color:rgba(232,53,74,0.6); line-height:1.7; border-radius:0 2px 2px 0;
-}
+.dc-os { margin-top:8px; padding:8px 10px; background:var(--red-glow2); border-left:1px solid var(--red-dim); font-family:var(--cormo); font-style:italic; font-size:12px; color:rgba(232,53,74,0.6); line-height:1.7; border-radius:0 2px 2px 0; }

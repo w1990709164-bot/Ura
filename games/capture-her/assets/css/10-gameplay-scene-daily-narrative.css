@@ -1,4 +1,1 @@
-/* ─── SCENE (daily narrative) ─── */
-#scene-view {
-  height:100%; display:flex; flex-direction:column; background:var(--bg); overflow:hidden; position:relative;
-}
+#scene-view { height:100%; display:flex; flex-direction:column; background:var(--bg); overflow:hidden; position:relative; }

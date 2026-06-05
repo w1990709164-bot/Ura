@@ -1,12 +1,4 @@
-/* action bar */
-#action-bar {
-  height:40px; background:var(--bg2); border-top:1px solid var(--border);
-  display:flex; align-items:center; flex-shrink:0; z-index:101;
-}
-.action-btn {
-  flex:1; height:100%; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; font-family:var(--mono); font-size:9px; color:var(--text2);
-  letter-spacing:1px; gap:5px; transition:all 0.2s; border-right:1px solid var(--border);
-}
+#action-bar { height:40px; background:var(--bg2); border-top:1px solid var(--border); display:flex; align-items:center; flex-shrink:0; z-index:101; }
+.action-btn { flex:1; height:100%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:1px; gap:5px; transition:all 0.2s; border-right:1px solid var(--border); }
 .action-btn:last-child { border-right:none; }
 .action-btn:active { background:var(--red-glow); color:var(--red); }
