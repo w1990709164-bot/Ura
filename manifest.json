@@ -1,0 +1,42 @@
+[
+  {
+    "id": "parallel-world",
+    "name": "平行世界",
+    "title": "JOINT BASE · OPERATION REMNANT",
+    "description": "档案战争 / 平行世界线",
+    "entry": "games/parallel-world/index.html",
+    "source": "index(5).html",
+    "css_files": 16,
+    "js_files": 22
+  },
+  {
+    "id": "medical-room",
+    "name": "诊疗室",
+    "title": "诊疗室 · 塔医疗部",
+    "description": "塔医疗部精神疏导科",
+    "entry": "games/medical-room/index.html",
+    "source": "index(6).html",
+    "css_files": 40,
+    "js_files": 28
+  },
+  {
+    "id": "gray-ridge",
+    "name": "灰脊",
+    "title": "灰脊 · 灰盟驻地",
+    "description": "灰盟驻地 / 荒原生存",
+    "entry": "games/gray-ridge/index.html",
+    "source": "index(7).html",
+    "css_files": 27,
+    "js_files": 35
+  },
+  {
+    "id": "capture-her",
+    "name": "攻略她",
+    "title": "任务：攻略她",
+    "description": "任务制恋爱攻略系统",
+    "entry": "games/capture-her/index.html",
+    "source": "index(8).html",
+    "css_files": 25,
+    "js_files": 32
+  }
+]
