@@ -320,11 +320,6 @@ function renderPhoneSchedule() {
     const phaseLabel = p ? (PHASE_LABELS[p.trustPhase||0]||'戒备') : '—';
     const visitLabel = p ? `第${p.visitCount||0}次` : '';
 
-    // Tap to start session button (only if not done, not active, in clinic)
-    const canStart = !isDone && !isActive && G.currentLocation === 'clinic' && G.day > 1;
-    const startBtn = canStart
-      ? `<div onclick="event.stopPropagation();startSessionFrom('${s.id}')" style="font-family:var(--mono);font-size:9px;color:var(--teal);background:rgba(0,255,204,0.08);border:1px solid var(--teal-dim);border-radius:3px;padding:2px 6px;cursor:pointer;white-space:nowrap">接诊</div>`
-      : '';
 
     // 点击预约条目：弹出电子病历（包含接诊/查看按钮）
     const canStart = !isDone && !isActive && G.currentLocation === 'clinic' && G.day > 1;
