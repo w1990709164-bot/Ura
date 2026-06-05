@@ -72,19 +72,8 @@
     <input class="init-input" id="init-appear" placeholder="外貌简述（选填）" maxlength="30" style="margin-top:10px">
     <input class="init-input" id="init-personality" placeholder="性格简述（选填）" maxlength="30">
 
-    <div class="init-section-title" style="margin-top:4px">API 配置</div>
-    <div class="init-key-wrap">
-      <input class="init-input" id="init-key" type="password" placeholder="API Key">
-      <button class="init-key-toggle" onclick="toggleKeyVis()">👁</button>
-    </div>
-    <div class="init-endpoint-toggle" id="adv-toggle" onclick="toggleAdvanced()">自定义接口（第三方API）</div>
-    <div class="init-advanced" id="adv-section">
-      <input class="init-input" id="init-endpoint" placeholder="Endpoint（如 https://api.openai.com/v1）">
-      <input class="init-input" id="init-model" placeholder="模型名称（如 gpt-4o）">
-    </div>
-
     <button class="init-btn" onclick="goToStep2()">下一步：向导适配测试 ▶</button>
-    <div class="init-err" id="init-err">请填写姓名并输入API Key</div>
+    <div class="init-err" id="init-err">请填写姓名</div>
   </div>
 
   <!-- STEP 2: 精神体测试 -->
@@ -148,7 +137,10 @@
           </div>
           <div id="input-area">
             <textarea id="input-box" placeholder="输入对话或行动…" rows="1"></textarea>
-            <button id="send-btn" onclick="sendMessage()" disabled>发送</button>
+            <div style="display:flex;gap:6px;align-items:center">
+              <button id="landscape-btn" onclick="triggerLandscapeEntry(G.clinicSession)" title="进入精神图景" style="flex-shrink:0;width:38px;height:38px;background:rgba(0,180,255,0.06);border:1px solid rgba(0,180,255,0.2);border-radius:6px;color:#4a8ab0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s" onmousedown="this.style.borderColor='#00e5ff';this.style.color='#00e5ff'">🌀</button>
+              <button id="send-btn" onclick="sendMessage()" disabled>发送</button>
+            </div>
           </div>
         </div>
       </div>
@@ -513,6 +505,7 @@
 <script defer src="assets/js/systems/05-messages.js"></script>
 <script defer src="assets/js/systems/06-options.js"></script>
 <script defer src="assets/js/systems/07-send-free-message.js"></script>
+<script defer src="assets/js/data/characters.js"></script>
 <script defer src="assets/js/api/08-ai-call.js"></script>
 <script defer src="assets/js/data/09-system-prompt.js"></script>
 <script defer src="assets/js/core/10-trust-phase.js"></script>
@@ -528,6 +521,8 @@
 <script defer src="assets/js/phone/20-shop-inventory.js"></script>
 <script defer src="assets/js/systems/21-archive-bag-functions.js"></script>
 <script defer src="assets/js/systems/22-archive-render.js"></script>
+<script defer src="assets/js/systems/phone-medical-record.js"></script>
+<script defer src="assets/js/systems/landscape-journey.js"></script>
 <script defer src="assets/js/core/23-settings.js"></script>
 <script defer src="assets/js/systems/24-world-log.js"></script>
 <script defer src="assets/js/core/25-save-load.js"></script>

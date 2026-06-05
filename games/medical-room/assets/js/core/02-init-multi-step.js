@@ -51,8 +51,7 @@ let selectedSpirit = null;
 
 function goToStep2() {
   const name = document.getElementById('init-name').value.trim();
-  const key  = document.getElementById('init-key').value.trim();
-  if (!name || !key) {
+  if (!name) {
     document.getElementById('init-err').style.display = 'block';
     return;
   }
@@ -142,9 +141,15 @@ function finishInit() {
   G.player.spirit      = selectedSpirit;
   G.player.landscape   = document.getElementById('init-landscape-name').value.trim() || '待探索';
   G.player.landscapeDesc = document.getElementById('init-landscape-desc').value.trim() || '';
-  G.apiKey             = document.getElementById('init-key').value.trim();
-  G.apiEndpoint        = document.getElementById('init-endpoint').value.trim();
-  G.apiModel           = document.getElementById('init-model').value.trim();
+
+  // 从主页 localStorage 读取 API 配置
+  G.apiKey      = localStorage.getItem('LW_API_KEY')      || '';
+  G.apiEndpoint = localStorage.getItem('LW_API_URL')       || '';
+  G.apiModel    = localStorage.getItem('LW_API_MODEL')     || '';
+
+  if (!G.apiKey) {
+    showToast('⚠ 未检测到 API Key，请返回主页设置');
+  }
 
   document.getElementById('init-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
@@ -237,9 +242,16 @@ function generateSchedule() {
     }
   }
 
-  G.schedule = selected.map(p => ({id:p.id, type:p.type, time:p.time, reason:p.reason}));
+  // 固定三个时间槽：09:00 / 10:30 / 15:00
+  const FIXED_SLOTS = ['09:00', '10:30', '15:00'];
+  G.schedule = selected.map((p, i) => ({
+    id: p.id,
+    type: 'pre',
+    time: FIXED_SLOTS[i] || FIXED_SLOTS[2],
+    reason: p.reason,
+  }));
 
-  // Sort by time
+  // 按时间排序
   const timeToMin = t => {
     if (!t || t==='随时' || t==='紧急') return 999;
     const [h,m] = t.split(':').map(Number); return h*60+(m||0);
@@ -250,16 +262,15 @@ function generateSchedule() {
   G.recentScheduleIds = [...G.recentScheduleIds, ...selected.map(p=>p.id)].slice(-12);
   G.allTimeSeenIds    = [...new Set([...G.allTimeSeenIds, ...selected.map(p=>p.id)])];
 
-  // Inject urgent if any patient critical — max 1
+  // 紧急病人：最多1个，随机插入三槽之间
   const urgent = Object.entries(G.patients)
     .filter(([id,p])=>p.mental>=80&&p.visitCount>0)
     .map(([id])=>id);
-  let urgentAdded = 0;
-  for (const id of urgent) {
-    if (urgentAdded >= 1) break;
+  if (urgent.length > 0) {
+    const id = urgent[0];
     if (!G.schedule.find(s=>s.id===id)) {
-      G.schedule.unshift({id, type:'urgent', time:'紧急', reason:'感官过载警报 ⚡'});
-      urgentAdded++;
+      const insertIdx = Math.floor(Math.random() * (G.schedule.length + 1));
+      G.schedule.splice(insertIdx, 0, {id, type:'urgent', time:'⚡紧急', reason:'感官过载警报 ⚡'});
     }
   }
 
@@ -315,7 +326,9 @@ function renderPhoneSchedule() {
       ? `<div onclick="event.stopPropagation();startSessionFrom('${s.id}')" style="font-family:var(--mono);font-size:9px;color:var(--teal);background:rgba(0,255,204,0.08);border:1px solid var(--teal-dim);border-radius:3px;padding:2px 6px;cursor:pointer;white-space:nowrap">接诊</div>`
       : '';
 
-    html += `<div class="appt-item" style="${doneStyle}${activeStyle}cursor:pointer" onclick="${isDone||isActive?'':(`closePhone();startSessionFrom('${s.id}')`)}" >
+    // 点击预约条目：弹出电子病历（包含接诊/查看按钮）
+    const canStart = !isDone && !isActive && G.currentLocation === 'clinic' && G.day > 1;
+    html += `<div class="appt-item" style="${doneStyle}${activeStyle}cursor:pointer" onclick="showMedicalRecordWithActions('${s.id}','${isDone}','${isActive}')">
       <div style="text-align:center;min-width:44px">
         <div class="appt-time" style="${isDone?'color:var(--text3);text-decoration:line-through':isActive?'color:var(--cyan)':''}">${s.time}</div>
         <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px">${visitLabel}</div>
@@ -327,7 +340,7 @@ function renderPhoneSchedule() {
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         <div class="appt-type ${tc}" style="${isDone?'color:var(--text3);background:none;border-color:var(--border)':''}">${tl}</div>
-        ${startBtn}
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3)">📋 查看病历</div>
       </div>
     </div>`;
   });
@@ -401,28 +414,44 @@ function startSessionFrom(charId) {
   saveGame();
   callAI();
 }
-const MAX_URGENT_PER_DAY = 2;
-function countUrgentToday() {
-  return G.schedule.filter(s => s.type === 'urgent').length;
-}
+// 每天最多1个紧急病人，由 11-guide-level.js 的 checkAndTriggerEmergency() 统一管理
+// maybeSpawnEmergency 已移除，防止随机刷紧急
 
-// 20% chance random emergency per time slot — hard-capped at MAX_URGENT_PER_DAY
-function maybeSpawnEmergency() {
-  if (countUrgentToday() >= MAX_URGENT_PER_DAY) return;
-  if (Math.random() > 0.20) return;
-  const eligible = CHARS.filter(c=>{
-    const p = G.patients[c.id];
-    return p && p.visitCount > 0 && !G.schedule.find(s=>s.id===c.id) && !G.completedToday.includes(c.id);
-  });
-  if (!eligible.length) return;
-  const c = eligible[Math.floor(Math.random()*eligible.length)];
-  const reasons = ['感官突发过载','精神体失控警报','前线创伤紧急入院','神游症发作'];
-  const reason = reasons[Math.floor(Math.random()*reasons.length)];
-  G.schedule.push({id:c.id, type:'urgent', time:'紧急', reason: reason+' ⚡'});
-  renderPhoneSchedule();
-  addSysMsg('⚡ 紧急通报', `${c.name} 出现 <span style="color:var(--pink)">${reason}</span>，已加入今日看诊名单。`);
-  const badge = document.getElementById('appt-badge');
-  if (badge) { badge.textContent = '!'; badge.style.background='var(--pink)'; }
-  showToast(`⚡ 紧急：${c.name} 需要立即疏导`);
-  saveGame();
+// 预约列表点击：弹出病历，病历底部显示接诊/返回按钮
+function showMedicalRecordWithActions(charId, isDoneStr, isActiveStr) {
+  const isDone   = isDoneStr   === 'true';
+  const isActive = isActiveStr === 'true';
+  showMedicalRecord(charId);
+
+  // 在病历底部注入操作按钮
+  setTimeout(() => {
+    const modal = document.getElementById('medical-record-modal');
+    if (!modal) return;
+    const footer = modal.querySelector('div:last-child');
+    if (!footer) return;
+    footer.innerHTML = '';
+    if (isDone) {
+      footer.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--teal,#00ffcc);text-align:center;padding:4px 0;letter-spacing:2px">✓ 今日已完成看诊</div>`;
+    } else if (isActive) {
+      footer.innerHTML = `
+        <button onclick="closeMedicalRecord();closePhone();showPanel('scene')" style="width:100%;padding:10px;background:rgba(0,229,255,0.1);border:1px solid var(--cyan,#00e5ff);border-radius:3px;color:var(--cyan,#00e5ff);font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:2px;font-weight:700">
+          → 返回诊疗室
+        </button>`;
+    } else if (G.currentLocation === 'clinic' && G.day > 1) {
+      footer.innerHTML = `
+        <div style="display:flex;gap:8px">
+          <button onclick="closeMedicalRecord()" style="flex:1;padding:10px;background:none;border:1px solid #1a3040;border-radius:3px;color:#5a7a90;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer">
+            收起
+          </button>
+          <button onclick="closeMedicalRecord();closePhone();startSessionFrom('${charId}')" style="flex:2;padding:10px;background:rgba(0,229,255,0.1);border:1px solid var(--cyan,#00e5ff);border-radius:3px;color:var(--cyan,#00e5ff);font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:2px;font-weight:700">
+            开始接诊 →
+          </button>
+        </div>`;
+    } else {
+      footer.innerHTML = `
+        <button onclick="closeMedicalRecord()" style="width:100%;padding:10px;background:rgba(0,229,255,0.06);border:1px solid #1a3040;border-radius:3px;color:#5a7a90;font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:2px">
+          收起病历
+        </button>`;
+    }
+  }, 50);
 }

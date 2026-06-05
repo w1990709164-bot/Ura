@@ -64,6 +64,12 @@ async function callAI() {
       try {
         const h = JSON.parse(horaeMatch[1].trim());
         processHorae(h);
+        // 检测图景触发
+        if (h.enter_landscape === true && G.clinicSession) {
+          setTimeout(() => {
+            if (typeof triggerLandscapeEntry === 'function') triggerLandscapeEntry(G.clinicSession);
+          }, 600);
+        }
       } catch(e){ console.warn('[horae parse error]', e, horaeMatch[1]); }
     }
 
@@ -466,6 +472,7 @@ function processHorae(h) {
     if (G.day > 1) {
       G.sessionTurns++;
 
+      // ── 第3轮：更新visitCount、解锁联系人、生成worldLog，但不自动结束——等玩家手动确认 ──
       if (G.sessionTurns === 3 && !G.completedToday.includes(id)) {
         if (p.visitCount === 0) {
           p.visitCount = 1;
@@ -474,39 +481,22 @@ function processHorae(h) {
             p.memory = { summary:`第${G.day}天初次接触，正在建立关系`, keyEvents:[], doctorNote:'', lastUpdated:`第${G.day}天` };
           }
           unlockContact(id);
-          addSalary(300, `完成${c?.name||id}首次接诊`);
-          triggerPostSessionMoment(id);
-          addWorldLog('clinic', id, `首次接诊完成。信任阶段：${PHASE_LABELS[p.trustPhase||0]||'戒备'}。精神力${p.mental}，应激${p.stress}。`);
+          addWorldLog('clinic', id, `首次接诊。信任阶段：${PHASE_LABELS[p.trustPhase||0]||'戒备'}。精神力${p.mental}，应激${p.stress}。`);
         } else {
           p.visitCount++;
           p.lastVisit = `第${G.day}天`;
-          addSalary(200, `完成${c?.name||id}接诊`);
-          triggerPostSessionMoment(id);
-          addWorldLog('clinic', id, `第${p.visitCount}次接诊完成。阶段：${PHASE_LABELS[p.trustPhase||0]||'戒备'}（积累${p.trustAccum||0}/${PHASE_THRESHOLDS[p.trustPhase||0]||100}）。精神力${p.mental}，应激${p.stress}。`);
+          addWorldLog('clinic', id, `第${p.visitCount}次接诊。阶段：${PHASE_LABELS[p.trustPhase||0]||'戒备'}（积累${p.trustAccum||0}/${PHASE_THRESHOLDS[p.trustPhase||0]||100}）。精神力${p.mental}，应激${p.stress}。`);
         }
-        G.completedToday.push(id);
-        renderPhoneSchedule();
-        renderStatus();
-        const cName = c?.name || id;
-        const phase = PHASE_LABELS[p.trustPhase||0] || '戒备';
-        const journalTemplates = [
-          `完成了与${cName}的看诊。目前关系阶段：${phase}。`,
-          `今天接诊了${cName}（${c?.unit||''}）。感官状态${p.mental > 70 ? '较紧张' : '尚稳定'}。`,
-          `${cName}今日就诊，这是第${p.visitCount}次接触。`,
-        ];
-        addJournalEntry(journalTemplates[Math.floor(Math.random()*journalTemplates.length)]);
       }
 
-      // session_end: switch to next scheduled patient if any remain
-      if (h.session_end === true) {
-        const next = G.schedule.find(s => !G.completedToday.includes(s.id));
-        if (next) {
-          G.clinicSession = next.id;
-          G.sessionTurns = 0;
-          addSysMsg('下一位患者', `${CHARS.find(x=>x.id===next.id)?.name||next.id} 已预约 ${next.time} · ${next.reason}`);
-        } else {
-          G.clinicSession = null;
-          G.sessionTurns = 0;
+      // ── session_end：AI建议结束时弹出摘要弹窗，由玩家手动确认，不自动切换 ──
+      if (h.session_end === true && !G.completedToday.includes(id) && G.sessionTurns >= 3) {
+        // 生成摘要文本（从worldLog取最新一条）
+        const latestLog = (G.worldLog||[]).filter(e=>e.charId===id&&e.type==='clinic').slice(-1)[0];
+        const summaryText = latestLog ? latestLog.text : `本次就诊已完成，请确认结束。`;
+        // 弹出摘要弹窗，等玩家点击"确认结束看诊"
+        if (typeof showSessionSummary === 'function') {
+          setTimeout(() => showSessionSummary(id, summaryText), 800);
         }
       }
     }

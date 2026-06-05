@@ -40,20 +40,20 @@ let G = {
 };
 
 const CHARS = [
-  {id:'keegan',name:'Keegan P. Russ',unit:'Ghosts · SGT',init:'KR',bags:10},
-  {id:'ghost',name:'Simon "Ghost" Riley',unit:'TF141 · LT',init:'GH',bags:10},
-  {id:'soap',name:'John "Soap" MacTavish',unit:'TF141 · SGT',init:'SO',bags:8},
-  {id:'gaz',name:'Kyle "Gaz" Garrick',unit:'TF141 · SGT',init:'GZ',bags:6},
-  {id:'price',name:'John Price',unit:'TF141 · CPT',init:'PR',bags:8},
-  {id:'hesh',name:'David "Hesh" Walker',unit:'Ghosts · LT',init:'HW',bags:8},
-  {id:'logan',name:'Logan Walker',unit:'Ghosts · SGT',init:'LW',bags:8},
-  {id:'merrick',name:'Thomas A. Merrick',unit:'Ghosts · CPT',init:'TM',bags:8},
-  {id:'konig',name:'König',unit:'KorTac',init:'KG',bags:10},
-  {id:'horangi',name:'Horangi',unit:'KorTac',init:'HR',bags:6},
-  {id:'nikto',name:'Nikto',unit:'KorTac',init:'NK',bags:10},
-  {id:'krueger',name:'Sebastian Krueger',unit:'Chimera',init:'SK',bags:10},
-  {id:'zimo',name:'Zhiqiang "Zimo" Wang',unit:'SpecGru',init:'ZM',bags:6},
-  {id:'graves',name:'Phillip Graves',unit:'Shadow Co.',init:'PG',bags:8},
+  {id:'keegan',  name:'Keegan P. Russ',             unit:'Ghosts · SGT',       init:'KR', bags:10},
+  {id:'ghost',   name:'Simon "Ghost" Riley',         unit:'TF141 · LT',         init:'GH', bags:10},
+  {id:'soap',    name:'John "Soap" MacTavish',       unit:'TF141 · SGT',        init:'SO', bags:8},
+  {id:'gaz',     name:'Kyle "Gaz" Garrick',          unit:'TF141 · SGT',        init:'GZ', bags:6},
+  {id:'price',   name:'John Price',                  unit:'TF141 · CPT',        init:'PR', bags:8},
+  {id:'hesh',    name:'David "Hesh" Walker',         unit:'Ghosts · LT',        init:'HW', bags:8},
+  {id:'logan',   name:'Logan Walker',                unit:'Ghosts · SGT',       init:'LW', bags:8},
+  {id:'konig',   name:'König',                       unit:'KorTac',             init:'KG', bags:10},
+  {id:'horangi', name:'Horangi',                     unit:'KorTac',             init:'HR', bags:6},
+  {id:'nikto',   name:'Nikto',                       unit:'KorTac',             init:'NK', bags:10},
+  {id:'krueger', name:'Sebastian Krueger',           unit:'Chimera',            init:'SK', bags:10},
+  {id:'zimo',    name:'Zhiqiang "Zimo" Wang',        unit:'TF141 · 心理作战',   init:'ZM', bags:6},
+  {id:'graves',  name:'Phillip Graves',              unit:'Shadow Co.',         init:'PG', bags:8},
+  {id:'kick',    name:'Kick',                        unit:'Ghosts · 电子战',    init:'KC', bags:8},
 ];
 
 function toggleKeyVis() {

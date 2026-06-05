@@ -31,6 +31,7 @@ const BAG_TITLES = {
   krueger:['入职基础档案','感官评估报告','奥地利·童年记录','KSK·服役记录','Operation Nachtigall·2018','Golem·背叛','双头鹰·纹身记录','图景报告·阿尔卑斯教堂','精神体报告·绿森蚺','Josef'],
   zimo:   ['入职基础档案','感官评估报告','利刃突击营·服役记录','祖母·家族档案','图景报告·华北平原黄昏','—'],
   graves: ['入职基础档案','感官评估报告','德克萨斯·早期记录','暗影公司·创立档案','图景报告·德克萨斯荒原','那栋房子','精神体报告·德克萨斯长角牛','Philip'],
+  kick:   ['入职基础档案','感官评估报告','白帽黑客·早期记录','伊莱亚斯·招募档案','Keegan·带训记录','图景报告·数字荒野','K1CK·网名来源','战绩汇编·电子战','精神体报告·游隼','—'],
 };
 
 function getBagTitle(charId, n) {
@@ -183,6 +184,18 @@ const BAG_CONTENTS = {
     {title:'那栋房子', level:'高度机密', content:'向导的后续记录：\n\n"今天他走向那栋房子了，在门口停下来，没有进去。\n他说：\n"There are people in there I don\'t want to disappoint.""'},
     {title:'精神体报告·德克萨斯长角牛', level:'高度机密', content:'精神体观察记录\n\n备注：\n"它站在那栋房子和我们之间，\n不是在保护房子——\n是在保护他不要走进去然后失望。"'},
     {title:'Philip', level:'绝密', content:'一张便条，第一次没有用职业语气：\n\n"I went in.\nIt was okay.\nThought you should know."'},
+  ],
+  kick: [
+    {title:'入职基础档案', level:'公开', content:'代号：Kickstart / Kick\n职级：下士 · 单位：幽灵小队 · 电子战\n专长：系统入侵、通讯干扰、水陆两栖机动\n备注："破格录用。伊莱亚斯上校特批。"'},
+    {title:'感官评估报告', level:'限阅', content:'评估师备注：\n"患者配合度极高，全程保持鸭舌帽和护目镜。\n感官数据显示听觉异常敏锐——\n他能感知到我笔记本电脑的风扇频率变化。\n这应该是长年接触高频电子设备的结果。"'},
+    {title:'白帽黑客·早期记录', level:'限阅', content:'民间黑客档案（前塔时期）\n\n网名：K1Ck\n主要活动：破解多国企业安防、捣毁黑市数据集团\n\n某机构的追踪报告边缘有人手写了：\n"找到他之前让他把漏洞补上了。\n这小子不一般。—E"'},
+    {title:'伊莱亚斯·招募档案', level:'机密', content:'伊莱亚斯亲签的破格录用报告\n\n原因栏：\n"技术能力S级，心性纯粹，三观可信赖。\n年龄不是问题，战场才是标准。"\n\n旁边Kick用小字写了：\n"Cap，我没让你失望，对吗。"'},
+    {title:'Keegan·带训记录', level:'机密', content:'Keegan P. Russ带训报告，内容简短：\n\n"技术不需要我教，\n战场判断需要。\n他学得很快。"\n\n报告结尾Kick写了：\n"Russ就是那种你说感谢他会更沉默的人。\n所以我没说。"'},
+    {title:'图景报告·数字荒野', level:'机密', content:'向导记录\n\n备注：\n"游隼在信号流最密集的地方停着，\n看见我进来立刻俯冲，\n在我肩边掠过但没有停下，\n绕了一圈才回到高处。\n他在测试我够不够快。"'},
+    {title:'K1CK·网名来源', level:'高度机密', content:'一份他自己写的备忘录，语气很跳脱：\n\n"K1Ck = Kickstart，但1代替了i。\n因为那年我第一次黑进一个系统，\n用的是一台被丢弃的旧主机，\n编号里有个1。\n我不知道那算不算某种命运。\nProbably overthinking it. Heh."\n\n便条旁边夹着一颗旧主机的内存条。'},
+    {title:'战绩汇编·电子战', level:'高度机密', content:'主要战绩记录：\n\n· 黑入敌方防空系统，掩护直升机接应全队\n· 水下破解电子安防，完成纵深渗透\n· 城区就地解锁民用车辆电控，一秒带队突围\n· 切断敌军通讯，为小队创造三十秒撤离窗口\n· 远程关停重兵设防据点的大门\n\n评级：S\n\nKeegan在最后写了一行：\n"I trained him.\n—K.R."'},
+    {title:'精神体报告·游隼', level:'高度机密', content:'精神体观察记录\n\n备注：\n"第一次进入图景时，游隼在极高处。\n我等了很久它才下来，\n在我头顶盘旋一圈，\n然后停在离我一米的信号柱上。\n\n它的眼神很锐利，\n但尾羽轻轻摆动着——\n我突然想到一个词：\n好奇。"'},
+    {title:'—', level:'绝密', content:'一条手机截图，一段代码注释：\n\n// TODO: tell them i was scared too\n// but the door opened\n// so i went in\n// no sweat.\n\n截图时间是某次任务结束后十分钟。\n代码从来没有提交。'},
   ],
 };
 
@@ -386,18 +399,59 @@ function addJournalEntry(text, dateStr) {
 function renderJournal() {
   const el = document.getElementById('journal-content');
   if (!el) return;
-  const allEntries = [...G.journalEntries];
-  // Always have at least the initial entry
-  if (allEntries.length === 0) {
-    allEntries.push({ date: '2060.01.01 · 09:00', text: '今天是上岗第一天。诊疗室比想象中安静，绿萝掉了两片叶子。' });
-  }
-  el.innerHTML = allEntries.map(e => {
-    const isWorldLog = e.text.startsWith('【') && e.text.includes('世界记录】');
+
+  const allEntries = G.journalEntries && G.journalEntries.length > 0
+    ? [...G.journalEntries]
+    : [{ date: '2060.01.01 · 09:00', text: '今天是上岗第一天。诊疗室比想象中安静，绿萝掉了两片叶子。' }];
+
+  // 按天分组
+  const groups = {};
+  const groupOrder = [];
+  allEntries.forEach(e => {
+    // 从 date 里提取天标识，如"第3天"或"2060.01.03"
+    const dayKey = e.date ? e.date.split(' ·')[0].trim() : `第${G.day}天`;
+    if (!groups[dayKey]) {
+      groups[dayKey] = [];
+      groupOrder.push(dayKey);
+    }
+    groups[dayKey].push(e);
+  });
+
+  // 渲染手风琴
+  el.innerHTML = groupOrder.map((dayKey, idx) => {
+    const entries = groups[dayKey];
+    const isFirst = idx === 0; // 最新一天默认展开
+    const domId = `journal-day-${idx}`;
     return `
-    <div class="journal-entry" style="${isWorldLog ? 'border-left:2px solid var(--teal);background:rgba(0,255,204,0.03);' : ''}">
-      <div class="je-date" style="${isWorldLog ? 'color:var(--teal);' : ''}">${e.date}${isWorldLog ? ' · 世界记录' : ''}</div>
-      <div class="je-text" style="${isWorldLog ? 'font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--text2);white-space:pre-wrap;' : ''}">${e.text.replace('【第','').replace('世界记录】\n','')}</div>
-    </div>`}).join('');
+      <div style="border-bottom:1px solid var(--border);margin-bottom:2px">
+        <!-- 天标题行，点击展开/折叠 -->
+        <div onclick="toggleJournalDay('${domId}')"
+          style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;background:var(--bg3);border-radius:4px;margin-bottom:2px;transition:background 0.2s"
+          onmousedown="this.style.background='var(--bg2)'" onmouseup="this.style.background='var(--bg3)'">
+          <div id="${domId}-arrow" style="font-family:var(--mono);font-size:10px;color:var(--cyan);width:12px;flex-shrink:0;transition:transform 0.2s;${isFirst?'transform:rotate(90deg)':''}"
+          >▶</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text2);flex:1;letter-spacing:1px">${dayKey}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--bg);border:1px solid var(--border);padding:2px 8px;border-radius:10px">${entries.length}条</div>
+        </div>
+        <!-- 条目列表 -->
+        <div id="${domId}" style="display:${isFirst?'block':'none'};padding:0 4px 8px">
+          ${entries.map(e => `
+            <div style="padding:8px 12px;margin-bottom:4px;background:var(--bg);border:1px solid var(--border);border-radius:4px;border-left:2px solid var(--border2)">
+              <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:4px;letter-spacing:1px">${e.date}</div>
+              <div style="font-family:var(--serif);font-size:13px;color:var(--text);line-height:1.8">${e.text}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleJournalDay(domId) {
+  const content = document.getElementById(domId);
+  const arrow   = document.getElementById(domId + '-arrow');
+  if (!content) return;
+  const isOpen = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
 }
 function addMoment(charId, text, time) {
   const c = CHARS.find(x=>x.id===charId);
@@ -506,6 +560,7 @@ function triggerPostSessionMoment(charId) {
       nikto:   ["Я был там. / 「我去了那里。」", "..."],
       krueger: ["Pflicht erfüllt. / 「职责已尽。」"],
       zimo:    ["中啊，打卡完事了。", "去了趟三楼，还行。"],
+      kick:    ["Just hacked my way through that check-up. / 「我用我的方式完成了今天的检查。」","Doc's got good reaction time. Noted. / 「医生反应挺快的，记下来了。」","System check complete. All good. / 「系统检测完成。一切正常。」"],
     };
     const templates = momentTemplates[charId];
     if (templates) {
@@ -522,6 +577,7 @@ function triggerPostSessionMoment(charId) {
       price:   {title:'关于医疗强检流程', content:'今天完成了上级要求的例行检查。制度归制度，但执行质量确实参差不齐。第三诊疗组的新向导至少是认真的。', tag:'intel'},
       merrick: {title:'精神疏导强制执行通知', content:'根据塔医疗部规定，所有一线人员须按周期完成精神压力评估。第三诊疗组负责执行本轮检查，请各部门配合安排时间。', tag:'notice'},
       konig:   {title:'（匿名）', content:'有没有人觉得那个诊疗室比较安静……就单纯的安静。', tag:'anon'},
+      kick:    {title:'关于电子战哨兵的感官问题（技术向）', content:'感官过载其实有点像系统溢出——输入量超过处理上限。有没有人研究过用特定频率信号做预缓冲的？单纯好奇，不是在写论文。', tag:'intel'},
     };
     const tmpl = forumTemplates[charId];
     if (tmpl) addForumPost(charId, tmpl.title, tmpl.content, tmpl.tag);
