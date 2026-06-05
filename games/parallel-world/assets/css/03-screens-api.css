@@ -1,0 +1,22 @@
+/* API */
+#s-api{align-items:center;justify-content:center;background:var(--bg-mid);}
+.doc-card{background:var(--parchment);color:var(--ink);width:min(500px,92vw);padding:2.4rem;box-shadow:6px 10px 40px rgba(0,0,0,0.7),0 0 0 1px var(--parchment-aged);max-height:90vh;overflow-y:auto;}
+.doc-head{border-bottom:2px solid var(--ink);padding-bottom:1rem;margin-bottom:1.6rem;display:flex;justify-content:space-between;align-items:flex-start;}
+.doc-head-title{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;line-height:1.2;}
+.doc-head-ref{font-family:'Special Elite',cursive;font-size:0.58rem;color:var(--ink-light);text-align:right;line-height:1.6;}
+.doc-sub{font-family:'Special Elite',cursive;font-size:0.6rem;letter-spacing:0.18em;color:var(--ink-light);margin-top:0.3rem;}
+.f-group{margin-bottom:1.3rem;}
+.f-label{font-family:'Special Elite',cursive;font-size:0.6rem;letter-spacing:0.2em;color:var(--ink-faded);display:block;margin-bottom:0.4rem;}
+.f-input,.f-select{width:100%;background:rgba(0,0,0,0.04);border:none;border-bottom:1px solid var(--parchment-aged);padding:0.5rem 0.3rem;font-family:'Courier Prime',monospace;font-size:0.85rem;color:var(--ink);outline:none;transition:border-color 0.2s;}
+.f-input:focus,.f-select:focus{border-bottom-color:var(--gold);}
+.f-input::placeholder{color:var(--ink-light);opacity:0.5;}
+.f-select{cursor:pointer;appearance:none;}
+.f-note{font-family:'IM Fell English',serif;font-style:italic;font-size:0.7rem;color:var(--ink-light);margin-top:0.3rem;}
+.model-row{display:flex;gap:0.6rem;align-items:flex-end;}
+.model-row .f-select{flex:1;}
+.fetch-btn{background:var(--ink-faded);color:var(--parchment);border:none;padding:0.5rem 0.9rem;font-family:'Special Elite',cursive;font-size:0.7rem;letter-spacing:0.12em;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.fetch-btn:hover{background:var(--ink);}
+.btn-p{width:100%;padding:0.8rem;background:var(--ink);color:var(--parchment);border:none;font-family:'Special Elite',cursive;font-size:0.82rem;letter-spacing:0.2em;cursor:pointer;transition:all 0.2s;margin-top:0.5rem;}
+.btn-p:hover{background:var(--ink-faded);}
+.btn-s{width:100%;padding:0.6rem;background:transparent;color:var(--ink-light);border:1px solid var(--parchment-aged);font-family:'Special Elite',cursive;font-size:0.72rem;letter-spacing:0.15em;cursor:pointer;transition:all 0.2s;margin-top:0.5rem;}
+.btn-s:hover{border-color:var(--ink-light);}

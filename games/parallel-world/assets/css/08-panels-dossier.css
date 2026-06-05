@@ -1,0 +1,25 @@
+/* DOSSIER */
+.dossier-char{border:1px solid rgba(232,220,200,0.08);margin-bottom:0.5rem;overflow:hidden;}
+.dossier-head{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.75rem;cursor:pointer;transition:background 0.18s;}
+.dossier-head:hover{background:rgba(255,255,255,0.04);}
+.dossier-head-left{display:flex;align-items:center;gap:0.5rem;}
+.dossier-char-name{font-family:'Playfair Display',serif;font-size:0.88rem;font-weight:700;color:var(--parchment);}
+.dossier-rel{font-family:'Special Elite',cursive;font-size:0.48rem;letter-spacing:0.08em;padding:0.1rem 0.35rem;border:1px solid rgba(232,220,200,0.2);color:rgba(232,220,200,0.45);}
+.dossier-arrow{font-size:0.58rem;color:rgba(232,220,200,0.3);transition:transform 0.2s;}
+.dossier-arrow.open{transform:rotate(90deg);}
+.dossier-body{display:none;padding:0.75rem;border-top:1px solid rgba(232,220,200,0.06);background:rgba(0,0,0,0.15);}
+.dossier-body.open{display:block;}
+.d-row{display:flex;justify-content:space-between;margin-bottom:0.38rem;align-items:baseline;}
+.d-lbl{font-family:'Special Elite',cursive;font-size:0.5rem;color:rgba(232,220,200,0.3);letter-spacing:0.12em;}
+.d-val{font-family:'Courier Prime',monospace;font-size:0.6rem;color:var(--parchment-aged);}
+.d-aff-wrap{margin-top:0.55rem;}
+.d-aff-stage{font-family:'Special Elite',cursive;font-size:0.5rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:0.22rem;}
+.d-aff-bar{height:3px;background:rgba(255,255,255,0.07);}
+.d-aff-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));transition:width 0.6s;}
+.d-aff-nums{display:flex;justify-content:space-between;margin-top:0.18rem;}
+.d-aff-cur{font-size:0.5rem;color:var(--gold);}
+.d-aff-max{font-size:0.5rem;color:rgba(232,220,200,0.3);}
+.d-voice{margin-top:0.7rem;padding:0.5rem 0.6rem;border-left:2px solid rgba(168,122,16,0.4);background:rgba(168,122,16,0.05);}
+.d-voice-lbl{font-family:'Special Elite',cursive;font-size:0.46rem;letter-spacing:0.15em;color:rgba(232,220,200,0.25);margin-bottom:0.2rem;}
+.d-voice-en{font-family:'IM Fell English',serif;font-style:italic;font-size:0.7rem;color:rgba(232,220,200,0.55);line-height:1.5;}
+.d-voice-zh{font-family:'IM Fell English',serif;font-style:italic;font-size:0.65rem;color:rgba(232,220,200,0.35);line-height:1.4;margin-top:0.15rem;}

@@ -1,0 +1,82 @@
+// ════════════════════════════════
+// SAVE / LOAD
+// ════════════════════════════════
+async function buildSaveSlots(){
+  const wrap=document.getElementById('save-slots-ui');wrap.innerHTML='';
+  // 自动档
+  let autoSnap=null;
+  const _lgar=await Store.get('cod_autosave'); if(_lgar) try{autoSnap=JSON.parse(_lgar);}catch(e){}
+  const autoDiv=document.createElement('div');autoDiv.className='save-slot';
+  autoDiv.style.cssText='border-left:2px solid var(--gold);opacity:0.9;';
+  autoDiv.innerHTML=`<div class="save-slot-info"><span class="save-slot-num" style="color:var(--gold)">AUTO</span><span class="save-slot-data" style="${!autoSnap?'color:rgba(232,220,200,0.22)':''}">${autoSnap?`${autoSnap.date} · Day ${autoSnap.day} · ${autoSnap.name}`:'— 暂无自动存档 —'}</span></div>
+    <div class="save-slot-btns"><button class="ss-btn" style="${!autoSnap?'opacity:0.3':''}" ${!autoSnap?'disabled':''} onclick="loadAutoSave()">读</button></div>`;
+  wrap.appendChild(autoDiv);
+  // 手动档
+  [0,1,2].forEach(i=>{
+    const s=G.saves[i];
+    const div=document.createElement('div');div.className='save-slot';
+    div.innerHTML=`<div class="save-slot-info"><span class="save-slot-num">SLOT 0${i+1}</span><span class="save-slot-data" style="${!s?'color:rgba(232,220,200,0.22)':''}">${s?`${s.date} · Day ${s.day} · ${s.name}`:'— 空档 —'}</span></div>
+      <div class="save-slot-btns"><button class="ss-btn" onclick="saveToSlot(${i})">存</button><button class="ss-btn" onclick="loadFromSlot(${i})" style="${!s?'opacity:0.3':''}" ${!s?'disabled':''}>读</button></div>`;
+    wrap.appendChild(div);
+  });
+}
+async function loadAutoSave(){
+  let snap=null;
+  const _lar=await Store.get('cod_autosave'); if(_lar) try{snap=JSON.parse(_lar);}catch(e){}
+  if(!snap){ showMsg('没有自动存档'); return; }
+  Object.assign(G,snap);
+  if(snap.api) Object.assign(API,snap.api);
+  show('s-game');
+  updateBountyTimer();
+  updateBountyButtons();
+  showMsg('已读取自动存档');
+}
+async function saveToSlot(i){
+  if(!G.playerName){ showMsg('请先开始游戏再存档'); return; }
+  const {saves:_s, currentBoard:_cb, currentPost:_cp, ...rest} = G;
+  // 裁剪dialogueHistory，每角色只保留最近10条，避免超出存储限制
+  const trimmedHistory = {};
+  for(const k in rest.dialogueHistory){
+    trimmedHistory[k] = rest.dialogueHistory[k].slice(-10);
+  }
+  const snap={ ...rest, dialogueHistory:trimmedHistory, date:getDate(), name:G.playerName, api:{...API} };
+  if(!G.saves) G.saves=[null,null,null];
+  G.saves[i]=snap;
+  try{
+    let saves=[null,null,null];
+    const _lsr=await Store.get('cod_saves'); if(_lsr) try{saves=JSON.parse(_lsr);}catch(e){}
+    saves[i]=snap;
+    const serialized = JSON.stringify(saves);
+    await Store.set('cod_saves', serialized);
+    buildSaveSlots();
+    showMsg(`已存入 SLOT 0${i+1}`);
+  }catch(e){ showMsg('存档失败：'+e.message); }
+}
+async function loadFromSlot(i){
+  let saves=[null,null,null];
+  const _lgsr=await Store.get('cod_saves'); if(_lgsr) try{saves=JSON.parse(_lgsr);}catch(e){}
+  const s=saves[i];
+  if(!s){ showMsg('该档位无存档'); return; }
+  Object.assign(G,s);
+  if(s.api) Object.assign(API,s.api);
+  show('s-game');
+  updateBountyTimer();
+  updateBountyButtons();
+  showMsg(`已读取 SLOT 0${i+1}`);
+}
+async function loadGame(){
+  // 找最新的存档：比较手动档和自动档的day
+  let saves=[null,null,null];
+  const _bsr2=await Store.get('cod_saves'); if(_bsr2) try{saves=JSON.parse(_bsr2);}catch(e){}
+  let autoSnap=null;
+  const _bsr=await Store.get('cod_autosave'); if(_bsr) try{autoSnap=JSON.parse(_bsr);}catch(e){}
+  const manualFirst=saves.find(s=>s!==null);
+  // 选day最大的
+  let best=manualFirst||null;
+  if(autoSnap && (!best || autoSnap.day >= best.day)) best=autoSnap;
+  if(!best){ showMsg('没有找到存档'); return; }
+  Object.assign(G,best);
+  if(best.api) Object.assign(API,best.api);
+  show('s-game');
+  updateBountyButtons();
+}
