@@ -16,9 +16,16 @@ function startNewGame() {
   const month = parseInt(document.getElementById('ng-month').value);
   const day = parseInt(document.getElementById('ng-day').value);
   const err = document.getElementById('ng-err');
+
   if(!name){ err.textContent='请输入姓名'; err.style.display='block'; return; }
   if(!month||!day){ err.textContent='请选择生日'; err.style.display='block'; return; }
-  if(!localStorage.getItem('LW_API_KEY')){ err.textContent='请先在主页设置API密钥'; err.style.display='block'; return; }
+
+  if(!localStorage.getItem('LW_API_KEY')){
+    err.textContent='请先在主页设置API密钥';
+    err.style.display='block';
+    return;
+  }
+
   err.style.display='none';
   G.player = {name, appearance, birthday:{month,day}};
   G.month = month; G.day = day;
