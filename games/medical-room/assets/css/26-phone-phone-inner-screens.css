@@ -1,0 +1,42 @@
+/* Phone inner screens */
+.phone-inner {
+  flex:1;
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+}
+.phone-inner.active { display:flex; }
+
+.phone-back-bar {
+  height:44px;
+  background:rgba(10,15,26,0.95);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 14px;
+  gap:10px;
+  flex-shrink:0;
+}
+.phone-back-btn {
+  background:none; border:none;
+  color:var(--cyan);
+  font-size:18px;
+  cursor:pointer;
+  padding:4px;
+}
+.phone-screen-title {
+  font-family:var(--hud);
+  font-size:14px;
+  font-weight:600;
+  color:var(--white);
+  letter-spacing:1px;
+  flex:1;
+}
+
+.phone-content {
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px;
+}
+.phone-content::-webkit-scrollbar { display:none; }

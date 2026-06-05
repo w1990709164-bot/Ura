@@ -1,0 +1,51 @@
+/* Input inside drawer */
+#input-area {
+  display:flex;
+  gap:8px;
+  padding-top:4px;
+  align-items:flex-end;
+}
+#input-box {
+  flex:1;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  color:var(--white);
+  font-family:var(--serif);
+  font-size:14px;
+  padding:10px 12px;
+  resize:none;
+  min-height:42px;
+  max-height:90px;
+  line-height:1.6;
+  outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  -webkit-appearance:none;
+}
+#input-box:focus {
+  border-color:var(--cyan);
+  box-shadow:0 0 10px var(--cyan-glow);
+}
+#input-box::placeholder { color:var(--text3); }
+
+#send-btn {
+  height:42px;
+  padding:0 16px;
+  background:linear-gradient(135deg,var(--cyan-dim),#003040);
+  border:1px solid var(--cyan);
+  border-radius:6px;
+  color:var(--cyan);
+  font-family:var(--hud);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all 0.2s;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+#send-btn:active {
+  background:var(--cyan);
+  color:var(--bg);
+}
+#send-btn:disabled { opacity:0.35; }

@@ -1,0 +1,14 @@
+/* ── WATERMARK ── */
+#watermark {
+  position:fixed;
+  left:14px;
+  bottom:calc(68px + var(--safe-bottom));
+  font-family:var(--mono);
+  font-size:10px;
+  color:rgba(90,122,144,0.35);
+  letter-spacing:2px;
+  pointer-events:none;
+  z-index:50;
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+}

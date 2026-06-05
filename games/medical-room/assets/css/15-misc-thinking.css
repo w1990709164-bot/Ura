@@ -1,0 +1,18 @@
+/* Thinking */
+.msg-thinking {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text3);
+  padding:4px 0;
+}
+.dots span {
+  display:inline-block;
+  color:var(--cyan);
+  animation:dot-blink 1.2s ease-in-out infinite;
+}
+.dots span:nth-child(2){animation-delay:0.2s;}
+.dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes dot-blink{0%,80%,100%{opacity:0.2;}40%{opacity:1;}}

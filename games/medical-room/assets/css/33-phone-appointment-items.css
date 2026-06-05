@@ -1,0 +1,42 @@
+/* Appointment items */
+.appt-item {
+  display:flex;
+  gap:12px;
+  padding:12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:6px;
+  margin-bottom:8px;
+  align-items:center;
+}
+.appt-time {
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--cyan);
+  flex-shrink:0;
+  text-align:center;
+  min-width:44px;
+}
+.appt-info { flex:1; }
+.appt-name {
+  font-family:var(--hud);
+  font-size:14px;
+  font-weight:600;
+  color:var(--white);
+}
+.appt-unit {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text3);
+  margin-top:2px;
+}
+.appt-type {
+  font-family:var(--mono);
+  font-size:9px;
+  padding:2px 6px;
+  border-radius:2px;
+  flex-shrink:0;
+}
+.type-pre { color:var(--cyan); background:var(--cyan-glow); border:1px solid var(--cyan-dim); }
+.type-urgent { color:var(--pink); background:var(--pink-glow); border:1px solid var(--pink-dim); animation:urgent-pulse 1.5s infinite; }
+.type-walk { color:var(--yellow); background:rgba(255,214,0,0.08); border:1px solid rgba(255,214,0,0.3); }

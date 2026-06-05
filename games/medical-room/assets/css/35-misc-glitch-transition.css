@@ -1,0 +1,27 @@
+/* ══════════════════════════════
+   GLITCH TRANSITION
+══════════════════════════════ */
+#glitch-overlay {
+  position:fixed; inset:0;
+  z-index:9000;
+  display:none;
+  pointer-events:none;
+  overflow:hidden;
+}
+#glitch-overlay.active { display:block; }
+
+.glitch-layer {
+  position:absolute; inset:0;
+  animation:glitch-anim 0.6s steps(1) forwards;
+}
+@keyframes glitch-anim {
+  0%{background:rgba(0,229,255,0.15);clip-path:inset(0 0 85% 0);}
+  10%{background:rgba(255,45,107,0.2);clip-path:inset(30% 0 50% 0);}
+  20%{background:rgba(0,229,255,0.1);clip-path:inset(60% 0 20% 0);}
+  30%{background:rgba(255,45,107,0.15);clip-path:inset(10% 0 70% 0);}
+  40%{background:rgba(0,255,204,0.1);clip-path:inset(80% 0 5% 0);}
+  50%{background:rgba(0,229,255,0.2);clip-path:inset(20% 0 60% 0);}
+  60%{background:rgba(255,45,107,0.1);clip-path:inset(50% 0 30% 0);}
+  70%{background:transparent;clip-path:inset(0 0 100% 0);}
+  100%{background:transparent;clip-path:inset(0 0 100% 0);}
+}

@@ -1,0 +1,50 @@
+/* Options inside drawer */
+#options-area {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding-top:4px;
+}
+.option-hint {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text3);
+  letter-spacing:1px;
+  padding-bottom:4px;
+}
+.option-btn {
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:11px 14px;
+  font-family:var(--serif);
+  font-size:13.5px;
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+  transition:all 0.2s;
+  line-height:1.6;
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  width:100%;
+}
+.option-btn:active {
+  background:var(--cyan-glow);
+  border-color:var(--cyan);
+  color:var(--white);
+  transform:scale(0.99);
+}
+.option-btn .opt-label {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--cyan);
+  flex-shrink:0;
+  margin-top:2px;
+  width:14px;
+}
+.option-btn.hidden-opt {
+  border-color:var(--pink-dim);
+  background:rgba(255,45,107,0.05);
+}
+.option-btn.hidden-opt .opt-label { color:var(--pink); }
