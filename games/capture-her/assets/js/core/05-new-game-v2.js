@@ -3,8 +3,9 @@ function updateDays() {
   const days = [31,29,31,30,31,30,31,31,30,31,30,31][month - 1] || 31;
   const sel = document.getElementById('ng-day');
   const cur = parseInt(sel.value);
+
   sel.innerHTML = '<option value="">Day</option>' +
-    Array.from({length: days}, (_, i) =>
+    Array.from({ length: days }, (_, i) =>
       `<option value="${i + 1}"${cur === i + 1 ? ' selected' : ''}>${i + 1}</option>`
     ).join('');
 }
@@ -44,7 +45,7 @@ function startNewGame() {
   launchApp();
 
   triggerGlitch(() => {
-    addSysMsg('File created', `${name} · Beta · Safe Zone Admin\nSystem is initializing Day 1...`);
+    addSysMsg('File created', `${name} - Beta - Safe Zone Admin\nSystem is initializing Day 1...`);
     generateDailyTasks(() => callAI_opening());
   });
 }
