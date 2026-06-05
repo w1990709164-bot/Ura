@@ -4,7 +4,7 @@
 function saveGame(){
   try {
     const save={
-      player:G.player, apiKey:G.apiKey, apiEndpoint:G.apiEndpoint, apiModel:G.apiModel, adultConfirmed:G.adultConfirmed,
+      player:G.player, adultConfirmed:G.adultConfirmed,
       day:G.day, month:G.month, year:G.year, totalDay:G.totalDay, phase:G.phase,
       mood:G.mood, wallet:G.wallet, inventory:G.inventory, chars:G.chars,
       dailyTasks:G.dailyTasks, todayRanking:G.todayRanking,
@@ -20,7 +20,9 @@ function loadGame(){
     const raw=localStorage.getItem('mission_court_save');
     if(!raw) return false;
     const save=JSON.parse(raw);
-    Object.assign(G,save);
+    // 不从存档恢复 API 配置，始终从主页 localStorage 读取
+    delete save.apiKey; delete save.apiEndpoint; delete save.apiModel;
+    Object.assign(G, save);
     if(!G.chars) G.chars={};
     CHARS.forEach(c=>{ if(!G.chars[c.id]) G.chars[c.id]={goodFeel:0,obsession:20,status:'base',location:'安全区',os:''}; });
     if(!G.inventory) G.inventory=[];
