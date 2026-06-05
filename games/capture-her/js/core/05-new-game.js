@@ -18,7 +18,7 @@ function startNewGame() {
   const err = document.getElementById('ng-err');
   if(!name){ err.textContent='请输入姓名'; err.style.display='block'; return; }
   if(!month||!day){ err.textContent='请选择生日'; err.style.display='block'; return; }
-  if(!G.apiKey){ err.textContent='请先在设置中填写API密钥'; err.style.display='block'; return; }
+  if(!localStorage.getItem('LW_API_KEY')){ err.textContent='请先在主页设置API密钥'; err.style.display='block'; return; }
   err.style.display='none';
   G.player = {name, appearance, birthday:{month,day}};
   G.month = month; G.day = day;
@@ -40,11 +40,6 @@ function launchApp() {
   renderBackpack();
   renderChat();
   initDrawer();
-  // Fill gs settings
-  document.getElementById('gs-key').value = G.apiKey;
-  document.getElementById('gs-endpoint').value = G.apiEndpoint;
-  // Sync model selects
-  syncModelSelect('gs-model', G.apiModel);
 }
 
 function syncModelSelect(selId, val) {
