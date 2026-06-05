@@ -71,22 +71,26 @@
 <div id="settings-screen">
   <div class="settings-title">系统设置</div>
   <div class="settings-card">
-    <div class="settings-label">API 密钥</div>
+    <div class="settings-label" style="color:var(--text3);font-size:10px;letter-spacing:1px;margin-bottom:12px">
+      API 配置由里世界主页统一管理，无需在此重复填写。
+    </div>
+    <div class="settings-label">当前 API 密钥</div>
     <div class="settings-key-wrap">
-      <input class="settings-input" id="st-key" type="password" placeholder="sk-ant-…">
+      <input class="settings-input" id="st-key" type="password" placeholder="（从主页读取）" readonly style="opacity:0.6;cursor:default">
       <button class="settings-key-toggle" onclick="toggleKeyVis('st-key',this)">👁</button>
     </div>
-    <div class="settings-label">自定义端点（可选）</div>
-    <input class="settings-input" id="st-endpoint" placeholder="留空则使用 Anthropic 默认">
-    <div class="settings-label">模型</div>
-    <input class="settings-input" id="st-model" placeholder="claude-sonnet-4-20250514">
-    <div class="settings-check-row">
+    <div class="settings-label">当前端点</div>
+    <input class="settings-input" id="st-endpoint" placeholder="（从主页读取）" readonly style="opacity:0.6;cursor:default">
+    <div class="settings-label">当前模型</div>
+    <input class="settings-input" id="st-model" placeholder="（从主页读取）" readonly style="opacity:0.6;cursor:default">
+    <button class="settings-btn" onclick="window.history.back()" style="margin-top:8px">← 返回主页修改 API</button>
+    <div class="settings-check-row" style="margin-top:16px">
       <input type="checkbox" id="st-adult-confirm">
       <label for="st-adult-confirm">
         本人确认已年满18周岁，了解本游戏含有成人向（18+）内容，包括兽人发情期相关描写，自愿选择游玩。
       </label>
     </div>
-    <button class="settings-btn" onclick="saveSettings()">保存设置</button>
+    <button class="settings-btn" onclick="saveSettings()">保存</button>
     <div class="settings-err" id="settings-err"></div>
   </div>
   <div class="settings-back" onclick="showScreen('title-screen')">← 返回</div>
@@ -182,6 +186,16 @@
         <div class="sh-title" id="sh-title">灰脊 · 中央议事厅</div>
         <div class="sh-sub" id="sh-sub">第1年 · 第1周</div>
       </div>
+      <!-- 行动点面板（幼崽期内嵌）-->
+      <div id="ap-inline-panel"></div>
+      <div id="ap-pending-banner"></div>
+      <button id="ap-next-year-btn" onclick="advanceYear()">进入下一年 →</button>
+
+      <!-- 行动点面板（幼崽期内嵌）-->
+      <div id="ap-inline-panel"></div>
+      <div id="ap-pending-banner"></div>
+      <button id="ap-next-year-btn" onclick="advanceYear()">进入下一年 →</button>
+
       <div id="messages"></div>
       <div id="bottom-drawer" class="collapsed">
         <div class="drawer-handle" id="drawer-handle">
@@ -319,16 +333,19 @@
     <div class="overlay-body">
       <div class="status-section">
         <div class="status-section-title">API 配置</div>
-        <div class="settings-label" style="margin-bottom:6px">API 密钥</div>
+        <div style="font-family:var(--hud);font-size:10px;color:var(--text3);letter-spacing:1px;margin-bottom:12px;line-height:1.6">
+          API 由里世界主页统一管理。<br>如需修改，请返回主页重新设置。
+        </div>
+        <div class="settings-label" style="margin-bottom:6px">当前密钥</div>
         <div class="settings-key-wrap" style="margin-bottom:12px">
-          <input class="settings-input" id="gs-key" type="password" placeholder="sk-ant-…">
+          <input class="settings-input" id="gs-key" type="password" placeholder="（从主页读取）" readonly style="opacity:0.6;cursor:default">
           <button class="settings-key-toggle" onclick="toggleKeyVis('gs-key',this)">👁</button>
         </div>
-        <div class="settings-label" style="margin-bottom:6px">自定义端点</div>
-        <input class="settings-input" id="gs-endpoint" placeholder="留空则使用 Anthropic 默认" style="margin-bottom:12px">
-        <div class="settings-label" style="margin-bottom:6px">模型</div>
-        <input class="settings-input" id="gs-model" placeholder="claude-sonnet-4-20250514" style="margin-bottom:16px">
-        <button class="settings-btn" onclick="saveGameSettings()">保存 API 配置</button>
+        <div class="settings-label" style="margin-bottom:6px">当前端点</div>
+        <input class="settings-input" id="gs-endpoint" placeholder="（从主页读取）" readonly style="opacity:0.6;cursor:default;margin-bottom:12px">
+        <div class="settings-label" style="margin-bottom:6px">当前模型</div>
+        <input class="settings-input" id="gs-model" placeholder="（从主页读取）" readonly style="opacity:0.6;cursor:default;margin-bottom:16px">
+        <button class="settings-btn" onclick="window.history.back()">← 返回主页修改 API</button>
       </div>
       <div class="status-section" style="margin-top:20px">
         <div class="status-section-title">存档管理</div>

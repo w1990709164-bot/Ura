@@ -1,13 +1,12 @@
 // ══════════════════════════════
 // WEEKLY ADVANCE
+// 幼崽期由行动点系统驱动，此函数仅成人期使用
 // ══════════════════════════════
 function advanceWeek() {
+  if (G.phase === 'cub') return; // 幼崽期不走周推进
+
   G.gameWeek = (G.gameWeek||1) + 1;
   if (G.gameWeek > 52) {
-    if (G.phase === 'cub') {
-      openActionPointPanel();
-      return;
-    }
     G.gameWeek = 1;
     G.absoluteYear++;
     G.gameYear++;
@@ -26,12 +25,11 @@ function advanceWeek() {
   G.weeklyMarketOpen = Math.random() < 0.35;
 
   // Random heat trigger (成人期)
-  if (G.phase === 'adult' && !G.inHeat) {
+  if (!G.inHeat) {
     if (Math.random() < 0.12) {
       G.inHeat = true;
       G.heatDaysLeft = 3 + Math.floor(Math.random()*4);
       addSysMsg('⚠ 状态变化', '发情期开始，持续约' + G.heatDaysLeft + '天。可使用抑制剂或等待自然结束。');
-      // Random char heat triggers
       CHARS.forEach(c => {
         if (Math.random() < 0.15) {
           G.bonds[c.id].status = 'heat';
@@ -39,7 +37,7 @@ function advanceWeek() {
         }
       });
     }
-  } else if (G.inHeat) {
+  } else {
     G.heatDaysLeft--;
     if (G.heatDaysLeft <= 0) {
       G.inHeat = false;
@@ -47,21 +45,15 @@ function advanceWeek() {
     }
   }
 
-  // Weekly char state refresh via AI prompt
   refreshWeeklyCharStates();
-
   saveGame(); updateTopBar(); renderMap(); renderBonds(); renderStatus();
   showToast('第' + G.gameYear + '年 第' + G.gameWeek + '周');
 
-  // Offer task selection
-  if (G.phase === 'adult') {
-    setTimeout(()=>generateWeeklyTasks(), 500);
-  }
+  setTimeout(()=>generateWeeklyTasks(), 500);
 }
 
 async function refreshWeeklyCharStates() {
-  // Lightweight state refresh — update dynamics and locations locally
-  const dynamics = ['休息中','巡逻','训练','用餐','任务中','休息中','训练'];
+  const dynamics  = ['休息中','巡逻','训练','用餐','任务中','休息中','训练'];
   const locations = ['hall','forge','medical','training','canteen','camps','camps'];
   CHARS.forEach(c => {
     const b = G.bonds[c.id];

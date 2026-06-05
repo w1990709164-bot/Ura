@@ -52,6 +52,7 @@ function launchApp() {
   renderStatus();
   renderBackpack();
   initDrawer();
+  renderApPanel(); // 幼崽期行动点面板初始渲染
 
   // Fill in-game settings fields
   document.getElementById('gs-key').value = G.apiKey;

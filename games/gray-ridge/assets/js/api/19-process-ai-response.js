@@ -6,12 +6,22 @@ function processAIResponse(rawText) {
   const horaeMatch = rawText.match(/<horae>([\s\S]*?)<\/horae>/);
   const narrative = rawText.replace(/<horae>[\s\S]*?<\/horae>/g,'').trim();
 
+  let parsedHorae = null;
   if (horaeMatch) {
-    try { processHorae(JSON.parse(horaeMatch[1].trim())); }
+    try {
+      parsedHorae = JSON.parse(horaeMatch[1].trim());
+      processHorae(parsedHorae);
+    }
     catch(e){ console.warn('[horae parse error]', e); }
   }
 
   const cleanNarrative = narrative.replace(/<memory>[\s\S]*?<\/memory>/g,'').trim();
+
+  // ── 行动点完成检测（幼崽期）──
+  // 必须在叙事显示前检测，这样 renderApPanel 能在正确时机刷新
+  if (G.phase === 'cub' && G.apPending) {
+    checkApCompletion(cleanNarrative, parsedHorae);
+  }
 
   // Step 1: strip OPTIONS block first, before any display
   let optMatch = null;
@@ -50,7 +60,6 @@ function processAIResponse(rawText) {
   // Parse and show options
   if (optMatch) {
     let raw = optMatch[1];
-    // Split by | or by newline-letter pattern
     let parts;
     if (raw.includes('|')) {
       parts = raw.split('|').map(s=>s.trim()).filter(Boolean);
@@ -64,8 +73,9 @@ function processAIResponse(rawText) {
     if (opts.length >= 2) showOptions(opts);
   }
 
-    G.history.push({role:'assistant', content:rawText});
+  G.history.push({role:'assistant', content:rawText});
   saveGame();
+
   // Handle dice check request from horae
   if (window._pendingDiceCheck) {
     const dc = window._pendingDiceCheck;
