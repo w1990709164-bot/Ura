@@ -47,12 +47,22 @@ function launchApp() {
   renderBackpack();
   renderChat();
   initDrawer();
+
+  if(typeof refreshApiStatus === 'function') refreshApiStatus();
 }
 
 function syncModelSelect(selId, val) {
   const sel = document.getElementById(selId);
   if(!sel) return;
   let found = false;
-  for(let opt of sel.options) { if(opt.value===val){ opt.selected=true; found=true; break; } }
-  if(!found) { const opt = document.createElement('option'); opt.value=val; opt.textContent=val; opt.selected=true; sel.appendChild(opt); }
+  for(let opt of sel.options) {
+    if(opt.value===val){ opt.selected=true; found=true; break; }
+  }
+  if(!found && val) {
+    const opt = document.createElement('option');
+    opt.value=val;
+    opt.textContent=val;
+    opt.selected=true;
+    sel.appendChild(opt);
+  }
 }
