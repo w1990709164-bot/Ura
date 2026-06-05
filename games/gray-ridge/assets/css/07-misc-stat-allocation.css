@@ -1,0 +1,115 @@
+/* Stat allocation */
+.stat-grid {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.stat-row {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.stat-name {
+  font-family:var(--hud);
+  font-size:12px;
+  font-weight:600;
+  color:var(--sand);
+  letter-spacing:1px;
+  width:42px;
+  flex-shrink:0;
+}
+.stat-bar-wrap {
+  flex:1;
+  height:6px;
+  background:var(--bg3);
+  border-radius:3px;
+  overflow:hidden;
+  border:1px solid var(--border);
+}
+.stat-bar-fill {
+  height:100%;
+  background:linear-gradient(90deg,var(--gold-dim),var(--gold));
+  border-radius:3px;
+  transition:width 0.2s;
+}
+.stat-controls {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+.stat-btn {
+  width:24px; height:24px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:2px;
+  color:var(--gold);
+  font-size:14px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.15s;
+  flex-shrink:0;
+}
+.stat-btn:active {
+  background:var(--gold-glow);
+  border-color:var(--gold);
+}
+.stat-val {
+  font-family:var(--hud);
+  font-size:14px;
+  font-weight:700;
+  color:var(--gold);
+  width:16px;
+  text-align:center;
+}
+
+.stat-points-left {
+  font-family:var(--hud);
+  font-size:12px;
+  color:var(--sand);
+  text-align:right;
+  margin-top:10px;
+  letter-spacing:1px;
+}
+.stat-points-left span {
+  color:var(--gold);
+  font-size:16px;
+  font-weight:700;
+}
+
+.ng-btn {
+  width:100%;
+  max-width:420px;
+  margin:0 auto;
+  display:block;
+  background:linear-gradient(135deg,var(--gold-dim),#3A2008);
+  border:1px solid var(--gold);
+  border-radius:2px;
+  color:var(--gold);
+  font-family:var(--cinzel);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:4px;
+  padding:14px;
+  cursor:pointer;
+  transition:all 0.3s;
+  margin-top:8px;
+}
+.ng-btn:hover {
+  background:linear-gradient(135deg,var(--gold),#7A4A10);
+  color:var(--bg);
+}
+.ng-err {
+  font-family:var(--hud);
+  font-size:11px;
+  color:var(--red);
+  text-align:center;
+  margin-top:8px;
+  display:none;
+  max-width:420px;
+  margin-left:auto;
+  margin-right:auto;
+}

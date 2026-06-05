@@ -1,0 +1,19 @@
+/* ════════════════════════════
+   GLITCH
+════════════════════════════ */
+#glitch-overlay {
+  position:fixed; inset:0;
+  z-index:9900;
+  pointer-events:none;
+  opacity:0;
+}
+#glitch-overlay.active {
+  animation:glitch-flash 0.5s ease-out forwards;
+}
+@keyframes glitch-flash {
+  0%{opacity:0;}
+  10%{opacity:1;background:rgba(255,179,71,0.05);}
+  20%{opacity:0;}
+  30%{opacity:0.8;background:rgba(255,179,71,0.03);}
+  100%{opacity:0;}
+}

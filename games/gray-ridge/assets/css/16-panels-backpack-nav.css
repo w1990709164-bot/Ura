@@ -1,0 +1,32 @@
+/* ── BACKPACK NAV ── */
+#backpack-bar {
+  height:44px;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  flex-shrink:0;
+  position:relative;
+  z-index:101;
+  transition:background 0.2s;
+}
+#backpack-bar:active { background:var(--gold-glow); }
+#backpack-bar::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);
+}
+.bp-label {
+  font-family:var(--hud);
+  font-size:10px;
+  color:var(--text2);
+  letter-spacing:3px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.bp-label span { font-size:16px; }

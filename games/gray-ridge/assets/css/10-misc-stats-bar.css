@@ -1,0 +1,25 @@
+/* ── STATS BAR ── */
+#statsbar {
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:6px 14px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  flex-shrink:0;
+  overflow:hidden;
+}
+.stat-chip {
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-family:var(--hud);
+  font-size:10px;
+  color:var(--text2);
+  letter-spacing:0.5px;
+}
+.stat-chip-val {
+  color:var(--gold);
+  font-weight:700;
+  font-size:11px;
+}

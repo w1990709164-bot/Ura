@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 拆分版：样式在 assets/css，脚本在 assets/js -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>灰脊 · 灰盟驻地</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Serif+SC:wght@300;400;600;700&family=IM+Fell+English:ital@0;1&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/01-base-base.css">
+<link rel="stylesheet" href="assets/css/02-base-grain-texture.css">
+<link rel="stylesheet" href="assets/css/03-base-vignette.css">
+<link rel="stylesheet" href="assets/css/04-screens-title-screen.css">
+<link rel="stylesheet" href="assets/css/05-screens-settings-screen.css">
+<link rel="stylesheet" href="assets/css/06-screens-new-game-screen.css">
+<link rel="stylesheet" href="assets/css/07-misc-stat-allocation.css">
+<link rel="stylesheet" href="assets/css/08-phone-main-app.css">
+<link rel="stylesheet" href="assets/css/09-gameplay-topbar.css">
+<link rel="stylesheet" href="assets/css/10-misc-stats-bar.css">
+<link rel="stylesheet" href="assets/css/11-gameplay-main-content.css">
+<link rel="stylesheet" href="assets/css/12-gameplay-scene-area.css">
+<link rel="stylesheet" href="assets/css/13-gameplay-messages.css">
+<link rel="stylesheet" href="assets/css/14-gameplay-bottom-drawer.css">
+<link rel="stylesheet" href="assets/css/15-gameplay-bottom-nav.css">
+<link rel="stylesheet" href="assets/css/16-panels-backpack-nav.css">
+<link rel="stylesheet" href="assets/css/17-panels-overlay-panels.css">
+<link rel="stylesheet" href="assets/css/18-panels-bond-panel.css">
+<link rel="stylesheet" href="assets/css/19-gameplay-map-panel.css">
+<link rel="stylesheet" href="assets/css/20-panels-status-panel.css">
+<link rel="stylesheet" href="assets/css/21-panels-backpack-overlay.css">
+<link rel="stylesheet" href="assets/css/22-misc-year-transition.css">
+<link rel="stylesheet" href="assets/css/23-misc-dice-roll.css">
+<link rel="stylesheet" href="assets/css/24-misc-task-card.css">
+<link rel="stylesheet" href="assets/css/25-base-toast.css">
+<link rel="stylesheet" href="assets/css/26-misc-glitch.css">
+<link rel="stylesheet" href="assets/css/27-misc-action-points.css">
+</head>
+<body>
+
+<!-- GLITCH -->
+<div id="glitch-overlay"></div>
+<div id="toast"></div>
+
+<!-- ══════════════════════════════
+     TITLE SCREEN
+══════════════════════════════ -->
+<div id="title-screen">
+  <div class="title-emblem">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="40,4 74,22 74,58 40,76 6,58 6,22" stroke="#7A4A10" stroke-width="1.5" fill="none"/>
+      <polygon points="40,12 66,26 66,54 40,68 14,54 14,26" stroke="#FFB347" stroke-width="0.5" fill="none" opacity="0.4"/>
+      <path d="M40 20 L40 60 M20 30 L60 30 M20 50 L60 50" stroke="#7A4A10" stroke-width="0.8"/>
+      <circle cx="40" cy="40" r="8" stroke="#FFB347" stroke-width="1" fill="none"/>
+      <circle cx="40" cy="40" r="3" fill="#7A4A10"/>
+    </svg>
+  </div>
+  <div class="title-main">灰 脊</div>
+  <div class="title-sub">GREY RIDGE · 灰盟驻地</div>
+  <div class="title-divider"></div>
+  <button class="title-btn" onclick="showNewGame()">开始游戏</button>
+  <button class="title-btn" onclick="showScreen('settings-screen')">设　　置</button>
+  <button class="title-btn" onclick="loadGameAndStart()" id="load-btn" style="display:none">读取档案</button>
+  <div class="title-warn" id="age-warn" style="display:none">
+    ⚠ 本游戏含有成人向内容<br>仅限18岁以上成年用户游玩<br>继续游戏即表示您确认已达法定年龄
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SETTINGS SCREEN
+══════════════════════════════ -->
+<div id="settings-screen">
+  <div class="settings-title">系统设置</div>
+  <div class="settings-card">
+    <div class="settings-label">API 密钥</div>
+    <div class="settings-key-wrap">
+      <input class="settings-input" id="st-key" type="password" placeholder="sk-ant-…">
+      <button class="settings-key-toggle" onclick="toggleKeyVis('st-key',this)">👁</button>
+    </div>
+    <div class="settings-label">自定义端点（可选）</div>
+    <input class="settings-input" id="st-endpoint" placeholder="留空则使用 Anthropic 默认">
+    <div class="settings-label">模型</div>
+    <input class="settings-input" id="st-model" placeholder="claude-sonnet-4-20250514">
+    <div class="settings-check-row">
+      <input type="checkbox" id="st-adult-confirm">
+      <label for="st-adult-confirm">
+        本人确认已年满18周岁，了解本游戏含有成人向（18+）内容，包括兽人发情期相关描写，自愿选择游玩。
+      </label>
+    </div>
+    <button class="settings-btn" onclick="saveSettings()">保存设置</button>
+    <div class="settings-err" id="settings-err"></div>
+  </div>
+  <div class="settings-back" onclick="showScreen('title-screen')">← 返回</div>
+</div>
+
+<!-- ══════════════════════════════
+     NEW GAME SCREEN
+══════════════════════════════ -->
+<div id="newgame-screen">
+  <div class="ng-header">
+    <div class="ng-title">建立档案</div>
+    <div class="ng-sub">CREATE NEW RECORD</div>
+  </div>
+
+  <div class="ng-card">
+    <div class="ng-section">基本信息</div>
+    <input class="ng-input" id="ng-name" placeholder="姓名" maxlength="20">
+    <input class="ng-input" id="ng-race" placeholder="种族（如：黑狼族、金鸢族……）" maxlength="30">
+    <textarea class="ng-textarea" id="ng-appearance" placeholder="外貌描述（毛色、体型、特征等，AI将在叙事中参考）" rows="3"></textarea>
+  </div>
+
+  <div class="ng-card">
+    <div class="ng-section">出生日期</div>
+    <div style="font-family:var(--hud);font-size:10px;color:var(--text3);letter-spacing:1px;margin-bottom:8px">虚拟世界 2060 年，此日期为游戏第一天</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <select class="ng-input" id="ng-month" style="margin-bottom:0">
+        <option value="">月份</option>
+        <option value="1">一月</option><option value="2">二月</option>
+        <option value="3">三月</option><option value="4">四月</option>
+        <option value="5">五月</option><option value="6">六月</option>
+        <option value="7">七月</option><option value="8">八月</option>
+        <option value="9">九月</option><option value="10">十月</option>
+        <option value="11">十一月</option><option value="12">十二月</option>
+      </select>
+      <select class="ng-input" id="ng-day" style="margin-bottom:0">
+        <option value="">日期</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="ng-card">
+    <div class="ng-section">初始能力分配</div>
+    <div style="font-family:var(--hud);font-size:10px;color:var(--text3);letter-spacing:1px;margin-bottom:12px">共 10 点，自由分配至七项属性</div>
+    <div class="stat-grid" id="stat-alloc">
+      <!-- generated by JS -->
+    </div>
+    <div class="stat-points-left">剩余点数：<span id="points-left">10</span></div>
+  </div>
+
+  <button class="ng-btn" onclick="startNewGame()">踏入灰脊</button>
+  <div class="ng-err" id="ng-err"></div>
+  <div style="height:20px"></div>
+</div>
+
+<!-- ══════════════════════════════
+     MAIN APP
+══════════════════════════════ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="tb-date">
+      <div class="tb-date-main" id="tb-date-main">2060年1月1日</div>
+      <div id="tb-date-sub" style="font-size:9px;color:var(--text3)">第1年 第1周</div>
+    </div>
+    <div class="tb-center">
+      <div class="tb-location" id="tb-location">灰脊 · 中央议事厅</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-mood" id="tb-mood">😐</div>
+      <div class="tb-wallet">🪙 <span id="tb-wallet">0</span></div>
+    </div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div id="statsbar">
+    <div class="stat-chip">体魄 <span class="stat-chip-val" id="sc-tq">0</span></div>
+    <div class="stat-chip">敏捷 <span class="stat-chip-val" id="sc-mj">0</span></div>
+    <div class="stat-chip">精准 <span class="stat-chip-val" id="sc-jz">0</span></div>
+    <div class="stat-chip">技术 <span class="stat-chip-val" id="sc-js">0</span></div>
+    <div class="stat-chip">智识 <span class="stat-chip-val" id="sc-zs">0</span></div>
+    <div class="stat-chip">情商 <span class="stat-chip-val" id="sc-qs">0</span></div>
+    <div class="stat-chip">医疗 <span class="stat-chip-val" id="sc-yl">0</span></div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- SCENE -->
+    <div id="scene-area">
+      <div id="scene-header">
+        <div class="sh-tag" id="sh-tag">幼崽期</div>
+        <div class="sh-title" id="sh-title">灰脊 · 中央议事厅</div>
+        <div class="sh-sub" id="sh-sub">第1年 · 第1周</div>
+      </div>
+      <div id="messages"></div>
+      <div id="bottom-drawer" class="collapsed">
+        <div class="drawer-handle" id="drawer-handle">
+          <div class="drawer-pill"></div>
+          <div class="drawer-mode-label" id="drawer-mode">INPUT</div>
+        </div>
+        <div class="drawer-body">
+          <div id="options-area" style="display:none"></div>
+          <div id="input-area">
+            <textarea id="input-box" placeholder="说点什么…" rows="1"></textarea>
+            <button id="send-btn" onclick="sendMessage()" disabled>发送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div id="map-panel">
+      <div class="overlay-header" style="position:relative;z-index:1">
+        <div class="overlay-title">灰脊地图</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:0">
+        <div class="map-grid" id="map-grid">
+          <!-- generated by JS -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <div class="nav-item active" id="nav-scene" onclick="showPanel('scene')">
+      <div class="nav-icon">⚔</div>
+      <div class="nav-label">场景</div>
+    </div>
+    <div class="nav-item" id="nav-map" onclick="showPanel('map')">
+      <div class="nav-icon">🗺</div>
+      <div class="nav-label">地图</div>
+    </div>
+    <div class="nav-item" id="nav-bond" onclick="openOverlay('bond-overlay')">
+      <div class="nav-icon">🐾</div>
+      <div class="nav-label">羁绊</div>
+    </div>
+    <div class="nav-item" id="nav-status" onclick="openOverlay('status-overlay')">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">状态</div>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="openOverlay('gamesettings-overlay')">
+      <div class="nav-icon">⚙</div>
+      <div class="nav-label">设置</div>
+    </div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div id="action-bar" style="height:44px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;flex-shrink:0;position:relative;z-index:101">
+    <div onclick="openOverlay('backpack-overlay')" style="flex:1;height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;border-right:1px solid var(--border);font-family:var(--hud);font-size:10px;color:var(--text2);letter-spacing:2px;gap:6px;transition:background 0.2s" onmouseenter="this.style.background='var(--gold-glow)'" onmouseleave="this.style.background='transparent'">🎒 背包</div>
+    <div onclick="handleWeekAction()" style="flex:1;height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;border-right:1px solid var(--border);font-family:var(--hud);font-size:10px;color:var(--text2);letter-spacing:2px;gap:6px;transition:background 0.2s" onmouseenter="this.style.background='var(--gold-glow)'" onmouseleave="this.style.background='transparent'" id="week-btn">📅 本周行动</div>
+    <div onclick="handleMarket()" style="flex:1;height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--hud);font-size:10px;letter-spacing:2px;gap:6px;transition:background 0.2s" id="market-btn" onmouseenter="this.style.background='var(--gold-glow)'" onmouseleave="this.style.background='transparent'">🕯 黑市</div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════
+     OVERLAYS
+══════════════════════════════ -->
+
+<!-- BOND -->
+<div class="overlay" id="bond-overlay">
+  <div class="overlay-bg" onclick="closeOverlay('bond-overlay')"></div>
+  <div class="overlay-panel">
+    <div class="overlay-header">
+      <div class="overlay-title">羁绊</div>
+      <div class="overlay-close" onclick="closeOverlay('bond-overlay')">✕</div>
+    </div>
+    <div class="overlay-body">
+      <div class="bond-filter" id="bond-filter">
+        <div class="bond-filter-btn active" onclick="filterBond('all',this)">全部</div>
+        <div class="bond-filter-btn" onclick="filterBond('141',this)">141</div>
+        <div class="bond-filter-btn" onclick="filterBond('ghost',this)">幽灵小队</div>
+        <div class="bond-filter-btn" onclick="filterBond('kortac',this)">KorTac</div>
+        <div class="bond-filter-btn" onclick="filterBond('chimera',this)">奇美拉</div>
+        <div class="bond-filter-btn" onclick="filterBond('specgru',this)">SpecGru</div>
+        <div class="bond-filter-btn" onclick="filterBond('shadow',this)">暗影</div>
+      </div>
+      <div id="bond-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div class="overlay" id="status-overlay">
+  <div class="overlay-bg" onclick="closeOverlay('status-overlay')"></div>
+  <div class="overlay-panel">
+    <div class="overlay-header">
+      <div class="overlay-title">状态</div>
+      <div class="overlay-close" onclick="closeOverlay('status-overlay')">✕</div>
+    </div>
+    <div class="overlay-body" id="status-body">
+      <!-- generated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- BACKPACK -->
+<div class="overlay" id="backpack-overlay">
+  <div class="overlay-bg" onclick="closeOverlay('backpack-overlay')"></div>
+  <div class="overlay-panel">
+    <div class="overlay-header">
+      <div class="overlay-title">背包</div>
+      <div class="overlay-close" onclick="closeOverlay('backpack-overlay')">✕</div>
+    </div>
+    <div class="overlay-body">
+      <div class="bp-tabs">
+        <div class="bp-tab active" onclick="bpTab('all',this)">全部</div>
+        <div class="bp-tab" onclick="bpTab('use',this)">自用</div>
+        <div class="bp-tab" onclick="bpTab('gift',this)">礼物</div>
+        <div class="bp-tab" onclick="bpTab('dice',this)">加成</div>
+        <div class="bp-tab" onclick="bpTab('weapon',this)">武器</div>
+        <div class="bp-tab" onclick="bpTab('suppress',this)">抑制剂</div>
+      </div>
+      <div id="bp-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME SETTINGS -->
+<div class="overlay" id="gamesettings-overlay">
+  <div class="overlay-bg" onclick="closeOverlay('gamesettings-overlay')"></div>
+  <div class="overlay-panel">
+    <div class="overlay-header">
+      <div class="overlay-title">游戏设置</div>
+      <div class="overlay-close" onclick="closeOverlay('gamesettings-overlay')">✕</div>
+    </div>
+    <div class="overlay-body">
+      <div class="status-section">
+        <div class="status-section-title">API 配置</div>
+        <div class="settings-label" style="margin-bottom:6px">API 密钥</div>
+        <div class="settings-key-wrap" style="margin-bottom:12px">
+          <input class="settings-input" id="gs-key" type="password" placeholder="sk-ant-…">
+          <button class="settings-key-toggle" onclick="toggleKeyVis('gs-key',this)">👁</button>
+        </div>
+        <div class="settings-label" style="margin-bottom:6px">自定义端点</div>
+        <input class="settings-input" id="gs-endpoint" placeholder="留空则使用 Anthropic 默认" style="margin-bottom:12px">
+        <div class="settings-label" style="margin-bottom:6px">模型</div>
+        <input class="settings-input" id="gs-model" placeholder="claude-sonnet-4-20250514" style="margin-bottom:16px">
+        <button class="settings-btn" onclick="saveGameSettings()">保存 API 配置</button>
+      </div>
+      <div class="status-section" style="margin-top:20px">
+        <div class="status-section-title">存档管理</div>
+        <button class="settings-btn" onclick="exportSave()" style="margin-bottom:10px">导出存档</button>
+        <button class="settings-btn" style="margin-bottom:10px;background:linear-gradient(135deg,#3A1008,#1A0808);border-color:var(--red)" onclick="document.getElementById('import-file').click()">导入存档</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importSave(event)">
+        <button class="settings-btn" style="background:linear-gradient(135deg,#3A1008,#1A0808);border-color:var(--red);color:var(--red)" onclick="confirmReset()">重置游戏</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- YEAR TRANSITION -->
+<div id="year-transition">
+  <div class="yt-label">时光流转</div>
+  <div class="yt-year" id="yt-year">2</div>
+  <div style="font-family:var(--hud);font-size:11px;color:var(--text2);letter-spacing:3px;margin-bottom:24px">岁</div>
+  <div class="yt-content">
+    <div class="yt-birthday-title">🎂 生辰快乐</div>
+    <div id="yt-gifts"></div>
+    <button class="yt-continue" onclick="closeYearTransition()">继续</button>
+  </div>
+</div>
+
+<!-- DICE -->
+<div id="dice-overlay">
+  <div class="dice-title">技能检定</div>
+  <div class="dice-attr" id="dice-attr">体魄检定</div>
+  <div class="dice-d20" id="dice-icon" onclick="rollDice()">🎲</div>
+  <div class="dice-result" id="dice-result"></div>
+  <div class="dice-outcome" id="dice-outcome"></div>
+  <button class="dice-btn" id="dice-confirm" style="display:none" onclick="confirmDice()">确认</button>
+</div>
+
+<!-- TASK OVERLAY -->
+<div id="task-overlay">
+  <div style="font-family:var(--cinzel);font-size:16px;font-weight:700;color:var(--gold);letter-spacing:4px;margin-bottom:20px;text-align:center">本周任务</div>
+  <div class="task-cards-wrap" id="task-cards"></div>
+  <button style="margin-top:12px;background:none;border:1px solid var(--border2);border-radius:2px;color:var(--text2);font-family:var(--hud);font-size:11px;letter-spacing:2px;padding:10px 24px;cursor:pointer" onclick="closeTaskOverlay()">本周休整</button>
+</div>
+
+
+<script defer src="assets/js/data/01-constants.js"></script>
+<script defer src="assets/js/core/02-state.js"></script>
+<script defer src="assets/js/core/03-screen-management.js"></script>
+<script defer src="assets/js/core/04-settings.js"></script>
+<script defer src="assets/js/core/05-newgame-stats.js"></script>
+<script defer src="assets/js/core/06-start-new-game.js"></script>
+<script defer src="assets/js/core/07-topbar-stats.js"></script>
+<script defer src="assets/js/systems/08-map.js"></script>
+<script defer src="assets/js/systems/09-bonds.js"></script>
+<script defer src="assets/js/systems/10-status.js"></script>
+<script defer src="assets/js/systems/11-backpack.js"></script>
+<script defer src="assets/js/core/12-panel-navigation.js"></script>
+<script defer src="assets/js/systems/13-drawer.js"></script>
+<script defer src="assets/js/systems/14-messages.js"></script>
+<script defer src="assets/js/systems/15-options.js"></script>
+<script defer src="assets/js/systems/16-send-message.js"></script>
+<script defer src="assets/js/systems/17-opening-call.js"></script>
+<script defer src="assets/js/api/18-main-ai-call.js"></script>
+<script defer src="assets/js/api/19-process-ai-response.js"></script>
+<script defer src="assets/js/systems/20-horae-processing.js"></script>
+<script defer src="assets/js/data/21-system-prompt.js"></script>
+<script defer src="assets/js/systems/22-dice.js"></script>
+<script defer src="assets/js/systems/23-year-transition.js"></script>
+<script defer src="assets/js/systems/24-task-overlay.js"></script>
+<script defer src="assets/js/systems/25-toast.js"></script>
+<script defer src="assets/js/systems/26-glitch.js"></script>
+<script defer src="assets/js/core/27-save-load.js"></script>
+<script defer src="assets/js/systems/28-action-points-system.js"></script>
+<script defer src="assets/js/systems/29-year-advance-birthday.js"></script>
+<script defer src="assets/js/systems/30-coming-of-age.js"></script>
+<script defer src="assets/js/systems/31-weekly-advance.js"></script>
+<script defer src="assets/js/systems/32-task-system.js"></script>
+<script defer src="assets/js/systems/33-black-market.js"></script>
+<script defer src="assets/js/systems/34-action-bar-handlers.js"></script>
+<script defer src="assets/js/core/35-init.js"></script>
+</body>
+</html>
