@@ -54,3 +54,22 @@ function renderMap() {
 function getLocationName(id) {
   return LOCATIONS.find(l=>l.id===id)?.name || '未知';
 }
+function travelTo(locId, locName) {
+  const prev = G.currentLocation || 'clinic';
+  if (prev === locId) return;
+  G.currentLocation = locId;
+  G.currentScene = locId;
+  if (locId === 'quarters') {
+    G.playerStats.shield = Math.min(100, (G.playerStats.shield ?? 100) + 15);
+    showToast('🛏 精神屏障恢复 +15');
+  }
+  showPanel('scene');
+  const locEl = document.getElementById('tb-location');
+  if (locEl) locEl.textContent = locName;
+  G.history.push({
+    role: 'user',
+    content: `[场景切换] 向导从${getLocationName(prev)}前往了${locName}。请生成抵达${locName}的场景叙事，描写环境氛围，如有角色在场可以自然出现，并给出行动选项。`
+  });
+  if (typeof callAI === 'function') callAI();
+  saveGame();
+}

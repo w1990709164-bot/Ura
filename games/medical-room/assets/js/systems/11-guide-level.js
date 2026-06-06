@@ -104,6 +104,7 @@ function checkPhaseUp(charId) {
   if ((p.trustAccum || 0) >= threshold) {
     p.trustPhase = phase + 1;
     p.trustAccum = 0;
+    p.trust = (p.trustPhase) * 12; // 保留基础信任值，防止归零
     unlockBag(charId, p.trustPhase);
   }
 }

@@ -24,7 +24,7 @@ async function callAI() {
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${G.apiKey}`},
         body: JSON.stringify({
           model,
-          max_tokens:1500,
+          max_tokens:1800,
           messages:[{role:'system',content:systemPrompt},...G.history],
         })
       });
@@ -42,7 +42,7 @@ async function callAI() {
         },
         body: JSON.stringify({
           model,
-          max_tokens:1500,
+          max_tokens:1800,
           system: systemPrompt,
           messages: G.history,
         })
@@ -110,7 +110,8 @@ async function callAI() {
     const narrativeClean = narrative.replace(/<memory>[\s\S]*?<\/memory>/g,'');
 
     // Parse options - try [OPTIONS: ...] format, also handle bare A./B. lines at end
-    let optMatch = narrativeClean.match(/\[OPTIONS:\s*([\s\S]*?)\]/);
+    let optMatch = rawText.match(/\[OPTIONS:\s*([\s\S]*?)\]/);
+if (!optMatch) optMatch = narrativeClean.match(/\[OPTIONS:\s*([\s\S]*?)\]/);
     let cleanNarrative = narrativeClean
       .replace(/\[OPTIONS:[\s\S]*?\]/g,'')
       .trim();
@@ -289,6 +290,7 @@ function retryLastAI() {
       if (horaeMatch) { try { processHorae(JSON.parse(horaeMatch[1].trim())); } catch(e){ console.warn('[retry horae parse error]', e); } }
       const narrativeClean2 = narrative.replace(/<memory>[\s\S]*?<\/memory>/g,'');
       let optMatch2 = narrativeClean2.match(/\[OPTIONS:\s*([\s\S]*?)\]/);
+      const narrativeClean2 = narrativeClean2.replace(/\[OPTIONS:[\s\S]*?\]/g,'').trim();
       let cleanNarrative2 = narrativeClean2.replace(/\[OPTIONS:[\s\S]*?\]/g,'').trim();
       if (!optMatch2) {
         const optLines2 = cleanNarrative2.match(/^[A-D][\.。]\s*.+/gm);
