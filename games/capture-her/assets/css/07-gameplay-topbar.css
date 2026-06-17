@@ -1,0 +1,9 @@
+#topbar { height:44px; background:var(--panel); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 14px; gap:0; flex-shrink:0; position:relative; z-index:100; }
+#topbar::after { content:''; position:absolute; bottom:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--red-dim),transparent); opacity:0.6; }
+.tb-date { font-family:var(--mono); font-size:9px; color:var(--text2); letter-spacing:1px; flex-shrink:0; line-height:1.5; }
+.tb-date-main { color:var(--text); font-size:10px; }
+.tb-center { flex:1; text-align:center; }
+.tb-title { font-family:var(--mono); font-size:10px; color:var(--red); letter-spacing:2px; }
+.tb-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.tb-mood { font-size:14px; }
+.tb-wallet { font-family:var(--mono); font-size:10px; color:var(--gold); letter-spacing:1px; }

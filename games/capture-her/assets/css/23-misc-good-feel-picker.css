@@ -1,0 +1,10 @@
+#goodfeel-modal { position:fixed; inset:0; z-index:8500; display:none; flex-direction:column; align-items:center; justify-content:flex-end; background:rgba(5,5,8,0.8); backdrop-filter:blur(8px); padding-bottom:var(--safe-b); }
+.gf-card { width:100%; max-width:420px; background:var(--panel); border:1px solid var(--border2); border-radius:10px 10px 0 0; padding:20px; }
+.gf-title { font-family:var(--display); font-size:16px; font-weight:700; color:var(--white); margin-bottom:4px; }
+.gf-sub { font-family:var(--cormo); font-style:italic; font-size:13px; color:var(--text2); margin-bottom:16px; line-height:1.6; }
+.gf-options { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.gf-opt { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--bg3); border:1px solid var(--border); border-radius:3px; cursor:pointer; transition:all 0.2s; }
+.gf-opt:active { border-color:var(--red); background:var(--red-glow); }
+.gf-opt-score { font-family:var(--mono); font-size:18px; font-weight:700; color:var(--red); width:24px; flex-shrink:0; }
+.gf-opt-text { font-family:var(--serif); font-size:13px; color:var(--text); line-height:1.5; }
+.gf-skip { width:100%; background:none; border:1px solid var(--border); border-radius:2px; color:var(--text2); font-family:var(--mono); font-size:10px; letter-spacing:2px; padding:10px; cursor:pointer; }

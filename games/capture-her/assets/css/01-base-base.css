@@ -1,0 +1,29 @@
+:root {
+  --bg:       #0A0A0C;
+  --bg2:      #0F0F12;
+  --bg3:      #141418;
+  --panel:    #0C0C0F;
+  --border:   #1E1E26;
+  --border2:  #2A2A38;
+  --red:      #E8354A;
+  --red-dim:  #3A0A10;
+  --red-glow: rgba(232,53,74,0.12);
+  --red-glow2:rgba(232,53,74,0.06);
+  --blue:     #4A9EE8;
+  --blue-dim: #0A2038;
+  --blue-glow:rgba(74,158,232,0.12);
+  --gold:     #C8A96E;
+  --gold-dim: #3A2A10;
+  --text:     #B8B0C8;
+  --text2:    #5A5570;
+  --text3:    #2A2838;
+  --white:    #F0EEF8;
+  --mono:     'JetBrains Mono', monospace;
+  --serif:    'Noto Serif SC', serif;
+  --display:  'Playfair Display', serif;
+  --cormo:    'Cormorant Garamond', serif;
+  --safe-b:   env(safe-area-inset-bottom, 0px);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:var(--serif); }
