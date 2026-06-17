@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<!-- 拆分版：样式在 assets/css，脚本在 assets/js -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>诊疗室 · 塔医疗部</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Serif+SC:wght@300;400;600;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/css/01-base-base.css">
+<link rel="stylesheet" href="assets/css/02-base-scanlines.css">
+<link rel="stylesheet" href="assets/css/03-base-noise-texture.css">
+<link rel="stylesheet" href="assets/css/04-screens-init-screen.css">
+<link rel="stylesheet" href="assets/css/05-misc-main-layout.css">
+<link rel="stylesheet" href="assets/css/06-gameplay-topbar.css">
+<link rel="stylesheet" href="assets/css/07-gameplay-main-content.css">
+<link rel="stylesheet" href="assets/css/08-gameplay-scene-chat-area.css">
+<link rel="stylesheet" href="assets/css/09-misc-background-pattern.css">
+<link rel="stylesheet" href="assets/css/10-gameplay-scene-header.css">
+<link rel="stylesheet" href="assets/css/11-gameplay-messages.css">
+<link rel="stylesheet" href="assets/css/12-gameplay-message-types.css">
+<link rel="stylesheet" href="assets/css/13-gameplay-npc-dialogue.css">
+<link rel="stylesheet" href="assets/css/14-gameplay-player-message.css">
+<link rel="stylesheet" href="assets/css/15-misc-thinking.css">
+<link rel="stylesheet" href="assets/css/16-gameplay-draggable-bottom-drawer.css">
+<link rel="stylesheet" href="assets/css/17-gameplay-options-inside-drawer.css">
+<link rel="stylesheet" href="assets/css/18-gameplay-input-inside-drawer.css">
+<link rel="stylesheet" href="assets/css/19-gameplay-bottom-nav.css">
+<link rel="stylesheet" href="assets/css/20-base-watermark.css">
+<link rel="stylesheet" href="assets/css/21-panels-overlay-panels.css">
+<link rel="stylesheet" href="assets/css/22-panels-status-panel.css">
+<link rel="stylesheet" href="assets/css/23-misc-patient-mini-cards.css">
+<link rel="stylesheet" href="assets/css/24-phone-phone-overlay.css">
+<link rel="stylesheet" href="assets/css/25-phone-phone-home-screen.css">
+<link rel="stylesheet" href="assets/css/26-phone-phone-inner-screens.css">
+<link rel="stylesheet" href="assets/css/27-phone-phone-home-bar.css">
+<link rel="stylesheet" href="assets/css/28-phone-close-phone-btn.css">
+<link rel="stylesheet" href="assets/css/29-gameplay-chat-list-items.css">
+<link rel="stylesheet" href="assets/css/30-misc-moments-feeds.css">
+<link rel="stylesheet" href="assets/css/31-gameplay-forum-items.css">
+<link rel="stylesheet" href="assets/css/32-phone-journal-entries.css">
+<link rel="stylesheet" href="assets/css/33-phone-appointment-items.css">
+<link rel="stylesheet" href="assets/css/34-phone-wallet.css">
+<link rel="stylesheet" href="assets/css/35-misc-glitch-transition.css">
+<link rel="stylesheet" href="assets/css/36-screens-settings-archive-overlays.css">
+<link rel="stylesheet" href="assets/css/37-panels-archive-panel.css">
+<link rel="stylesheet" href="assets/css/38-misc-file-bag-display.css">
+<link rel="stylesheet" href="assets/css/39-base-toast-notification.css">
+<link rel="stylesheet" href="assets/css/40-gameplay-map-placeholder.css">
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- GLITCH OVERLAY -->
+<div id="glitch-overlay"><div class="glitch-layer"></div></div>
+
+<!-- ══ INIT SCREEN ══ -->
+<div id="init-screen">
+  <div class="init-logo">THE TOWER</div>
+  <div class="init-sub">MEDICAL DEPT · GUIDE AUTHENTICATION</div>
+
+  <!-- STEP 1: 基础信息 + API -->
+  <div class="init-card" id="init-step1">
+    <div class="init-section-title">向导基础信息</div>
+    <input class="init-input" id="init-name" placeholder="姓名" maxlength="10">
+    <div class="init-row">
+      <input class="init-input" id="init-age" placeholder="年龄" maxlength="3" style="margin-bottom:0">
+      <input class="init-input" id="init-gender" placeholder="性别" maxlength="4" style="margin-bottom:0">
+    </div>
+    <input class="init-input" id="init-appear" placeholder="外貌简述（选填）" maxlength="30" style="margin-top:10px">
+    <input class="init-input" id="init-personality" placeholder="性格简述（选填）" maxlength="30">
+
+    <button class="init-btn" onclick="goToStep2()">下一步：向导适配测试 ▶</button>
+    <div class="init-err" id="init-err">请填写姓名</div>
+  </div>
+
+  <!-- STEP 2: 精神体测试 -->
+  <div class="init-card" id="init-step2" style="display:none">
+    <div class="init-section-title">向导适配性测试</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8;margin-bottom:16px">
+      以下情境将用于评估你的精神倾向。<br>请选择最符合直觉的回答。
+    </div>
+    <div id="test-questions"></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;margin-top:8px" id="test-progress"></div>
+  </div>
+
+  <!-- STEP 3: 精神图景设定 -->
+  <div class="init-card" id="init-step3" style="display:none">
+    <div class="init-section-title">精神图景设定</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8;margin-bottom:12px">
+      精神体已觉醒。现在描述你的内心图景——<br>可以是一个地方，一种氛围，一个画面。
+    </div>
+    <div id="spirit-result" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:14px;margin-bottom:14px">
+      <!-- filled by JS -->
+    </div>
+    <input class="init-input" id="init-landscape-name" placeholder="图景名称（如：永夜针叶林）" maxlength="20">
+    <textarea class="init-input" id="init-landscape-desc" placeholder="图景描述（可选）" maxlength="100" rows="3" style="resize:none;line-height:1.6"></textarea>
+    <button class="init-btn" onclick="refreshSpirit()" style="background:none;border:1px solid var(--border2);color:var(--text2);margin-bottom:10px;font-size:12px">🔄 重新抽取精神体</button>
+    <button class="init-btn" onclick="finishInit()">▶ 进入诊疗室</button>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="app" style="display:none">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="tb-date" id="tb-date">2060.01.01</div>
+    <div class="tb-weather" id="tb-weather">⛅ 多云 · 8°C</div>
+    <div class="tb-task" id="tb-task">
+      <span id="tb-task-text">今日：看诊</span>
+      <span id="tb-slot" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:4px">[早·午·晚]</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+    <div id="scene-area">
+      <div id="scene-header">
+        <div class="sh-tag" id="sh-tag">DAY 1</div>
+        <div class="sh-title" id="sh-title">塔医疗部 — 精神疏导科</div>
+        <div class="sh-sub" id="sh-sub">T-MED / PSYCH UNIT 3 / FLOOR A3</div>
+      </div>
+      <div id="messages"></div>
+
+      <!-- DRAGGABLE BOTTOM DRAWER -->
+      <div id="bottom-drawer" class="collapsed">
+        <div class="drawer-handle" id="drawer-handle">
+          <div class="drawer-pill"></div>
+          <div class="drawer-mode-label" id="drawer-mode-label">输入模式</div>
+        </div>
+        <div class="drawer-body">
+          <div id="options-area" style="display:none">
+            <div class="option-hint">— 选择回应方式 —</div>
+          </div>
+          <div id="input-area">
+            <textarea id="input-box" placeholder="输入对话或行动…" rows="1"></textarea>
+            <div style="display:flex;gap:6px;align-items:center">
+              <button id="landscape-btn" onclick="triggerLandscapeEntry(G.clinicSession)" title="进入精神图景" style="flex-shrink:0;width:38px;height:38px;background:rgba(0,180,255,0.06);border:1px solid rgba(0,180,255,0.2);border-radius:6px;color:#4a8ab0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s" onmousedown="this.style.borderColor='#00e5ff';this.style.color='#00e5ff'">🌀</button>
+              <button id="send-btn" onclick="sendMessage()" disabled>发送</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP PANEL -->
+    <div id="map-panel" style="display:none;height:100%;flex-direction:column;background:var(--bg)">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--panel)">
+        <div style="font-family:var(--orb);font-size:13px;color:var(--cyan);letter-spacing:2px">塔区地图</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:3px" id="map-day-label">第1天 · 选择前往的地点</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px" id="map-locations">
+        <!-- filled by JS -->
+      </div>
+      <div style="padding:14px 16px;border-top:1px solid var(--border);background:var(--panel)">
+        <button onclick="endDay()" style="width:100%;padding:12px;background:linear-gradient(135deg,rgba(255,45,107,0.15),rgba(255,45,107,0.05));border:1px solid var(--pink-dim);border-radius:6px;color:var(--pink);font-family:var(--hud);font-size:14px;font-weight:700;letter-spacing:2px;cursor:pointer">
+          结束今日 · 进入下一天
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <div class="nav-item active" onclick="showPanel('scene')" id="nav-scene">
+      <div class="nav-icon">💬</div>
+      <div class="nav-label">诊疗</div>
+    </div>
+    <div class="nav-item" onclick="showPanel('status')" id="nav-status">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">状态</div>
+    </div>
+    <div class="nav-item" onclick="showPanel('map')" id="nav-map">
+      <div class="nav-icon">🗺</div>
+      <div class="nav-label">地图</div>
+    </div>
+    <div class="nav-item" onclick="openPhone()" id="nav-phone">
+      <div class="nav-icon">📱</div>
+      <div class="nav-label">手机</div>
+    </div>
+    <div class="nav-item" onclick="showPanel('archive')" id="nav-archive">
+      <div class="nav-icon">📁</div>
+      <div class="nav-label">档案</div>
+    </div>
+    <div class="nav-item" onclick="showPanel('settings')" id="nav-settings">
+      <div class="nav-icon">⚙</div>
+      <div class="nav-label">设置</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- WATERMARK -->
+<div id="watermark">观南</div>
+
+<!-- ══ STATUS OVERLAY ══ -->
+<div class="overlay" id="status-panel">
+  <div class="overlay-bg" onclick="closeOverlay('status-panel')"></div>
+  <div class="overlay-content">
+    <div class="overlay-header">
+      <div class="overlay-title">STATUS</div>
+      <button class="overlay-close" onclick="closeOverlay('status-panel')">✕</button>
+    </div>
+    <div class="overlay-body" id="status-body">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ══ ARCHIVE OVERLAY ══ -->
+<div class="overlay" id="archive-panel">
+  <div class="overlay-bg" onclick="closeOverlay('archive-panel')"></div>
+  <div class="overlay-content">
+    <div class="overlay-header">
+      <div class="overlay-title">ARCHIVES</div>
+      <button class="overlay-close" onclick="closeOverlay('archive-panel')">✕</button>
+    </div>
+    <div class="overlay-body" id="archive-body">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS OVERLAY ══ -->
+<div class="overlay" id="settings-panel">
+  <div class="overlay-bg" onclick="closeOverlay('settings-panel')"></div>
+  <div class="overlay-content">
+    <div class="overlay-header">
+      <div class="overlay-title">SETTINGS</div>
+      <button class="overlay-close" onclick="closeOverlay('settings-panel')">✕</button>
+    </div>
+    <div class="overlay-body">
+      <div class="setting-section">
+        <div class="setting-label">API 配置</div>
+        <input class="setting-input" id="st-key" type="password" placeholder="API Key">
+        <input class="setting-input" id="st-endpoint" placeholder="自定义 Endpoint（选填）">
+        <input class="setting-input" id="st-model" placeholder="模型名称（选填）">
+        <button class="setting-btn btn-primary" onclick="saveApiSettings()">保存配置</button>
+      </div>
+      <div class="setting-section">
+        <div class="setting-label">存档管理</div>
+        <button class="setting-btn btn-primary" onclick="saveGame()">💾 保存存档</button>
+        <button class="setting-btn btn-neutral" onclick="exportSave()">📤 导出存档文件</button>
+        <button class="setting-btn btn-neutral" onclick="document.getElementById('import-file').click()">📥 导入存档文件</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importSave(event)">
+        <button class="setting-btn btn-danger" onclick="confirmReset()">🗑 重置游戏</button>
+      </div>
+      <div class="setting-section">
+        <div class="setting-label">关于</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);line-height:1.8">
+          诊疗室 · 塔医疗部精神疏导科<br>
+          版本 v0.1 · 观南<br>
+          本游戏含成人向内容，适合18+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PHONE OVERLAY ══ -->
+<div id="phone-overlay">
+  <div class="phone-shell">
+    <!-- Notch -->
+    <div class="phone-notch">
+      <div class="phone-time" id="phone-time">09:00</div>
+      <div class="phone-status">
+        <span>塔内网</span>
+        <span>●●●</span>
+        <span>🔋</span>
+      </div>
+      <button class="phone-close-btn" onclick="closePhone()">✕</button>
+    </div>
+    <!-- Screen -->
+    <div class="phone-screen">
+      <!-- HOME -->
+      <div id="phone-home">
+        <div class="phone-app-bar">TOWER OS · v2.6</div>
+        <div class="phone-apps-grid">
+          <div class="phone-app-icon" onclick="openPhoneApp('journal')">
+            <div class="app-icon-img" style="background:linear-gradient(135deg,#0a2a1a,#051510)">📔</div>
+            <div class="app-name">向导日志</div>
+          </div>
+          <div class="phone-app-icon" onclick="openPhoneApp('appt')">
+            <div class="app-icon-img" style="background:linear-gradient(135deg,#0a1a2a,#051020)">
+              📋
+              <div class="app-badge" id="appt-badge">3</div>
+            </div>
+            <div class="app-name">预约系统</div>
+          </div>
+          <div class="phone-app-icon" onclick="openPhoneApp('wallet')">
+            <div class="app-icon-img" style="background:linear-gradient(135deg,#1a1a0a,#100a05)">💰</div>
+            <div class="app-name">钱包</div>
+          </div>
+          <div class="phone-app-icon" onclick="openPhoneApp('bag')">
+            <div class="app-icon-img" style="background:linear-gradient(135deg,#1a0a1a,#100510)">🎒</div>
+            <div class="app-name">驿站</div>
+          </div>
+          <div class="phone-app-icon" onclick="openPhoneApp('chat')">
+            <div class="app-icon-img" style="background:linear-gradient(135deg,#0a1a0a,#051005)">
+              💬
+              <div class="app-badge" id="chat-badge">!</div>
+            </div>
+            <div class="app-name">通讯</div>
+          </div>
+          <div class="phone-app-icon" onclick="openPhoneApp('forum')">
+            <div class="app-icon-img" style="background:linear-gradient(135deg,#1a0a0a,#100505)">📢</div>
+            <div class="app-name">论坛</div>
+          </div>
+        </div>
+        <div class="phone-home-bar"><div class="phone-home-indicator"></div></div>
+      </div>
+
+      <!-- JOURNAL APP -->
+      <div class="phone-inner" id="app-journal">
+        <div class="phone-back-bar">
+          <button class="phone-back-btn" onclick="closePhoneApp()">‹</button>
+          <div class="phone-screen-title">向导日志</div>
+        </div>
+        <div class="phone-content" id="journal-content">
+          <div class="journal-entry">
+            <div class="je-date">2060.01.01 · 09:00</div>
+            <div class="je-text">今天是上岗第一天。诊疗室比想象中安静，绿萝掉了两片叶子。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPT APP -->
+      <div class="phone-inner" id="app-appt">
+        <div class="phone-back-bar">
+          <button class="phone-back-btn" onclick="closePhoneApp()">‹</button>
+          <div class="phone-screen-title">预约系统</div>
+        </div>
+        <div class="phone-content" id="appt-content">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text2);margin-bottom:12px;letter-spacing:1px">今日预约 · 2060.01.01</div>
+          <div class="appt-item">
+            <div class="appt-time">09:00</div>
+            <div class="appt-info">
+              <div class="appt-name">系统报到</div>
+              <div class="appt-unit">塔医疗部 · 新员工</div>
+            </div>
+            <div class="appt-type type-pre">预约</div>
+          </div>
+          <div class="appt-item">
+            <div class="appt-time">10:30</div>
+            <div class="appt-info">
+              <div class="appt-name">König</div>
+              <div class="appt-unit">KorTac · 精神评估</div>
+            </div>
+            <div class="appt-type type-pre">预约</div>
+          </div>
+          <div class="appt-item">
+            <div class="appt-time">13:00</div>
+            <div class="appt-info">
+              <div class="appt-name">Soap MacTavish</div>
+              <div class="appt-unit">TF141 · 耳鸣复查</div>
+            </div>
+            <div class="appt-type type-pre">预约</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WALLET APP -->
+      <div class="phone-inner" id="app-wallet">
+        <div class="phone-back-bar">
+          <button class="phone-back-btn" onclick="closePhoneApp()">‹</button>
+          <div class="phone-screen-title">钱包</div>
+        </div>
+        <div class="phone-content">
+          <div class="wallet-balance">
+            <div class="wb-label">当前余额</div>
+            <div class="wb-amount" id="wallet-amount">2,400</div>
+            <div class="wb-unit">塔内积分 · TOWER CREDITS</div>
+          </div>
+          <div class="section-title">收支记录</div>
+          <div id="tx-list">
+            <div class="tx-item">
+              <div><div class="tx-desc">入职基础津贴</div><div class="tx-date">第1天</div></div>
+              <div class="tx-amount income">+2,400</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BAG APP -->
+      <div class="phone-inner" id="app-bag">
+        <div class="phone-back-bar">
+          <button class="phone-back-btn" onclick="closePhoneApp()">‹</button>
+          <div class="phone-screen-title">驿站</div>
+        </div>
+        <div class="phone-content" id="bag-content">
+          <div class="section-title">可赠送物品</div>
+          <div id="inventory-list">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--text3);text-align:center;padding:20px 0">背包是空的</div>
+          </div>
+          <div class="section-title" style="margin-top:16px">收到的礼物</div>
+          <div id="gifts-list">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--text3);text-align:center;padding:20px 0">还没有收到任何礼物</div>
+          </div>
+          <div class="section-title" style="margin-top:16px">道具商店</div>
+          <div id="shop-list"></div>
+        </div>
+      </div>
+
+      <!-- CHAT APP -->
+      <div class="phone-inner" id="app-chat">
+        <div class="phone-back-bar">
+          <button class="phone-back-btn" onclick="closePhoneApp()">‹</button>
+          <div class="phone-screen-title">通讯</div>
+        </div>
+        <div class="phone-content" style="padding:0">
+          <!-- Tabs -->
+          <div style="display:flex;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0">
+            <div onclick="switchChatTab('private')" id="tab-private" style="flex:1;text-align:center;padding:10px 0;font-family:var(--hud);font-size:12px;color:var(--cyan);border-bottom:2px solid var(--cyan);cursor:pointer">私聊</div>
+            <div onclick="switchChatTab('group')" id="tab-group" style="flex:1;text-align:center;padding:10px 0;font-family:var(--hud);font-size:12px;color:var(--text3);cursor:pointer">群聊</div>
+            <div onclick="switchChatTab('moments')" id="tab-moments" style="flex:1;text-align:center;padding:10px 0;font-family:var(--hud);font-size:12px;color:var(--text3);cursor:pointer">朋友圈</div>
+          </div>
+          <!-- Private chats list -->
+          <div id="chat-private" style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 14px">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;padding:8px 0;margin-bottom:6px">与角色接触后自动添加联系人</div>
+            <div class="chat-item" onclick="openChatWith('system')">
+              <div class="chat-av">系</div>
+              <div class="chat-info">
+                <div class="chat-name">塔医疗部通知</div>
+                <div class="chat-preview">欢迎加入精神疏导科第三诊疗组</div>
+              </div>
+              <div class="chat-time">09:00</div>
+            </div>
+            <div id="char-contacts"></div>
+          </div>
+          <!-- Group chats -->
+          <div id="chat-group" style="display:none;overflow-y:auto;padding:8px 14px">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;padding:8px 0;margin-bottom:6px">阵营群聊仅供查看</div>
+            <div class="chat-item">
+              <div class="chat-av" style="background:linear-gradient(135deg,#0a2a1a,#051510);color:var(--teal)">工</div>
+              <div class="chat-info">
+                <div class="chat-name">塔医疗部·第三诊疗组</div>
+                <div class="chat-preview">X主任：新向导医生今日上岗，请互相配合</div>
+              </div>
+              <div class="chat-time">08:30</div>
+            </div>
+            <div class="chat-item" style="opacity:0.4">
+              <div class="chat-av" style="background:linear-gradient(135deg,#0a1a2a,#051020);color:var(--cyan)">141</div>
+              <div class="chat-info">
+                <div class="chat-name">Task Force 141</div>
+                <div class="chat-preview">🔒 与成员建立联系后解锁</div>
+              </div>
+              <div class="chat-time">—</div>
+            </div>
+          </div>
+          <!-- Moments -->
+          <div id="chat-moments" style="display:none;overflow-y:auto;padding:8px 14px">
+            <!-- filled by renderMoments() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- PRIVATE CHAT SCREEN (dynamic) -->
+      <div class="phone-inner" id="app-private-chat">
+        <div class="phone-back-bar">
+          <button class="phone-back-btn" onclick="closePrivateChat()">‹</button>
+          <div class="chat-av" id="pc-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--hud);font-size:12px;font-weight:700;color:var(--cyan);flex-shrink:0">?</div>
+          <div style="flex:1">
+            <div class="phone-screen-title" id="pc-name">—</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--text3)" id="pc-status">离线</div>
+          </div>
+        </div>
+        <!-- Friend hint -->
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;padding:8px 0;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0" id="pc-friend-hint">
+          你们已是好友，快来聊天吧
+        </div>
+        <!-- Messages -->
+        <div id="pc-messages" style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;background:var(--bg)">
+          <!-- filled dynamically -->
+        </div>
+        <!-- Input -->
+        <div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);background:var(--panel);flex-shrink:0">
+          <input id="pc-input" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;color:var(--white);font-family:var(--serif);font-size:13px;padding:8px 14px;outline:none" placeholder="发消息…">
+          <button id="pc-send" onclick="sendPrivateMessage()" style="width:36px;height:36px;background:var(--cyan-dim);border:1px solid var(--cyan);border-radius:50%;color:var(--cyan);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">▶</button>
+        </div>
+      </div>
+
+      <!-- FORUM APP -->
+      <div class="phone-inner" id="app-forum">
+        <div class="phone-back-bar">
+          <button class="phone-back-btn" onclick="closePhoneApp()">‹</button>
+          <div class="phone-screen-title">塔区论坛</div>
+        </div>
+        <div class="phone-content" id="forum-list">
+          <!-- filled by renderForum() -->
+        </div>
+      </div>
+
+    </div><!-- /phone-screen -->
+  </div><!-- /phone-shell -->
+</div><!-- /phone-overlay -->
+
+
+<script defer src="assets/js/core/01-state.js"></script>
+<script defer src="assets/js/core/02-init-multi-step.js"></script>
+<script defer src="assets/js/core/03-clock-top-bar.js"></script>
+<script defer src="assets/js/systems/04-opening-scene.js"></script>
+<script defer src="assets/js/systems/05-messages.js"></script>
+<script defer src="assets/js/systems/06-options.js"></script>
+<script defer src="assets/js/systems/07-send-free-message.js"></script>
+<script defer src="assets/js/data/characters.js"></script>
+<script defer src="assets/js/api/08-ai-call.js"></script>
+<script defer src="assets/js/data/09-system-prompt.js"></script>
+<script defer src="assets/js/core/10-trust-phase.js"></script>
+<script defer src="assets/js/systems/11-guide-level.js"></script>
+<script defer src="assets/js/systems/12-character-memory.js"></script>
+<script defer src="assets/js/core/13-navigation.js"></script>
+<script defer src="assets/js/systems/14-map.js"></script>
+<script defer src="assets/js/systems/15-drawer-drag.js"></script>
+<script defer src="assets/js/systems/16-spirit-appearance-real-world.js"></script>
+<script defer src="assets/js/api/17-moments-forum-detail.js"></script>
+<script defer src="assets/js/core/18-time-slot.js"></script>
+<script defer src="assets/js/phone/19-private-chat.js"></script>
+<script defer src="assets/js/phone/20-shop-inventory.js"></script>
+<script defer src="assets/js/systems/21-archive-bag-functions.js"></script>
+<script defer src="assets/js/systems/22-archive-render.js"></script>
+<script defer src="assets/js/systems/phone-medical-record.js"></script>
+<script defer src="assets/js/systems/landscape-journey.js"></script>
+<script defer src="assets/js/core/23-settings.js"></script>
+<script defer src="assets/js/systems/24-world-log.js"></script>
+<script defer src="assets/js/core/25-save-load.js"></script>
+<script defer src="assets/js/systems/26-toast.js"></script>
+<script defer src="assets/js/systems/27-glitch-transition.js"></script>
+<script defer src="assets/js/systems/28-input-auto-resize.js"></script>
+</body>
+</html>

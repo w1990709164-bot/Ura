@@ -1,0 +1,74 @@
+/* NPC dialogue */
+.msg-npc { display:flex; gap:10px; align-items:flex-start; }
+.npc-av {
+  width:38px; height:38px;
+  border-radius:4px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--hud);
+  font-size:13px;
+  font-weight:700;
+  color:var(--cyan);
+  flex-shrink:0;
+  position:relative;
+  overflow:hidden;
+}
+.npc-av::after {
+  content:'';
+  position:absolute;
+  bottom:0; left:0; right:0;
+  height:2px;
+  background:var(--cyan);
+  opacity:0.6;
+}
+.npc-body { flex:1; min-width:0; }
+.npc-name {
+  font-family:var(--hud);
+  font-size:12px;
+  font-weight:700;
+  color:var(--cyan);
+  letter-spacing:1px;
+  margin-bottom:5px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.npc-rank {
+  font-size:9px;
+  color:var(--text3);
+  font-weight:400;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  padding:1px 5px;
+  border-radius:2px;
+  letter-spacing:1px;
+}
+.npc-bubble {
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:0 8px 8px 8px;
+  padding:10px 14px;
+  font-size:14px;
+  line-height:1.9;
+  color:var(--text);
+}
+.npc-bubble .action {
+  font-style:italic;
+  color:var(--text2);
+  font-size:13px;
+  display:block;
+  margin-bottom:6px;
+}
+.npc-bubble .en { color:var(--white); display:block; margin-bottom:4px; }
+.npc-bubble .zh {
+  color:var(--text2);
+  font-size:13px;
+  display:block;
+  padding-left:8px;
+  border-left:2px solid var(--border2);
+  margin-top:2px;
+}

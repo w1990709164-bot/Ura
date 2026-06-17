@@ -1,0 +1,63 @@
+/* ══════════════════════════════
+   PHONE OVERLAY
+══════════════════════════════ */
+#phone-overlay {
+  position:fixed; inset:0;
+  z-index:600;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(5,8,16,0.85);
+  backdrop-filter:blur(12px);
+}
+#phone-overlay.show { display:flex; }
+
+.phone-shell {
+  width:min(340px, 88vw);
+  height:min(680px, 88vh);
+  background:#0a0f1a;
+  border-radius:36px;
+  border:2px solid #2a3a50;
+  box-shadow:
+    0 0 0 1px #0d1525,
+    0 0 40px rgba(0,229,255,0.15),
+    0 30px 60px rgba(0,0,0,0.6),
+    inset 0 0 20px rgba(0,0,0,0.4);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+
+.phone-notch {
+  height:36px;
+  background:#080d18;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 14px;
+  flex-shrink:0;
+  gap:8px;
+}
+.phone-time {
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--white);
+  font-weight:600;
+}
+.phone-status {
+  display:flex;
+  gap:4px;
+  align-items:center;
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--white);
+}
+
+.phone-screen {
+  flex:1;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:var(--bg);
+}

@@ -1,0 +1,19 @@
+/* Journal entries */
+.journal-entry {
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:12px;
+  margin-bottom:10px;
+}
+.je-date {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--cyan);
+  margin-bottom:6px;
+}
+.je-text {
+  font-size:13px;
+  color:var(--text);
+  line-height:1.8;
+}

@@ -1,0 +1,19 @@
+/* Close phone btn */
+.phone-close-btn {
+  width:24px; height:24px;
+  background:rgba(255,45,107,0.2);
+  border:1px solid var(--pink-dim);
+  border-radius:50%;
+  color:var(--pink);
+  font-size:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.2s;
+  flex-shrink:0;
+}
+.phone-close-btn:active {
+  background:var(--pink);
+  color:white;
+}

@@ -1,0 +1,52 @@
+/* Moments / Feeds */
+.moment-item {
+  padding:14px 0;
+  border-bottom:1px solid rgba(26,40,64,0.5);
+}
+.moment-header {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+.moment-av {
+  width:36px; height:36px;
+  border-radius:50%;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--hud);
+  font-size:12px;
+  font-weight:700;
+  color:var(--cyan);
+  flex-shrink:0;
+}
+.moment-name {
+  font-family:var(--hud);
+  font-size:13px;
+  font-weight:600;
+  color:var(--cyan);
+}
+.moment-time {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text3);
+  margin-left:auto;
+}
+.moment-text {
+  font-size:13px;
+  color:var(--text);
+  line-height:1.8;
+  margin-bottom:8px;
+}
+.moment-actions {
+  display:flex;
+  gap:16px;
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text3);
+}
+.moment-action { cursor:pointer; transition:color 0.2s; }
+.moment-action:active { color:var(--cyan); }

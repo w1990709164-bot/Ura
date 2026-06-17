@@ -1,0 +1,35 @@
+/* Scene header */
+#scene-header {
+  padding:10px 16px 8px;
+  border-bottom:1px solid var(--border);
+  background:rgba(8,13,24,0.8);
+  backdrop-filter:blur(10px);
+  flex-shrink:0;
+  position:relative;
+  z-index:2;
+}
+.sh-tag {
+  font-family:var(--mono);
+  font-size:9px;
+  color:var(--cyan);
+  letter-spacing:2px;
+  background:var(--cyan-glow);
+  border:1px solid var(--cyan-dim);
+  padding:2px 7px;
+  border-radius:2px;
+  display:inline-block;
+  margin-bottom:4px;
+}
+.sh-title {
+  font-family:var(--hud);
+  font-size:15px;
+  font-weight:700;
+  color:var(--white);
+  letter-spacing:1px;
+}
+.sh-sub {
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text3);
+  margin-top:2px;
+}
