@@ -1,0 +1,3 @@
+
+// 里世界总入口：这里只负责展示/跳转，不承载任何单个游戏逻辑。
+window.LIWORLD_VERSION = 'modular-1.0';
