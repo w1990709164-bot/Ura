@@ -70,12 +70,12 @@ button{padding:12px 20px;font-size:1rem;border:none;border-radius:var(--radius);
 
 <div id="api-modal">
   <div class="modal-content">
-    <label for="api-url">OpenAI 链接</label>
-    <input type="text" id="api-url" placeholder="https://api.openai.com/v1">
+    <label for="api-url">接口链接（OpenAI 兼容；留空则用 Anthropic 官方接口）</label>
+    <input type="text" id="api-url" placeholder="https://api.openai.com/v1（可留空）">
     <label for="api-key">API Key</label>
     <input type="text" id="api-key" placeholder="输入你的密钥">
-    <label for="api-model">拉取模型</label>
-    <input type="text" id="api-model" placeholder="gpt-4,gpt-5-mini 等">
+    <label for="api-model">模型名称</label>
+    <input type="text" id="api-model" placeholder="如 gpt-4o 或 claude-sonnet-4-20250514">
     <div style="display:flex;justify-content:space-between;margin-top:8px;">
       <button id="api-save">保存</button>
       <button id="api-close">关闭</button>
@@ -95,17 +95,18 @@ startBtn.addEventListener('click', ()=>{gameCards.style.display='grid';});
 apiBtn.addEventListener('click', ()=>{apiModal.style.display='flex';});
 apiClose.addEventListener('click', ()=>{apiModal.style.display='none';});
 apiSave.addEventListener('click', ()=>{
-    const url=document.getElementById('api-url').value;
-    const key=document.getElementById('api-key').value;
-    const model=document.getElementById('api-model').value;
-    if(url && key && model){
+    const url=document.getElementById('api-url').value.trim();
+    const key=document.getElementById('api-key').value.trim();
+    const model=document.getElementById('api-model').value.trim();
+    // 链接可留空（留空表示使用 Anthropic 官方接口），但密钥与模型必填
+    if(key && model){
         localStorage.setItem('LW_API_URL',url);
         localStorage.setItem('LW_API_KEY',key);
         localStorage.setItem('LW_API_MODEL',model);
         alert('API 设置已保存，全局有效');
         apiModal.style.display='none';
     }else{
-        alert('请填写完整 API 信息');
+        alert('请至少填写 API Key 和模型名称');
     }
 });
 
