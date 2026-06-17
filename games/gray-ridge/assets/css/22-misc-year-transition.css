@@ -1,0 +1,101 @@
+/* ════════════════════════════
+   YEAR TRANSITION
+════════════════════════════ */
+#year-transition {
+  position:fixed; inset:0;
+  z-index:7000;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg);
+  padding:32px;
+}
+.yt-year {
+  font-family:var(--cinzel);
+  font-size:64px;
+  font-weight:900;
+  color:var(--gold);
+  text-shadow:0 0 40px rgba(255,179,71,0.5);
+  animation:year-roll 0.5s ease-out;
+  margin-bottom:8px;
+}
+@keyframes year-roll {
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.yt-label {
+  font-family:var(--hud);
+  font-size:12px;
+  color:var(--text2);
+  letter-spacing:4px;
+  margin-bottom:32px;
+}
+.yt-content {
+  max-width:360px;
+  width:100%;
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:4px;
+  padding:20px;
+}
+.yt-birthday-title {
+  font-family:var(--cinzel);
+  font-size:14px;
+  font-weight:700;
+  color:var(--gold);
+  letter-spacing:2px;
+  text-align:center;
+  margin-bottom:16px;
+}
+.yt-gift {
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:10px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:2px;
+  margin-bottom:8px;
+}
+.yt-gift-av {
+  width:32px; height:32px;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:2px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--cinzel);
+  font-size:10px;
+  font-weight:700;
+  color:var(--gold);
+  flex-shrink:0;
+}
+.yt-gift-name {
+  font-family:var(--cinzel);
+  font-size:11px;
+  color:var(--sand);
+  letter-spacing:1px;
+  margin-bottom:2px;
+}
+.yt-gift-text {
+  font-family:var(--serif);
+  font-size:12px;
+  color:var(--text2);
+  line-height:1.7;
+}
+.yt-continue {
+  width:100%;
+  margin-top:16px;
+  background:linear-gradient(135deg,var(--gold-dim),#3A2008);
+  border:1px solid var(--gold);
+  border-radius:2px;
+  color:var(--gold);
+  font-family:var(--cinzel);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:3px;
+  padding:12px;
+  cursor:pointer;
+}

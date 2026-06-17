@@ -1,0 +1,108 @@
+/* ════════════════════════════
+   TASK CARD
+════════════════════════════ */
+#task-overlay {
+  position:fixed; inset:0;
+  z-index:5000;
+  display:none;
+  flex-direction:column;
+  background:rgba(5,4,2,0.97);
+  padding:24px;
+  align-items:center;
+  justify-content:center;
+}
+.task-cards-wrap {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  width:100%;
+  max-width:380px;
+}
+.task-card {
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:4px;
+  padding:18px;
+  position:relative;
+  overflow:hidden;
+}
+.task-card::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+}
+.task-card-name {
+  font-family:var(--cinzel);
+  font-size:16px;
+  font-weight:700;
+  color:var(--white);
+  letter-spacing:1px;
+  margin-bottom:4px;
+}
+.task-card-meta {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.task-card-tag {
+  font-family:var(--hud);
+  font-size:9px;
+  letter-spacing:2px;
+  padding:2px 7px;
+  border-radius:1px;
+  border:1px solid;
+}
+.task-card-tag.grade-d { color:#888; border-color:#444; background:rgba(100,100,100,0.1); }
+.task-card-tag.grade-c { color:var(--green); border-color:var(--green-dim); background:rgba(74,124,78,0.1); }
+.task-card-tag.grade-b { color:#5599CC; border-color:#1A3A5A; background:rgba(85,153,204,0.1); }
+.task-card-tag.grade-a { color:var(--gold); border-color:var(--gold-dim); background:var(--gold-glow); }
+.task-card-desc {
+  font-family:var(--serif);
+  font-size:13px;
+  color:var(--text2);
+  line-height:1.8;
+  margin-bottom:10px;
+}
+.task-card-members {
+  font-family:var(--hud);
+  font-size:10px;
+  color:var(--sand);
+  letter-spacing:1px;
+  margin-bottom:6px;
+}
+.task-card-rec {
+  font-family:var(--hud);
+  font-size:10px;
+  color:var(--text3);
+  letter-spacing:0.5px;
+  margin-bottom:14px;
+}
+.task-card-actions {
+  display:flex;
+  gap:8px;
+}
+.task-card-btn {
+  flex:1;
+  padding:10px;
+  font-family:var(--cinzel);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2px;
+  border-radius:2px;
+  cursor:pointer;
+  transition:all 0.2s;
+  border:1px solid;
+}
+.task-card-btn.confirm {
+  background:linear-gradient(135deg,var(--gold-dim),#3A2008);
+  border-color:var(--gold);
+  color:var(--gold);
+}
+.task-card-btn.cancel {
+  background:var(--bg3);
+  border-color:var(--border2);
+  color:var(--text2);
+}
