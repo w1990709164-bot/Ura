@@ -1,4 +1,0 @@
-#phase-bar { height:32px; background:var(--bg2); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 14px; gap:0; flex-shrink:0; }
-.phase-item { flex:1; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--text3); cursor:pointer; transition:all 0.2s; height:100%; border-bottom:2px solid transparent; gap:4px; }
-.phase-item.active { color:var(--red); border-bottom-color:var(--red); }
-.phase-item:hover:not(.active) { color:var(--text2); }

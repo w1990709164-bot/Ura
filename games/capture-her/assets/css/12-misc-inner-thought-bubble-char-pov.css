@@ -1,2 +1,0 @@
-.thought-bubble { background:linear-gradient(135deg,rgba(232,53,74,0.06),rgba(232,53,74,0.02)); border:1px solid var(--red-dim); border-radius:4px; padding:10px 12px; font-family:var(--cormo); font-style:italic; font-size:14px; color:rgba(232,53,74,0.7); line-height:1.9; margin-bottom:10px; }
-.thought-bubble .th-name { font-family:var(--mono); font-style:normal; font-size:9px; color:var(--red); letter-spacing:2px; margin-bottom:6px; display:block; }

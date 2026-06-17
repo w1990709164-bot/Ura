@@ -1,3 +1,0 @@
-/* WATERMARK */
-.watermark{position:fixed;bottom:0.6rem;left:0.7rem;font-family:'Special Elite',cursive;font-size:0.58rem;color:rgba(232,220,200,0.18);letter-spacing:0.1em;z-index:9997;pointer-events:none;user-select:none;}
-@media(max-width:600px){.role-grid{grid-template-columns:repeat(2,1fr);}.char-grid{grid-template-columns:1fr;}.c-row{grid-template-columns:1fr;}.dlg-options{grid-template-columns:1fr;}.tb-left .tb-sep:last-of-type,.tb-left .tb-item:last-of-type{display:none;}}
