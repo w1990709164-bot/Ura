@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>任务：攻略她</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Noto+Serif+SC:wght@300;400;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+
+<!-- CSS: 基础 -->
+<link rel="stylesheet" href="assets/css/01-base-base.css">
+<link rel="stylesheet" href="assets/css/02-base-grain.css">
+<!-- CSS: 屏幕 -->
+<link rel="stylesheet" href="assets/css/03-screens-title-screen.css">
+<link rel="stylesheet" href="assets/css/04-screens-settings-screen.css">
+<link rel="stylesheet" href="assets/css/05-screens-new-game-screen.css">
+<!-- CSS: 主应用 -->
+<link rel="stylesheet" href="assets/css/06-phone-main-app.css">
+<link rel="stylesheet" href="assets/css/07-gameplay-topbar.css">
+<link rel="stylesheet" href="assets/css/08-misc-day-phase-bar.css">
+<link rel="stylesheet" href="assets/css/09-gameplay-main-content.css">
+<link rel="stylesheet" href="assets/css/10-gameplay-scene-daily-narrative.css">
+<link rel="stylesheet" href="assets/css/11-misc-dual-viewport-split-screen.css">
+<link rel="stylesheet" href="assets/css/12-misc-inner-thought-bubble-char-pov.css">
+<link rel="stylesheet" href="assets/css/13-gameplay-bottom-drawer.css">
+<link rel="stylesheet" href="assets/css/14-gameplay-bottom-nav.css">
+<link rel="stylesheet" href="assets/css/15-misc-action-bar.css">
+<link rel="stylesheet" href="assets/css/16-gameplay-group-chat.css">
+<!-- CSS: 面板 -->
+<link rel="stylesheet" href="assets/css/17-panels-leaderboard.css">
+<link rel="stylesheet" href="assets/css/18-panels-overlays-dossier.css">
+<link rel="stylesheet" href="assets/css/19-panels-dossier-cards.css">
+<link rel="stylesheet" href="assets/css/20-panels-backpack.css">
+<!-- CSS: 杂项 -->
+<link rel="stylesheet" href="assets/css/21-base-toast.css">
+<link rel="stylesheet" href="assets/css/22-misc-system-task-notification.css">
+<link rel="stylesheet" href="assets/css/23-misc-good-feel-picker.css">
+<link rel="stylesheet" href="assets/css/24-misc-social-death.css">
+<link rel="stylesheet" href="assets/css/25-misc-glitch.css">
+</head>
+<body>
+<div id="glitch-overlay"></div>
+<div id="toast"></div>
+
+<!-- ══════════ TITLE ══════════ -->
+<div id="title-screen">
+  <div class="title-eyebrow">SYSTEM INITIALIZED</div>
+  <div class="title-main">任务<br>攻略她</div>
+  <div class="title-sub">Mission: Court Her</div>
+  <div class="title-system-tag">⚠ ABO · 18+ · CoD同人</div>
+  <button class="title-btn primary" onclick="showNewGame()">开始游戏</button>
+  <button class="title-btn" onclick="showScreen('settings-screen')">设　　置</button>
+  <button class="title-btn" id="load-btn" style="display:none" onclick="loadAndStart()">读取档案</button>
+  <div class="title-warn" id="age-warn">⚠ 本游戏含有成人向内容（ABO/18+）<br>仅限18岁以上成年用户</div>
+</div>
+
+<!-- ══════════ SETTINGS ══════════ -->
+<div id="settings-screen">
+  <div class="settings-card">
+    <div class="settings-title">系统设置</div>
+    <div id="st-api-status" style="margin-bottom:16px;padding:10px 14px;border-radius:6px;font-size:12px;font-family:var(--mono);letter-spacing:0.5px;border:1px solid var(--border2);color:var(--text2)">
+      ⚙ API 配置由主页统一管理
+    </div>
+    <div class="s-adult-row">
+      <input type="checkbox" id="st-adult">
+      <label for="st-adult">本人确认已满18周岁，了解本游戏含有ABO及成人向内容，自愿游玩。</label>
+    </div>
+    <button class="s-btn" onclick="saveSettings()">保存设置</button>
+    <div class="s-err" id="st-err"></div>
+  </div>
+  <div class="s-back" onclick="showScreen('title-screen')">← 返回</div>
+</div>
+
+<!-- ══════════ NEW GAME ══════════ -->
+<div id="newgame-screen">
+  <div class="ng-header">
+    <div class="ng-title">建立档案</div>
+    <div class="ng-sub">PERSONNEL FILE · BETA CIVILIAN</div>
+  </div>
+  <div class="ng-card" style="max-width:420px;margin:0 auto 12px">
+    <div class="ng-section">基本信息</div>
+    <input class="ng-input" id="ng-name" placeholder="姓名" maxlength="20">
+    <textarea class="ng-textarea" id="ng-appearance" placeholder="外貌描述（发色、瞳色、体型特征等，AI叙事将参考此内容）" rows="3"></textarea>
+  </div>
+  <div class="ng-card" style="max-width:420px;margin:0 auto 12px">
+    <div class="ng-section">生日</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px;margin-bottom:8px">游戏内第一天</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <select class="ng-input" id="ng-month" onchange="updateDays()" style="margin-bottom:0">
+        <option value="">月份</option>
+        <option value="1">一月</option><option value="2">二月</option>
+        <option value="3">三月</option><option value="4">四月</option>
+        <option value="5">五月</option><option value="6">六月</option>
+        <option value="7">七月</option><option value="8">八月</option>
+        <option value="9">九月</option><option value="10">十月</option>
+        <option value="11">十一月</option><option value="12">十二月</option>
+      </select>
+      <select class="ng-input" id="ng-day" style="margin-bottom:0">
+        <option value="">日期</option>
+      </select>
+    </div>
+  </div>
+  <button class="ng-btn" onclick="startNewGame()">进入安全区</button>
+  <div class="ng-err" id="ng-err"></div>
+  <div style="height:20px"></div>
+</div>
+
+<!-- ══════════ MAIN APP ══════════ -->
+<div id="app">
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="tb-date">
+      <div class="tb-date-main" id="tb-date">2025年1月1日</div>
+      <div id="tb-day-num" style="font-size:8px;color:var(--text3)">第1天</div>
+    </div>
+    <div class="tb-center"><div class="tb-title" id="tb-phase">安全区 · 行政楼</div></div>
+    <div class="tb-right">
+      <div class="tb-mood" id="tb-mood">😐</div>
+      <div class="tb-wallet">💳 <span id="tb-wallet">0</span></div>
+    </div>
+  </div>
+
+  <!-- PHASE BAR -->
+  <div id="phase-bar">
+    <div class="phase-item active" id="ph-morning" onclick="switchPhase('morning')">
+      <span>🌅</span><span>早</span>
+    </div>
+    <div class="phase-item" id="ph-midday" onclick="switchPhase('midday')">
+      <span>⚡</span><span>中</span>
+    </div>
+    <div class="phase-item" id="ph-evening" onclick="switchPhase('evening')">
+      <span>🌙</span><span>晚</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- SCENE VIEW (user POV + drawer) -->
+    <div id="scene-view">
+      <div id="single-view"></div>
+      <div id="bottom-drawer" class="collapsed">
+        <div class="drawer-handle" id="drawer-handle">
+          <div class="drawer-pill"></div>
+          <div class="drawer-mode" id="drawer-mode">INPUT</div>
+        </div>
+        <div class="drawer-body">
+          <div id="options-area" style="display:none"></div>
+          <div id="input-area">
+            <textarea id="input-box" placeholder="说点什么…" rows="1"></textarea>
+            <button id="send-btn" onclick="sendMsg()" disabled>发送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECOND TAB: char POV (daytime) or group chat (evening) -->
+    <div id="second-tab-view" style="display:none;height:100%;flex-direction:column">
+
+      <!-- CHAR POV TAB (daytime) -->
+      <div id="char-pov-view" style="display:none;height:100%;flex-direction:column">
+        <div style="height:44px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:8px;flex-shrink:0">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:1px;flex:1">💭 角色视角</div>
+          <div id="char-pov-tabs" style="display:flex;gap:6px;overflow-x:auto"></div>
+        </div>
+        <div id="char-pov-content" style="flex:1;overflow-y:auto;padding:12px 14px 20px;-webkit-overflow-scrolling:touch"></div>
+      </div>
+
+      <!-- GROUP CHAT TAB (evening) -->
+      <div id="chat-view" style="display:none;height:100%;flex-direction:column">
+        <div class="chat-header">
+          <div class="chat-header-title">📱 系统群聊</div>
+          <div class="chat-header-sub" id="chat-member-count">14位成员 · 只读模式</div>
+        </div>
+        <div id="chat-messages" style="flex:1;overflow-y:auto;padding:12px 14px 20px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <div class="nav-item active" id="nav-scene" onclick="showMainView('scene')">
+      <div class="nav-icon">📋</div>
+      <div class="nav-label">日常</div>
+    </div>
+    <div class="nav-item" id="nav-second" onclick="showSecondTab()">
+      <div class="nav-icon" id="nav-second-icon">💭</div>
+      <div class="nav-label" id="nav-second-label">视角</div>
+    </div>
+    <div class="nav-item" id="nav-dossier" onclick="openOverlay('dossier-overlay')">
+      <div class="nav-icon">🗂</div>
+      <div class="nav-label">档案</div>
+    </div>
+    <div class="nav-item" id="nav-bag" onclick="openOverlay('bag-overlay')">
+      <div class="nav-icon">🎒</div>
+      <div class="nav-label">背包</div>
+    </div>
+    <div class="nav-item" id="nav-gs" onclick="openOverlay('gs-overlay')">
+      <div class="nav-icon">⚙</div>
+      <div class="nav-label">设置</div>
+    </div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div id="action-bar">
+    <div class="action-btn" onclick="advancePhase()">⏭ <span id="ab-next">下一阶段</span></div>
+    <div class="action-btn" id="ab-market-btn" onclick="openMarket()" style="border-right:none">🛍 补给站</div>
+  </div>
+</div>
+
+<!-- ══════════ OVERLAYS ══════════ -->
+
+<!-- DOSSIER -->
+<div class="overlay" id="dossier-overlay">
+  <div class="overlay-bg" onclick="closeOverlay('dossier-overlay')"></div>
+  <div class="overlay-panel">
+    <div class="overlay-header">
+      <div class="overlay-title">人员档案</div>
+      <div class="overlay-close" onclick="closeOverlay('dossier-overlay')">✕</div>
+    </div>
+    <div class="overlay-body">
+      <div class="dossier-filter" id="dossier-filter">
+        <div class="df-btn active" onclick="filterDossier('all',this)">全部</div>
+        <div class="df-btn" onclick="filterDossier('141',this)">141</div>
+        <div class="df-btn" onclick="filterDossier('ghost_squad',this)">幽灵小队</div>
+        <div class="df-btn" onclick="filterDossier('kortac',this)">KorTac</div>
+        <div class="df-btn" onclick="filterDossier('chimera',this)">奇美拉</div>
+        <div class="df-btn" onclick="filterDossier('specgru',this)">SpecGru</div>
+        <div class="df-btn" onclick="filterDossier('shadow',this)">暗影</div>
+      </div>
+      <div id="dossier-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BACKPACK -->
+<div class="overlay" id="bag-overlay">
+  <div class="overlay-bg" onclick="closeOverlay('bag-overlay')"></div>
+  <div class="overlay-panel">
+    <div class="overlay-header">
+      <div class="overlay-title">背包</div>
+      <div class="overlay-close" onclick="closeOverlay('bag-overlay')">✕</div>
+    </div>
+    <div class="overlay-body">
+      <div class="bp-tabs">
+        <div class="bp-tab active" onclick="bpTab('all',this)">全部</div>
+        <div class="bp-tab" onclick="bpTab('gift',this)">礼物</div>
+        <div class="bp-tab" onclick="bpTab('item',this)">物品</div>
+      </div>
+      <div id="bp-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME SETTINGS -->
+<div class="overlay" id="gs-overlay">
+  <div class="overlay-bg" onclick="closeOverlay('gs-overlay')"></div>
+  <div class="overlay-panel">
+    <div class="overlay-header">
+      <div class="overlay-title">游戏设置</div>
+      <div class="overlay-close" onclick="closeOverlay('gs-overlay')">✕</div>
+    </div>
+    <div class="overlay-body">
+      <div id="gs-api-status" style="margin-bottom:16px;padding:10px 14px;border-radius:6px;font-size:12px;font-family:var(--mono);letter-spacing:0.5px;border:1px solid var(--border2);color:var(--text2)">
+        ⚙ API 配置由主页统一管理
+      </div>
+      <button class="s-btn" style="margin-bottom:10px;background:transparent;border-color:var(--border2);color:var(--text2)" onclick="exportSave()">导出存档</button>
+      <button class="s-btn" style="background:transparent;border-color:var(--border2);color:var(--text2)" onclick="document.getElementById('import-file').click()">导入存档</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importSave(event)">
+    </div>
+  </div>
+</div>
+
+<!-- GOOD FEEL MODAL -->
+<div id="goodfeel-modal">
+  <div class="gf-card">
+    <div class="gf-title" id="gf-title">这次互动……</div>
+    <div class="gf-sub" id="gf-sub">你愿意给他多少好感？</div>
+    <div class="gf-options" id="gf-options">
+      <div class="gf-opt" onclick="submitGoodFeel(0)">
+        <div class="gf-opt-score">0</div>
+        <div class="gf-opt-text">没什么特别的感觉</div>
+      </div>
+      <div class="gf-opt" onclick="submitGoodFeel(1)">
+        <div class="gf-opt-score">+1</div>
+        <div class="gf-opt-text">有点在意，但说不清楚</div>
+      </div>
+      <div class="gf-opt" onclick="submitGoodFeel(2)">
+        <div class="gf-opt-score">+2</div>
+        <div class="gf-opt-text">有些心动，不想承认</div>
+      </div>
+      <div class="gf-opt" onclick="submitGoodFeel(3)">
+        <div class="gf-opt-score">+3</div>
+        <div class="gf-opt-text">很在意，心跳加速了</div>
+      </div>
+    </div>
+    <button class="gf-skip" onclick="submitGoodFeel(0)">跳过</button>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="leaderboard-overlay">
+  <div class="lb-title">TODAY'S RANKING</div>
+  <div class="lb-day" id="lb-day">第1天</div>
+  <div class="lb-card" id="lb-card"></div>
+  <button class="lb-continue" onclick="closeLB()">进入第 <span id="lb-next-day">2</span> 天</button>
+</div>
+
+<!-- TASK NOTIF -->
+<div id="task-notif">
+  <div class="task-notif-card">
+    <div class="tnc-sys">⚠ SYSTEM · 新任务</div>
+    <div class="tnc-char" id="tnc-char">Ghost</div>
+    <div class="tnc-task" id="tnc-task">任务内容加载中…</div>
+  </div>
+</div>
+<!-- API 状态展示（从主页 localStorage 读取） -->
+<script>
+function refreshApiStatus(){
+  const url   = localStorage.getItem('LW_API_URL')||'';
+  const key   = localStorage.getItem('LW_API_KEY')||'';
+  const model = localStorage.getItem('LW_API_MODEL')||'—';
+  const ok    = !!key;
+  const label = ok
+    ? `✓ 已配置　端点：${url||'Anthropic 默认'}　模型：${model}`
+    : '✗ 未检测到 API 配置，请返回主页设置';
+  const color = ok ? '#4caf8a' : '#e8354a';
+  ['st-api-status','gs-api-status'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.textContent=label; el.style.color=color; el.style.borderColor=ok?'#1a4a38':'#3a0a10'; }
+  });
+}
+document.addEventListener('DOMContentLoaded', refreshApiStatus);
+</script>
+<!-- JS: 数据层（最先加载） -->
+<script defer src="assets/js/data/01-constants.js"></script>
+<script defer src="assets/js/data/30-system-prompt.js"></script>
+<!-- JS: 核心（状态、设置、存档） -->
+<script defer src="assets/js/core/02-state.js"></script>
+<script defer src="assets/js/core/03-screen-management.js"></script>
+<script defer src="assets/js/core/04-settings.js"></script>
+<script defer src="assets/js/core/05-new-game-v2.js"></script>
+<script defer src="assets/js/core/06-topbar.js"></script>
+<script defer src="assets/js/core/07-phase-management.js"></script>
+<script defer src="assets/js/core/29-save-load.js"></script>
+<!-- JS: API层 -->
+<script defer src="assets/js/api/08-daily-task-generation.js"></script>
+<script defer src="assets/js/api/13-ai-calls.js"></script>
+<script defer src="assets/js/api/14-process-ai-response.js"></script>
+<!-- JS: 系统功能 -->
+<script defer src="assets/js/systems/09-task-event-trigger.js"></script>
+<script defer src="assets/js/systems/10-main-view-switching.js"></script>
+<script defer src="assets/js/systems/11-messages.js"></script>
+<script defer src="assets/js/systems/12-options.js"></script>
+<script defer src="assets/js/systems/15-horae-processing.js"></script>
+<script defer src="assets/js/systems/16-good-feel.js"></script>
+<script defer src="assets/js/systems/17-evening-chat.js"></script>
+<script defer src="assets/js/systems/18-leaderboard.js"></script>
+<script defer src="assets/js/systems/19-dossier.js"></script>
+<script defer src="assets/js/systems/20-backpack.js"></script>
+<script defer src="assets/js/systems/21-market-system.js"></script>
+<script defer src="assets/js/systems/22-gift-system.js"></script>
+<script defer src="assets/js/systems/23-alpha-heat-system.js"></script>
+<script defer src="assets/js/systems/24-social-death-punishment-ui.js"></script>
+<script defer src="assets/js/systems/25-advance-day.js"></script>
+<script defer src="assets/js/systems/26-drawer.js"></script>
+<script defer src="assets/js/systems/27-overlay.js"></script>
+<script defer src="assets/js/systems/28-toast-glitch.js"></script>
+<!-- JS: 初始化（最后执行） -->
+<script defer src="assets/js/core/31-init.js"></script>
+</body>
+</html>
