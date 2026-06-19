@@ -26,7 +26,9 @@ function useSlot(activity) {
     });
   }
   checkEmergencies();
-  maybeSpawnEmergency();
+  // maybeSpawnEmergency() 已移除（紧急事件由 11-guide-level.js 的 checkAndTriggerEmergency 统一管理）。
+  // 此前这里残留的调用会抛 ReferenceError，导致 useSlot 在已消耗时间槽后中断，
+  // 进而让 travelTo 中止，出现“消耗了行动点但无法跳转/触发剧情”的现象。
   saveGame();
   return true;
 }

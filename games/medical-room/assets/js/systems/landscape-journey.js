@@ -497,6 +497,18 @@ function finishLandscape(charId, result) {
   };
   const r = resultMap[result] || resultMap.partial;
 
+  // ── 治疗结算：精神图景修复成功必须真正降低「感官负荷」(p.mental) ──
+  // 此前 finishLandscape 只显示“修复成功”，却没有改动 p.mental，
+  // 导致感官负荷一直停在 100，同一哨兵每天反复进入紧急过载状态。
+  if (p) {
+    const loadDrop = result === 'success' ? 45 : result === 'partial' ? 20 : 0;
+    if (loadDrop) {
+      p.mental = Math.max(0, Math.min(100, (typeof p.mental === 'number' ? p.mental : 50) - loadDrop));
+    }
+    // 标记本次已做过深度干预，避免离开图景后立刻被紧急逻辑重新点名
+    p.lastLandscapeDay = G.day;
+  }
+
   // 记录
   if (typeof addWorldLog === 'function') {
     addWorldLog('landscape', charId, `图景探索结束：${r.label}。${r.desc}`);
@@ -521,7 +533,7 @@ function finishLandscape(charId, result) {
       <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
         <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7a90;padding:3px 10px;background:#050810;border:1px solid #1a2840;border-radius:10px">屏障 ${G.playerStats?.shield??100}</div>
         <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7a90;padding:3px 10px;background:#050810;border:1px solid #1a2840;border-radius:10px">污染 ${G.playerStats?.contam??0}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7a90;padding:3px 10px;background:#050810;border:1px solid #1a2840;border-radius:10px">${c?.name||charId} 精神力 ${p?.mental||50}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#5a7a90;padding:3px 10px;background:#050810;border:1px solid #1a2840;border-radius:10px">${c?.name||charId} 感官负荷 ${p?.mental??50}</div>
       </div>
       <button onclick="exitLandscape('${charId}')" style="padding:10px 24px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.3);border-radius:3px;color:#00e5ff;font-family:'Share Tech Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:2px">
         退出图景

@@ -67,15 +67,17 @@ async function callAI() {
 
     if (horaeMatch) {
       try {
-        const h = JSON.parse(horaeMatch[1].trim());
-        processHorae(h);
-        // 检测图景触发
-        if (h.enter_landscape === true && G.clinicSession) {
-          setTimeout(() => {
-            if (typeof triggerLandscapeEntry === 'function') triggerLandscapeEntry(G.clinicSession);
-          }, 600);
+        const h = parseHoraeBlock(horaeMatch[1]);
+        if (h) {
+          processHorae(h);
+          // 检测图景触发
+          if (h.enter_landscape === true && G.clinicSession) {
+            setTimeout(() => {
+              if (typeof triggerLandscapeEntry === 'function') triggerLandscapeEntry(G.clinicSession);
+            }, 600);
+          }
         }
-      } catch(e){ console.warn('[horae parse error]', e, horaeMatch[1]); }
+      } catch(e){ console.warn('[horae process error]', e, horaeMatch[1]); }
     }
 
     // ── FALLBACK VISIT TRACKING ──
@@ -153,8 +155,8 @@ if (!optMatch) optMatch = narrativeClean.match(/\[OPTIONS:\s*([\s\S]*?)\]/);
     let memTarget = sessionBeforeHorae || G.clinicSession;
     if (!memTarget && horaeMatch) {
       try {
-        const hTemp = JSON.parse(horaeMatch[1].trim());
-        if (hTemp.patient_id && hTemp.patient_id !== 'null' && G.patients[hTemp.patient_id]) {
+        const hTemp = parseHoraeBlock(horaeMatch[1]);
+        if (hTemp && hTemp.patient_id && hTemp.patient_id !== 'null' && G.patients[hTemp.patient_id]) {
           memTarget = hTemp.patient_id;
         }
       } catch(e){}
@@ -292,7 +294,7 @@ function retryLastAI() {
       const horaeMatch = rawText.match(/<horae>([\s\S]*?)<\/horae>/);
       const narrative = rawText.replace(/<horae>[\s\S]*?<\/horae>/,'').trim();
       const sessionSnap2 = G.clinicSession; // snapshot before horae can switch session
-      if (horaeMatch) { try { processHorae(JSON.parse(horaeMatch[1].trim())); } catch(e){ console.warn('[retry horae parse error]', e); } }
+      if (horaeMatch) { try { const _h = parseHoraeBlock(horaeMatch[1]); if (_h) processHorae(_h); } catch(e){ console.warn('[retry horae process error]', e); } }
       const narrativeClean2 = narrative.replace(/<memory>[\s\S]*?<\/memory>/g,'');
       let optMatch2 = narrativeClean2.match(/\[OPTIONS:\s*([\s\S]*?)\]/);
       let cleanNarrative2 = narrativeClean2.replace(/\[OPTIONS:[\s\S]*?\]/g,'').trim();
@@ -313,8 +315,8 @@ function retryLastAI() {
       let memTarget2 = sessionSnap2 || G.clinicSession;
       if (!memTarget2 && horaeMatch) {
         try {
-          const hTemp2 = JSON.parse(horaeMatch[1].trim());
-          if (hTemp2.patient_id && hTemp2.patient_id !== 'null' && G.patients[hTemp2.patient_id]) {
+          const hTemp2 = parseHoraeBlock(horaeMatch[1]);
+          if (hTemp2 && hTemp2.patient_id && hTemp2.patient_id !== 'null' && G.patients[hTemp2.patient_id]) {
             memTarget2 = hTemp2.patient_id;
           }
         } catch(e){}
@@ -374,6 +376,68 @@ function parseAndDisplayNarrative(text) {
   } else {
     addNarr(text);
   }
+}
+
+// ── 健壮的 horae 解析 ──
+// 诊疗信任度依赖 horae 块里的 trust_delta。原先只用 JSON.parse，一旦 AI 输出
+// 截断 / 写成 "+5"（非法 JSON）/ 带尾逗号或注释，就整块解析失败，trust_delta 丢失，
+// 表现为“接诊后信任度不增加”（人设最长的角色最容易触发）。
+// 这里改为：先严格解析 → 失败则做容错修正再解析 → 仍失败则正则兜底提取关键字段。
+function parseHoraeBlock(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+
+  // 1) 严格解析
+  try { return JSON.parse(s); } catch (e) {}
+
+  // 2) 容错修正后再解析：去注释、把 ": +5" 修成 ": 5"、去尾逗号
+  try {
+    const fixed = s
+      .replace(/\/\/[^\n\r]*/g, '')        // 行注释
+      .replace(/:\s*\+(\d)/g, ': $1')       // "+5" -> "5"（JSON 不允许前导 +）
+      .replace(/,\s*([}\]])/g, '$1');       // 尾逗号
+    return JSON.parse(fixed);
+  } catch (e) {}
+
+  // 3) 正则兜底：即使 JSON 整体损坏/截断，也尽量把关键字段抠出来
+  const out = {};
+  const grabNum = (key) => {
+    const m = s.match(new RegExp('"' + key + '"\\s*:\\s*([+-]?\\d+)'));
+    if (m) out[key] = parseInt(m[1], 10);
+  };
+  const grabStr = (key) => {
+    const m = s.match(new RegExp('"' + key + '"\\s*:\\s*"([^"]*)"'));
+    if (m) out[key] = m[1];
+  };
+  const grabBool = (key) => {
+    const m = s.match(new RegExp('"' + key + '"\\s*:\\s*(true|false)'));
+    if (m) out[key] = (m[1] === 'true');
+  };
+
+  const pid = s.match(/"patient_id"\s*:\s*"?([a-zA-Z_][a-zA-Z_0-9]*|null)"?/);
+  if (pid) out.patient_id = pid[1];
+  grabNum('trust_delta');
+  grabNum('mental');
+  grabNum('stress');
+  grabNum('heat');
+  grabNum('player_shield');
+  grabNum('player_fatigue');
+  grabNum('player_contam');
+  grabBool('session_end');
+  grabBool('enter_landscape');
+  grabBool('spirit_contact');
+  grabStr('location');
+  grabStr('spirit_status');
+  grabStr('spirit_loc');
+  grabStr('landscape_status');
+  grabStr('injury');
+
+  if (Object.keys(out).length) {
+    console.warn('[horae 容错解析] 严格 JSON 解析失败，已正则兜底提取字段：', out);
+    return out;
+  }
+  console.warn('[horae 解析失败] 无法提取任何字段：', s);
+  return null;
 }
 
 function processHorae(h) {
@@ -452,7 +516,15 @@ function processHorae(h) {
     }
     // Update dynamic location/spirit from horae
     if (h.location) p.location = h.location;
-    if (h.mental  !== undefined) p.mental  = Math.max(0, Math.min(100, h.mental));
+    if (h.mental  !== undefined) {
+      // p.mental 即患者档案中的「感官负荷」：高=过载。
+      // 治疗/喷雾会主动降低它；但诊疗 AI 每轮会按角色基线把它报回 ~100，
+      // 若直接绝对覆盖，会瞬间抹掉刚做的治疗/喷雾效果（导致同一哨兵天天紧急）。
+      // 处理方式：下降（好转）立即生效；上升每轮最多 +8，让负荷只能逐步回升而非瞬间归位。
+      const target = Math.max(0, Math.min(100, Number(h.mental) || 0));
+      const cur = (typeof p.mental === 'number') ? p.mental : target;
+      p.mental = target <= cur ? target : Math.min(target, cur + 8);
+    }
     if (h.stress  !== undefined) p.stress  = Math.max(0, Math.min(100, h.stress));
     if (h.heat !== undefined) {
       // Hard restriction: heat only allowed at phase 6+ AND 8+ visits
