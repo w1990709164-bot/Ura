@@ -38,5 +38,15 @@
     "source": "index(8).html",
     "css_files": 25,
     "js_files": 32
+  },
+  {
+    "id": "hearts-in-crossfire",
+    "name": "交火心跳：21日",
+    "title": "HEARTS IN CROSSFIRE · 21 DAYS",
+    "description": "COD恋综观察 / 六位男嘉宾 / 21日动态剧情",
+    "entry": "games/hearts-in-crossfire/index.html",
+    "source": "hearts-in-crossfire-full-test.zip",
+    "css_files": 1,
+    "js_files": 1
   }
 ]

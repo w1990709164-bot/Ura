@@ -27,10 +27,11 @@ button{padding:12px 20px;font-size:1rem;border:none;border-radius:var(--radius);
 #start-btn:hover{background:var(--accent-dim);}
 #api-btn{background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:24px;}
 #api-btn:hover{background:var(--accent);color:var(--text);}
-#game-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--gap);width:100%;max-width:720px;margin-top:16px;display:none;}
-.card{background:var(--card-bg);padding:16px;border-radius:var(--radius);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;text-align:center;}
+#api-status{min-height:20px;margin:-10px 0 10px;color:var(--text-muted);font-size:.9rem;text-align:center;}
+#game-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--gap);width:100%;max-width:920px;margin-top:16px;display:none;}
+.card{background:var(--card-bg);padding:16px;border-radius:var(--radius);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;min-height:150px;justify-content:center;}
 .card:hover{background:var(--card-hover);}
-.card h3{margin-bottom:8px;color:var(--accent);}
+.card h3{margin-bottom:8px;color:var(--accent);}.card-tag{position:absolute;top:10px;right:12px;font-size:11px;color:var(--text-muted);letter-spacing:1px;}
 #api-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:1000;}
 #api-modal .modal-content{background:var(--bg-panel);padding:24px;border-radius:var(--radius);width:90%;max-width:360px;display:flex;flex-direction:column;gap:12px;}
 #api-modal label{font-size:0.85rem;color:var(--text-muted);}
@@ -49,22 +50,33 @@ button{padding:12px 20px;font-size:1rem;border:none;border-radius:var(--radius);
 <button id="start-btn">开始游戏</button>
 <button id="api-btn">设置 API</button>
 
+<div id="api-status" aria-live="polite"></div>
+
 <div id="game-cards">
   <div class="card" data-game="parallel-world">
+    <span class="card-tag">01</span>
     <h3>我在基地打工</h3>
     <p>现代军事基地，特遣队，情报系统</p>
   </div>
   <div class="card" data-game="medical-room">
+    <span class="card-tag">02</span>
     <h3>我在白塔打工</h3>
     <p>哨向医疗塔，精神图景，白塔体系</p>
   </div>
   <div class="card" data-game="gray-ridge">
+    <span class="card-tag">03</span>
     <h3>我在灰脊打工</h3>
     <p>荒原部落，灰盟政治，兽人文化</p>
   </div>
   <div class="card" data-game="capture-her">
+    <span class="card-tag">04</span>
     <h3>我在恋综打工</h3>
     <p>系统角色攻略用户，恋爱剧情，修罗场</p>
+  </div>
+  <div class="card" data-game="hearts-in-crossfire">
+    <span class="card-tag">05 · NEW</span>
+    <h3>交火心跳：21日</h3>
+    <p>COD恋综观察，六位男嘉宾，21日动态剧情</p>
   </div>
 </div>
 
@@ -90,6 +102,7 @@ const gameCards = document.getElementById('game-cards');
 const apiModal = document.getElementById('api-modal');
 const apiClose = document.getElementById('api-close');
 const apiSave = document.getElementById('api-save');
+const apiStatus = document.getElementById('api-status');
 
 startBtn.addEventListener('click', ()=>{gameCards.style.display='grid';});
 apiBtn.addEventListener('click', ()=>{apiModal.style.display='flex';});
@@ -104,6 +117,7 @@ apiSave.addEventListener('click', ()=>{
         localStorage.setItem('LW_API_KEY',key);
         localStorage.setItem('LW_API_MODEL',model);
         alert('API 设置已保存，全局有效');
+        updateApiStatus();
         apiModal.style.display='none';
     }else{
         alert('请至少填写 API Key 和模型名称');
@@ -126,7 +140,18 @@ window.addEventListener('load',()=>{
     document.getElementById('api-url').value=url;
     document.getElementById('api-key').value=key;
     document.getElementById('api-model').value=model;
+    updateApiStatus();
 });
+
+function updateApiStatus(){
+    const key=localStorage.getItem('LW_API_KEY')||'';
+    const model=localStorage.getItem('LW_API_MODEL')||'';
+    const url=localStorage.getItem('LW_API_URL')||'';
+    if(!apiStatus) return;
+    apiStatus.textContent = key && model
+      ? `API：已配置 · ${url || 'Anthropic 官方接口'} · ${model}`
+      : 'API：未配置。请先点“设置 API”，所有游戏都会共用这里的设置。';
+}
 </script>
 
 </body>
