@@ -151,6 +151,15 @@ legend { margin-bottom: 12px; color: #d9d1c8; font-size: 12px; letter-spacing: .
 .signal-person b { display: block; font: 500 13px var(--cond); }
 .signal-person small { color: #746e68; font-size: 9px; }
 .signal-person .arrow { margin-left: auto; color: #655e58; }
+
+.signal-compose { margin: 4px 14px 14px; padding: 14px; border: 1px solid #2f2925; background: #151210; }
+.signal-compose label { display: block; margin-bottom: 8px; color: var(--gold); font: 10px var(--cond); letter-spacing: .12em; }
+.signal-compose label small { color: #756e68; font: 10px var(--serif); letter-spacing: 0; }
+.signal-compose textarea { width: 100%; min-height: 78px; margin-bottom: 10px; resize: vertical; border: 1px solid #3a332e; background: #0f0d0c; color: var(--text); padding: 12px; font: 12px/1.7 var(--serif); outline: 0; }
+.signal-compose textarea:focus { border-color: var(--red); }
+.signal-compose textarea:disabled { opacity: .55; }
+.signal-compose button:disabled { opacity: .42; cursor: not-allowed; }
+
 .phone-note { padding: 18px 26px 28px; color: #625c57; font-size: 9px; line-height: 1.7; text-align: center; }
 .signal-results { margin: 8px 14px 18px; padding: 16px; border: 1px solid #332d28; background: #171412; }
 .signal-results h3 { margin: 0 0 14px; font: 600 18px var(--serif); }
@@ -211,11 +220,3 @@ legend { margin-bottom: 12px; color: #d9d1c8; font-size: 12px; letter-spacing: .
   .dialogue-avatar { width: 36px; height: 36px; }
   .interview-block { grid-template-columns: 1fr; gap: 8px; }
 }
-
-
-/* 里世界整合：返回总入口 + 隐藏本游戏旧 API 设置 */
-.liworld-back{position:fixed;left:14px;top:14px;z-index:80;text-decoration:none;color:var(--text);background:rgba(20,17,15,.78);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 12px;font-size:13px;backdrop-filter:blur(10px)}
-.liworld-back:hover{border-color:var(--gold);color:var(--gold)}
-.api-hidden{display:none!important}
-.api-unified-note{border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.04)}
-@media(max-width:640px){.liworld-back{top:10px;left:10px;font-size:12px;padding:7px 10px}}
