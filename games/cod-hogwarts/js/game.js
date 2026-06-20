@@ -138,16 +138,31 @@ async function enterGame() {
   showScreen('game');
   updateTopBar();
   unlockAchievement('arrival');
+
+  // 立即显示占位文字，让用户知道正在加载
+  renderStory('正在召唤序章，请稍候……\n\n（首次加载需要调用AI，可能需要数秒）');
   setLoading(true);
+
   try {
+    // 确保学院已分配
+    if (!G.player.house) {
+      G.player.house = 'gryffindor';
+    }
     const { story, options } = await generatePrologue();
-    renderStory(story);
-    renderOptions(options);
-    G.currentStory = story;
+
+    // 防御：AI返回空内容时使用fallback
+    const finalStory = story?.trim()
+      ? story
+      : `你踏入霍格沃茨城堡的那一刻，灵力与周围古老的魔力场轻轻碰撞，像两道涟漪相遇。\n\n九月一日，晨光透过彩色玻璃窗碎成万千色彩，洒在古老的石板地上。大厅里的烛火在看不见的气流中轻轻摇曳，空气中飘着某种陌生的草药气息。\n\n你是第一次踏上这片遥远的西方大陆——这里的一切都与你熟悉的仙境截然不同。`;
+
+    renderStory(finalStory);
+    renderOptions(options?.length ? options : ['环顾四周，感受这里的气场', '找到自己的学院公告栏', '先和最近的人打声招呼', '找个安静的角落整理思绪']);
+    G.currentStory = finalStory;
     G.currentOptions = options;
     persistAll();
   } catch(e) {
-    renderStory(`（序章加载失败：${e.message}）\n\n你站在霍格沃茨的入口，感受着这个陌生的西方魔法世界。`);
+    const errMsg = e?.message || '未知错误';
+    renderStory(`（序章加载失败：${errMsg}）\n\n你站在霍格沃茨的入口，感受着这个陌生的西方魔法世界。灵力与魔力场轻微碰撞，带来一丝隐约的不适。`);
     renderOptions(['进入大厅', '环顾四周', '感受一下这里的魔力场', '确认背包里的东西']);
     showRegenButton();
   } finally {

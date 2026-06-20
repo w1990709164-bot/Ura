@@ -499,7 +499,7 @@ textarea { resize:vertical; min-height:72px; }
   to { opacity:0; }
 }
 
-/* ── 返回里世界悬浮按钮 ───────────────────────────────── */
+/* ── 返回里世界悬浮按钮（游戏主界面时隐藏，改用顶栏内按钮） */
 .liworld-back {
   position:fixed; left:14px; top:14px; z-index:80;
   background:rgba(20,17,15,.78);
@@ -512,6 +512,8 @@ textarea { resize:vertical; min-height:72px; }
   transition:color 0.2s, border-color 0.2s;
 }
 .liworld-back:hover { color:var(--gold); border-color:var(--gold); }
+/* 游戏主界面激活时通过CSS隐藏悬浮按钮 */
+body:has(#screen-game.active) .liworld-back { display:none !important; }
 
 /* ── No-API 提示框 ────────────────────────────────────── */
 .no-api-box {

@@ -38,7 +38,9 @@ async function callAPI(messages, opts = {}) {
         throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`);
       }
       const json = await res.json();
-      return json.choices?.[0]?.message?.content || '';
+      const text = json.choices?.[0]?.message?.content;
+      if (!text) throw new Error(`API返回空内容，请检查模型名称是否正确（status:${res.status}）`);
+      return text;
     }
 
     // Anthropic fallback
@@ -68,7 +70,9 @@ async function callAPI(messages, opts = {}) {
       throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`);
     }
     const json = await res.json();
-    return json.content?.[0]?.text || '';
+    const text = json.content?.[0]?.text;
+    if (!text) throw new Error(`API返回空内容，请检查模型名称是否正确（status:${res.status}）`);
+    return text;
   } catch(e) {
     if (e.name === 'AbortError') throw new Error('请求超时（60秒），请检查网络或API配置。');
     throw e;
