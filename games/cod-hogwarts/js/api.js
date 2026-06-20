@@ -13,6 +13,9 @@ async function callAPI(messages, opts = {}) {
   if (!cfg.key) throw new Error('未设置 API Key，请返回首页设置。');
   if (!cfg.model) throw new Error('未选择模型，请返回首页设置。');
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60000);
+
   const payload = {
     model: cfg.model,
     messages,
@@ -20,49 +23,58 @@ async function callAPI(messages, opts = {}) {
     temperature: opts.temperature ?? 0.9
   };
 
-  if (cfg.url) {
-    const base = cfg.url.replace(/\/+$/, '');
-    const endpoint = base.endsWith('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`;
-    const res = await fetch(endpoint, {
+  try {
+    if (cfg.url) {
+      const base = cfg.url.replace(/\/+$/, '');
+      const endpoint = base.endsWith('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.key}` },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`);
+      }
+      const json = await res.json();
+      return json.choices?.[0]?.message?.content || '';
+    }
+
+    // Anthropic fallback
+    const sys = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
+    const rest = messages.filter(m => m.role !== 'system');
+    if (!rest.length) rest.push({ role:'user', content:'继续' });
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.key}` },
-      body: JSON.stringify(payload)
+      headers: {
+        'Content-Type':'application/json',
+        'x-api-key': cfg.key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model: cfg.model,
+        system: sys || undefined,
+        messages: rest,
+        max_tokens: opts.max_tokens || 2000,
+        temperature: opts.temperature ?? 0.9
+      }),
+      signal: controller.signal
     });
     if (!res.ok) {
       const err = await res.text();
       throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`);
     }
     const json = await res.json();
-    return json.choices?.[0]?.message?.content || '';
+    return json.content?.[0]?.text || '';
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('请求超时（60秒），请检查网络或API配置。');
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
-
-  // Anthropic fallback
-  const sys = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
-  const rest = messages.filter(m => m.role !== 'system');
-  if (!rest.length) rest.push({ role:'user', content:'继续' });
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type':'application/json',
-      'x-api-key': cfg.key,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
-    body: JSON.stringify({
-      model: cfg.model,
-      system: sys || undefined,
-      messages: rest,
-      max_tokens: opts.max_tokens || 2000,
-      temperature: opts.temperature ?? 0.9
-    })
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`);
-  }
-  const json = await res.json();
-  return json.content?.[0]?.text || '';
 }
 
 // ── 角色信息摘要（供AI使用）─────────────────────────────

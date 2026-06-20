@@ -162,6 +162,13 @@ textarea { resize:vertical; min-height:72px; }
 #game-datetime { font-size:0.85rem; color:var(--gold); letter-spacing:1px; }
 .time-dot { margin:0 4px; opacity:0.4; }
 #house-badge { font-size:1.2rem; }
+.topbar-back {
+  font-size:0.72rem; color:var(--text-muted); text-decoration:none;
+  letter-spacing:1px; padding:4px 8px; border:1px solid var(--gold-line);
+  border-radius:999px; white-space:nowrap; flex-shrink:0;
+  transition:color 0.2s, border-color 0.2s;
+}
+.topbar-back:hover { color:var(--gold); border-color:var(--gold); }
 
 /* Tab 内容区 */
 #tab-content {

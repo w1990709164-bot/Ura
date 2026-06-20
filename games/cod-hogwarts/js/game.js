@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (G.currentStory) {
       renderStory(G.currentStory);
       renderOptions(G.currentOptions || []);
+    } else {
+      // 首次进入游戏（分院后跳转）或存档中故事为空
+      enterGame();
     }
   } else if (G.phase === 'sorting') {
     showScreen('sorting');

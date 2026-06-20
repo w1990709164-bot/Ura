@@ -5,6 +5,9 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById(`screen-${id}`);
   if (el) el.classList.add('active');
+  // 游戏主界面已有顶栏返回链接，隐藏全局悬浮按钮
+  const floatBack = document.querySelector('.liworld-back');
+  if (floatBack) floatBack.style.display = id === 'game' ? 'none' : '';
 }
 
 // ─ 顶栏更新 ─
@@ -74,7 +77,8 @@ function setLoading(on) {
   if (loading) loading.style.display = on ? 'flex' : 'none';
   if (regen)   regen.style.display   = 'none';
   if (optArea) {
-    optArea.querySelectorAll('.option-btn, #btn-send').forEach(b => b.disabled = on);
+    // 只禁用选项按钮，保留自定义输入发送功能
+    optArea.querySelectorAll('.option-btn').forEach(b => b.disabled = on);
   }
 }
 
