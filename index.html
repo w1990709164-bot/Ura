@@ -225,9 +225,13 @@ $('api-test').addEventListener('click',async()=>{
       text=extractText(json);
     }
     if(!text)throw new Error(`模型连续返回空正文。响应结构：${responseShape(json)}`);
+    // 测试成功即落盘，避免用户测试通过却忘记点“保存”导致进入游戏时仍提示未配置。
+    localStorage.setItem('LW_API_URL',url);
+    localStorage.setItem('LW_API_KEY',key);
+    localStorage.setItem('LW_API_MODEL',model);
     lastVerifiedSignature=signature(url,key,model);
     localStorage.setItem('LW_API_VERIFIED',lastVerifiedSignature);
-    showResult(`连接成功，模型已正常回复：${text.trim().slice(0,80)}`,true);
+    showResult(`连接成功，配置已自动保存，模型已正常回复：${text.trim().slice(0,80)}`,true);
     updateApiStatus();
   }catch(e){
     lastVerifiedSignature='';
