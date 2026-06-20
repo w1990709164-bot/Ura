@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Oswald:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260620-21">
+  <link rel="stylesheet" href="styles.css?v=20260620-22">
 </head>
 <body>
   <div class="grain"></div>
@@ -131,12 +131,37 @@
         <div class="panel-heading"><p class="eyebrow">RECORDS</p><h2>成就与线索</h2><span id="achievementCount">0 / 12 已解锁</span></div>
         <div id="achievementGrid" class="achievement-grid"></div>
       </section>
+
+      <section id="programPanel" class="panel program-panel">
+        <div class="panel-heading"><p class="eyebrow">PRODUCTION HUB</p><h2>节目中心</h2><span>日程、主动环节与已锁定事实</span></div>
+        <div id="programSchedule" class="program-hub-section"></div>
+        <div class="program-hub-section">
+          <p class="eyebrow">PLAYER AGENCY</p><h3>你想主动做什么？</h3>
+          <div class="agency-grid">
+            <button data-agency="我要求进行一次属于自己的单人采访，回答或拒绝导演组的问题，并让采访内容影响后续节目。">申请单人采访</button>
+            <button data-agency="我想发布今天的朋友圈，不替我填写内容，请先让节目组把发布界面和规则交给我。">发布朋友圈</button>
+            <button data-agency="我申请开启匿名谈心，选择一名想了解的对象并亲自提出问题，不允许AI替我决定问题。">开启匿名谈心</button>
+            <button data-agency="我想主动邀请一名男嘉宾单独谈话或约会，请让节目组给出当前可执行的对象和形式。">主动邀约</button>
+            <button data-agency="我要求查看今天已经公布的搭档、分组、约会对象、地点和胜负结果。">核对节目事实</button>
+            <button data-agency="我拒绝当前节目安排，并要求导演组提供不惩罚任何人的替代方案。">拒绝或改写规则</button>
+          </div>
+        </div>
+        <div class="program-hub-section">
+          <p class="eyebrow">LOCKED CONTINUITY</p><h3>本日已锁定事实</h3>
+          <div id="programFacts" class="facts-list"></div>
+        </div>
+        <div class="program-hub-section">
+          <p class="eyebrow">SOCIAL FEED</p><h3>朋友圈记录</h3>
+          <div id="socialFeed" class="social-feed"></div>
+        </div>
+      </section>
     </main>
 
     <nav class="bottom-nav">
       <button data-panel="storyPanel" class="active"><span>◫</span>剧情</button>
       <button data-panel="castPanel"><span>⌖</span>嘉宾</button>
       <button data-panel="phonePanel"><span>◇</span>心动</button>
+      <button data-panel="programPanel"><span>▦</span>节目</button>
       <button data-panel="achievementPanel"><span>✦</span>记录</button>
     </nav>
   </section>
@@ -216,6 +241,6 @@
       box.textContent = "页面脚本错误：" + (event.message || "未知错误") + (event.filename ? "\n" + event.filename + ":" + event.lineno : "");
     });
   </script>
-  <script src="app.js?v=20260620-21"></script>
+  <script src="app.js?v=20260620-22"></script>
 </body>
 </html>

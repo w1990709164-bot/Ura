@@ -1,6 +1,6 @@
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
-const STORE = "hc21_save_v9";
+const STORE = "hc21_save_v10";
 const API_STORE = "hc21_api_v1";
 
 const cast = [
@@ -39,11 +39,12 @@ const achievements = [
 ];
 
 let state = {
-  contentRevision:9, started:false, day:1, scene:0, profile:null, achievements:[], firstFocus:null,
+  contentRevision:10, started:false, day:1, scene:0, profile:null, achievements:[], firstFocus:null,
   signalSent:null, signalError:null, signalCommitted:false, relations:Object.fromEntries(cast.map(c=>[c.id,{stage:0,heart:0,trust:0,respect:0,desire:0,jealousy:0,safety:35}])),
   pairRelations:createPairRelations(),
   history:[], memories:[], dailyLog:[], dynamicScene:null, daySlot:0, usedFocus:[], receivedSignals:[], daySceneHistory:[],
   signalTarget:null, signalText:"", signalSentText:"", playerAgencyLog:[], episodeFacts:{},
+  resolvedMoments:{}, momentResults:{}, momentTurns:{}, followUpMode:false, skillUsage:{lastDay:0,count:0}, socialPosts:[], anonymousTalks:[], signalHistory:[],
   playthrough:1, ending:null, endingText:"", endingChoice:null, routePolicy:"undecided"
 };
 
@@ -96,7 +97,7 @@ const episodeBeats = {
   4:[
     {name:"国王游戏规则",must:"节目组发布国王游戏、真心话大冒险与心跳一致挑战规则。必须说明可拒答、可退出、身体接触需确认，玩家先选择是否改写规则。",format:"task"},
     {name:"心跳一致",must:"完整执行心跳一致或对视挑战：脉搏监测、靠近方式、退出机制、胜负公布必须写清楚。玩家可以选择靠近、保持距离或用语言扰乱节奏。",format:"activity"},
-    {name:"真心话余波",must:"国王游戏或真心话后的镜头死角复盘。至少一名男嘉宾因玩家回答、拒答或选择对象产生克制反应。",format:"offcamera"},
+    {name:"真心话余波",must:"国王游戏或真心话后的镜头死角复盘。可抽到‘天堂七分钟’密闭谈话卡：无摄像机、门不上锁、双方可退出，内容设置关闭时只进行谈话。至少一名男嘉宾因玩家回答、拒答或选择对象产生克制反应。",format:"offcamera"},
     {name:"挑战榜单",must:"节目组公布游戏积分与匿名心跳数据，观察室讨论保护欲、控制欲和边界感的区别，引出夜间短信。",format:"observer"}
   ],
   5:[
@@ -107,7 +108,7 @@ const episodeBeats = {
   ],
   6:[
     {name:"真假档案",must:"节目组发布三真一假或两真一假的秘密卡规则，明确禁止涉及机密行动细节。",format:"task"},
-    {name:"秘密判断",must:"让玩家根据细节判断至少两名嘉宾的信息，答错也必须产生有趣关系后果。",format:"activity"},
+    {name:"秘密判断",must:"以新版狼人杀/身份推理形式，让玩家根据细节判断至少两名嘉宾的信息，答错也必须产生有趣关系后果；不能把真实创伤当作狼人笑料。",format:"activity"},
     {name:"隐藏面呼应",must:"玩家填写的隐藏面被节目问题间接触及，但是否公开由玩家决定；一名角色察觉其保留。",format:"offcamera"},
     {name:"答案揭晓",must:"揭晓部分真假信息并保留至少一个长期秘密；插入单采与观察室不同解读。",format:"observer"}
   ],
@@ -115,7 +116,7 @@ const episodeBeats = {
     {name:"水边规则",must:"发布泳池与篝火夜宴规则，包括衣着自主、身体接触需确认、任何人可退出。",format:"task"},
     {name:"水边活动",must:"完整执行水上或岸边团队游戏。若玩家不擅长游泳或有相关短板，必须提供坦白、替代参与和退出三种尊重选择。",format:"activity"},
     {name:"更衣前后",must:"在不物化玩家的前提下写成熟吸引力与镜头压力；出现镜头死角或递毛巾等克制互动。",format:"offcamera"},
-    {name:"篝火真心话",must:"进行成人之间有边界的真心话，至少一人拒答；观察室讨论拒绝是否也是诚实。",format:"observer"}
+    {name:"篝火真心话",must:"进行成人之间有边界的真心话，至少一人拒答；积分优胜者可选择普通奖励，成熟/成人设置且双方同意时可抽到‘糖果味道’亲吻奖励，猜错也必须再次确认是否继续。观察室讨论拒绝是否也是诚实。",format:"observer"}
   ],
   8:[
     {name:"强制交换公布",must:"节目组故意将玩家与近期互动较少的嘉宾配对，说明交换规则与不可私换约会对象。",format:"task"},
@@ -211,6 +212,54 @@ function currentBeat(){
   };
 }
 
+function momentKey(){
+  return state.day===1 ? `d1-scene-${state.scene}` : `d${state.day}-slot-${state.daySlot}`;
+}
+
+function currentResolution(){
+  return state.resolvedMoments?.[momentKey()]||null;
+}
+
+function markMomentResolved(mode, summary=""){
+  state.resolvedMoments=state.resolvedMoments||{};
+  state.resolvedMoments[momentKey()]={mode,summary,at:new Date().toISOString()};
+}
+
+function storeMomentResult(blocks){
+  state.momentResults=state.momentResults||{};
+  const existing=state.momentResults[momentKey()]||[];
+  state.momentResults[momentKey()]=[...existing,...(blocks||[]).map(block=>({...block}))];
+}
+
+function skillAllowedToday(){
+  const forced=[3,14,17].includes(state.day);
+  return forced || state.day-(state.skillUsage?.lastDay||0)>=3;
+}
+
+function markSkillUsed(text){
+  const skill=String(state.profile?.skills||"").trim();
+  if(!skill || !String(text||"").includes(skill)) return;
+  state.skillUsage=state.skillUsage||{lastDay:0,count:0};
+  state.skillUsage.lastDay=state.day;
+  state.skillUsage.count=(state.skillUsage.count||0)+1;
+}
+
+function mergeEpisodeFacts(facts){
+  if(!facts || typeof facts!=="object") return;
+  state.episodeFacts=state.episodeFacts||{};
+  const dayKey=`day${state.day}`;
+  state.episodeFacts[dayKey]=state.episodeFacts[dayKey]||{};
+  Object.entries(facts).forEach(([key,value])=>{
+    if(value==null || value==="") return;
+    const scopedKey=key==="地点"?`${slotNames[state.daySlot]||"当前"}地点`:key==="结果"?`${currentBeat().name}结果`:key;
+    const existing=state.episodeFacts[dayKey][scopedKey];
+    if(existing!=null && JSON.stringify(existing)!==JSON.stringify(value)){
+      throw new Error(`节目事实冲突：「${scopedKey}」先前为「${existing}」，本次却变成「${value}」`);
+    }
+    state.episodeFacts[dayKey][scopedKey]=value;
+  });
+}
+
 function intimacyDirective(){
   const level=state.profile?.contentLevel||"fade";
   const focus=(state.dynamicScene?.focus||[]).map(id=>state.relations[id]).filter(Boolean);
@@ -251,6 +300,14 @@ const programmeMechanics = `节目机制锁：
 8. 成人/成熟小游戏只在设置和关系门槛允许时出现：天堂七分钟、心跳一致、糖果吻奖励、无摄像机房间、Love Room同床共枕等都必须有明确同意、可退出机制和镜头边界；内容关闭时改写为暧昧淡出或非亲密奖励。
 9. 职业现实不是猎奇道具：战场创伤、应激、失联、召回、保密任务只能写成现实压力与边界协商，不能被爱情瞬间治愈。`;
 
+const studioBible = `演播室观察嘉宾：
+- Soap：熟悉Ghost与TF141，活跃、敢开玩笑，但涉及创伤和任务风险时会收敛；不替Ghost承认感情。
+- Gaz：细心稳重，善于指出镜头剪辑遗漏的边界与照顾动作。
+- Price：只在关键日或军事现实话题出现，评价克制，不把部下私生活当笑料。
+- Hesh：了解Keegan式沉默与行动表达，会反驳把沉默简单解读成冷漠。
+- Horangi：能拆穿König、Krueger等人的站位和竞争，但不掌握他人的内心独白。
+观察室只分析屏幕上真实发生的动作，不读心、不剧透秘密，也可能判断错误。`;
+
 function compactText(value, max=420){
   const text=String(value||"").replace(/\s+/g," ").trim();
   return text.length>max ? text.slice(0,max)+"…" : text;
@@ -271,12 +328,16 @@ function continuityBrief(){
   const todayLogs=(state.dailyLog||[]).filter(x=>x.day===state.day).slice(-8);
   const freeLogs=(state.playerAgencyLog||[]).filter(x=>x.day===state.day).slice(-6);
   const usedScenes=(state.daySceneHistory||[]).filter(x=>x.day===state.day);
+  const dayFacts=state.episodeFacts?.[`day${state.day}`]||{};
+  const previous=usedScenes.at(-1)||null;
   return `连续性锚点：${sceneDigest(state.dynamicScene)}
 今日已完成场景：${JSON.stringify(usedScenes)}
+今日不可篡改事实：${JSON.stringify(dayFacts)}
 今日玩家已做选择：${JSON.stringify(todayLogs)}
 今日玩家自由行动：${JSON.stringify(freeLogs)}
 上一轮信号：玩家发给${state.signalSent||"无"}，内容=${state.signalSentText||"未填写"}；收到${(state.receivedSignals||[]).length}封。
-硬性要求：下一段必须承接当前地点、当前时段、当前已出场人物和最后动作；不能把未说话的人写成刚说过话；不能把König、Krueger或其他角色混淆；当天已公布的搭档、分组、邀约对象和胜负结果必须保持一致，除非[节目组]明确宣布改规则。`;
+上一已完成场景：${JSON.stringify(previous)}
+硬性要求：下一段必须承接当前地点、当前时段、当前已出场人物和最后动作；新时段若更换地点，第一段旁白必须明确写出离开上一地点、交通/移动或时间流逝，禁止直接硬切。不能把未说话的人写成刚说过话；不能把König、Krueger或其他角色混淆；当天已公布的搭档、分组、邀约对象、衣着/香水选择和胜负结果必须保持一致，除非[节目组]明确宣布改规则。`;
 }
 
 function apiEndpoint(url){
@@ -451,7 +512,7 @@ const scenes = [
 
 function save(){ localStorage.setItem(STORE, JSON.stringify(state)); }
 function normalizeState(){
-  state.contentRevision=9;
+  state.contentRevision=10;
   state.relations=state.relations||Object.fromEntries(cast.map(c=>[c.id,{stage:0,heart:0,trust:0,respect:0,desire:0,jealousy:0,safety:35}]));
   cast.forEach(c=>{
     state.relations[c.id]=state.relations[c.id]||{stage:0,heart:0,trust:0,respect:0,desire:0,jealousy:0,safety:35};
@@ -466,16 +527,24 @@ function normalizeState(){
   state.daySceneHistory=state.daySceneHistory||[];
   state.playerAgencyLog=state.playerAgencyLog||[];
   state.episodeFacts=state.episodeFacts||{};
+  state.resolvedMoments=state.resolvedMoments||{};
+  state.momentResults=state.momentResults||{};
+  state.momentTurns=state.momentTurns||{};
+  state.followUpMode=false;
+  state.skillUsage=state.skillUsage||{lastDay:0,count:0};
+  state.socialPosts=state.socialPosts||[];
+  state.anonymousTalks=state.anonymousTalks||[];
+  state.signalHistory=state.signalHistory||[];
   state.signalTarget=state.signalTarget||null;
   state.signalText=state.signalText||"";
   state.signalSentText=state.signalSentText||"";
 }
 function load(){
   try {
-    const data = JSON.parse(localStorage.getItem(STORE) || localStorage.getItem("hc21_save_v8") || localStorage.getItem("hc21_save_v7") || localStorage.getItem("hc21_save_v6") || localStorage.getItem("hc21_save_v5") || localStorage.getItem("hc21_save_v4") || localStorage.getItem("hc21_save_v3") || localStorage.getItem("hc21_save_v2") || localStorage.getItem("hc21_save_v1"));
+    const data = JSON.parse(localStorage.getItem(STORE) || localStorage.getItem("hc21_save_v9") || localStorage.getItem("hc21_save_v8") || localStorage.getItem("hc21_save_v7") || localStorage.getItem("hc21_save_v6") || localStorage.getItem("hc21_save_v5") || localStorage.getItem("hc21_save_v4") || localStorage.getItem("hc21_save_v3") || localStorage.getItem("hc21_save_v2") || localStorage.getItem("hc21_save_v1"));
     if(data) state = {...state, ...data};
-    if(state.contentRevision !== 9){
-      state = {...state, contentRevision:9, dynamicScene:null, signalError:null, signalCommitted:false};
+    if(state.contentRevision !== 10){
+      state = {...state, contentRevision:10, dynamicScene:null, signalError:null, signalCommitted:false};
     }
     normalizeState();
   } catch { normalizeState(); }
@@ -528,6 +597,54 @@ function renderAchievements(){
   }).join("");
   $("#achievementCount").textContent=`${state.achievements.length} / ${achievements.length} 已解锁`;
 }
+
+function renderProgramPanel(){
+  const beats=episodeBeats[state.day]||[];
+  $("#programSchedule").innerHTML=`<p class="eyebrow">DAY ${String(state.day).padStart(2,"0")} SCHEDULE</p><h3>${escapeHtml(dayPrograms[state.day]?.theme||"节目日程")}</h3>`+
+    beats.map((beat,index)=>`<div class="schedule-beat"><span>${index<state.daySlot?"DONE":index===state.daySlot?"NOW":"NEXT"}</span><div><b>${escapeHtml(beat.name)}</b><p>${escapeHtml(beat.must)}</p></div></div>`).join("");
+  const facts=state.episodeFacts?.[`day${state.day}`]||{};
+  $("#programFacts").innerHTML=Object.keys(facts).length
+    ? Object.entries(facts).map(([key,value])=>`<div class="fact-row"><b>${escapeHtml(key)}</b> · ${escapeHtml(typeof value==="string"?value:JSON.stringify(value))}</div>`).join("")
+    : `<div class="fact-row">今天还没有正式锁定搭档、分组或结果。</div>`;
+  const posts=(state.socialPosts||[]).slice(-12).reverse();
+  $("#socialFeed").innerHTML=posts.length
+    ? posts.map(post=>`<div class="social-post"><b>${post.author==="player"?"你":escapeHtml(post.author)}</b> · Day ${post.day}<br>${escapeHtml(post.text)}</div>`).join("")
+    : `<div class="social-post">朋友圈将在节目流程或你的主动发布后出现。</div>`;
+  $$("[data-agency]").forEach(button=>{
+    button.disabled=!!currentResolution();
+    button.title=currentResolution()?"当前时段已结算，请先继续节目":"";
+  });
+}
+
+async function triggerAgencyAction(text){
+  if(currentResolution()){ toast("当前时段已经结算，请先继续节目"); return; }
+  switchPanel("storyPanel");
+  $("#freeInput").value=text;
+  await sendFree();
+}
+
+async function handleAgencyButton(button){
+  const base=button.dataset.agency||"";
+  if(button.textContent.includes("朋友圈")){
+    const text=prompt("填写你今天要发布的朋友圈：","");
+    if(!text?.trim()) return;
+    state.socialPosts.push({day:state.day,author:"player",text:text.trim(),at:new Date().toISOString()});
+    save(); renderProgramPanel();
+    await triggerAgencyAction(`我发布了一条朋友圈：“${text.trim()}”。请让节目中的真实关系对此产生自然反应，但不要让所有人都围着这条动态评论。`);
+    return;
+  }
+  if(button.textContent.includes("匿名谈心")){
+    const target=prompt("输入你想匿名了解的对象ID：keegan / krueger / ghost / nikto / konig / zimo","");
+    if(!cast.some(c=>c.id===target)) { toast("对象ID无效"); return; }
+    const question=prompt("填写第一个匿名问题：","");
+    if(!question?.trim()) return;
+    state.anonymousTalks.push({day:state.day,target,questions:[question.trim()]});
+    save();
+    await triggerAgencyAction(`我开启对${target}的匿名谈心，亲自提出第一个问题：“${question.trim()}”。请保持双方身份暂不公开，并在回答后让我决定是否继续追问。`);
+    return;
+  }
+  await triggerAgencyAction(base);
+}
 function renderSignals(){
   const selected=state.signalSent||state.signalTarget;
   $("#signalList").innerHTML=cast.map(c=>`
@@ -555,27 +672,6 @@ function renderSignals(){
   else if(state.signalTarget) $("#signalStatus").textContent=`已选择 ${cast.find(c=>c.id===state.signalTarget)?.name||"对象"}。可以自己填写短信，也可以留空只发送心动。`;
   else $("#signalStatus").textContent="今晚，你只能将心动发送给一个人。";
   renderSignalResults();
-}
-
-function fallbackSignalText(id){
-  const map={
-    keegan:"你今天没有把沉默当成冷淡。有人会记得这种分寸。",
-    krueger:"节目组很擅长制造答案。你今天至少制造了一个他们没准备好的问题。",
-    ghost:"别让镜头替你判断谁在靠近。今晚你做得还不赖。",
-    nikto:"你给出的边界很清楚。我们听见了。",
-    konig:"如果明天你仍然愿意，我会站在不挡住你的位置。",
-    zimo:"今儿这场面不轻松，但你没被他们牵着走。挺好。"
-  };
-  return map[id]||"今晚的某个瞬间，有人选择把注意力留给你。";
-}
-function completeSignals(signals){
-  const safe=sanitizeSignals(signals);
-  const seen=new Set(safe.map(s=>s.sender).filter(Boolean));
-  const out=[...safe];
-  cast.forEach(c=>{
-    if(!seen.has(c.id)) out.push({sender:c.id,text:fallbackSignalText(c.id)});
-  });
-  return sanitizeSignals(out).slice(0,6);
 }
 
 function renderSignalResults(){
@@ -636,6 +732,17 @@ function renderScene(){
   $("#sceneTitle").textContent=scene.title; $("#sceneSubtitle").textContent=scene.subtitle;
   $("#storyFeed").innerHTML="";
   blocks.forEach((b,i)=>setTimeout(()=>{ addBlock(b); if(i===blocks.length-1) window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}); },i*110));
+  const resolution=currentResolution();
+  if(resolution){
+    setTimeout(()=>{
+      (state.momentResults?.[momentKey()]||[]).forEach(addBlock);
+      $("#choiceHint").textContent="这一幕已结算";
+      $("#freeInputWrap").classList.add("hidden");
+      $("#choices").innerHTML=`<button class="choice-btn" id="continueScene"><span class="tag">CONTINUE</span>带着这段余波继续剧情</button>`;
+      $("#continueScene").onclick=()=>{ state.scene=Math.min(state.scene+1,scenes.length-1); save(); renderCast(); renderScene(); window.scrollTo({top:0,behavior:"smooth"}); };
+    },blocks.length*110+20);
+    return;
+  }
   $("#choices").innerHTML=sceneChoices.map((c,i)=>`<button class="choice-btn" data-index="${i}">${c.tag?`<span class="tag">${c.tag}</span>`:""}${c.text}</button>`).join("");
   $("#choiceHint").textContent=state.scene===scenes.length-1?"今日最后一步":"选择你的行动";
   $("#freeInputWrap").classList.toggle("hidden", state.scene<1 || state.scene>=scenes.length-1);
@@ -675,6 +782,14 @@ function renderDynamicScene(){
   $("#sceneSubtitle").innerHTML=`${scene.subtitle||slotNames[state.daySlot]} <span class="director-badge" title="${scene.diagnostic||""}">AI DIRECTED</span>`;
   $("#storyFeed").innerHTML="";
   (scene.blocks||[]).forEach(addBlock);
+  const resolution=currentResolution();
+  if(resolution){
+    (state.momentResults?.[momentKey()]||[]).forEach(addBlock);
+    $("#choiceHint").textContent=resolution.mode==="free"?"自由行动已结算":"选择已结算";
+    $("#freeInputWrap").classList.add("hidden");
+    showMomentContinue("带着这段余波继续节目");
+    return;
+  }
   const choices=scene.choices||[];
   $("#choices").innerHTML=choices.map((c,i)=>`<button class="choice-btn" data-index="${i}">${c.tag?`<span class="tag">${c.tag}</span>`:""}${c.text}</button>`).join("");
   $("#choiceHint").textContent=`DAY ${state.day} · ${slotNames[state.daySlot]}`;
@@ -759,7 +874,7 @@ function parseTaggedScene(raw,focus){
   const lines=clean.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
   const scene={
     title:"",subtitle:"",time:"",location:"",focus,
-    blocks:[],choices:[]
+    blocks:[],choices:[],facts:{}
   };
   for(const line of lines){
     let m;
@@ -772,6 +887,7 @@ function parseTaggedScene(raw,focus){
     else if((m=line.match(/^\[单采:([a-z]+)\]\s*(.+)$/i))) scene.blocks.push({type:"interview",char:m[1].toLowerCase(),text:m[2].trim()});
     else if((m=line.match(/^\[观察室\]\s*(.+)$/))) scene.blocks.push({type:"observer",text:m[1].trim()});
     else if((m=line.match(/^\[节目组\]\s*(.+)$/))) scene.blocks.push({type:"producer",text:m[1].trim()});
+    else if((m=line.match(/^\[事实:([^\]]+)\]\s*(.+)$/))) scene.facts[m[1].trim()]=m[2].trim();
     else if((m=line.match(/^\[旁白\]\s*(.+)$/))) scene.blocks.push({type:"narration",text:m[1].trim()});
     else if((m=line.match(/^\[台词:([a-z]+)\]\s*(?:\((.*?)\))?\s*(.*?)\s*\|\s*(.+)$/i))){
       scene.blocks.push({type:"dialogue",char:m[1].toLowerCase(),action:(m[2]||"").trim(),original:m[3].trim(),translation:m[4].trim()});
@@ -790,6 +906,14 @@ function parseTaggedScene(raw,focus){
   }
   scene.blocks=sanitizeStoryBlocks(scene.blocks);
   scene.choices=sanitizeChoices(scene.choices);
+  if(!skillAllowedToday()){
+    const skill=String(state.profile?.skills||"").trim();
+    const job=String(state.profile?.job||"").trim();
+    scene.choices=scene.choices.filter(choice=>{
+      const text=choice.text||"";
+      return !(choice.tag==="专长" || (skill&&text.includes(skill)) || (job&&text.includes(job)));
+    });
+  }
   if(!scene.title) scene.title=dayPrograms[state.day]?.theme||"节目进行中";
   if(!scene.subtitle) scene.subtitle=slotNames[state.daySlot];
   if(!scene.time) scene.time=["08:10","14:20","17:40","21:10"][state.daySlot];
@@ -813,7 +937,12 @@ function parseTaggedConsequence(raw){
   }
   const safe=sanitizeStoryBlocks(blocks);
   if(!safe.length) throw new Error("AI没有返回可识别的选择后续正文");
-  return {blocks:safe,memory:"",effects:{},tagged:true};
+  const facts={};
+  for(const line of lines){
+    const m=line.match(/^\[事实:([^\]]+)\]\s*(.+)$/);
+    if(m) facts[m[1].trim()]=m[2].trim();
+  }
+  return {blocks:safe,memory:"",effects:{},facts,tagged:true};
 }
 
 function parseTaggedSignals(raw){
@@ -824,6 +953,23 @@ function parseTaggedSignals(raw){
     if(match) signals.push({sender:cast.some(c=>c.id===match[1])?match[1]:null,text:match[2].trim()});
   }
   return sanitizeSignals(signals);
+}
+
+function parseTaggedSocial(raw){
+  const clean=cleanModelText(raw);
+  const posts=[];
+  for(const line of clean.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)){
+    const match=line.match(/^\[(?:动态|朋友圈):([a-z]+)\]\s*(.+)$/i);
+    if(match && cast.some(c=>c.id===match[1])) posts.push({author:match[1],text:match[2].trim()});
+  }
+  return posts;
+}
+
+function neglectedSignalers(){
+  const previous=(state.signalHistory||[]).find(entry=>entry.day===state.day-1);
+  if(!previous) return [];
+  const interacted=new Set((state.dailyLog||[]).filter(log=>log.day===state.day).flatMap(log=>log.focus||[]));
+  return (previous.senders||[]).filter(id=>!interacted.has(id));
 }
 
 function proseToBlocks(text){
@@ -1007,7 +1153,10 @@ function validateSceneDiversity(scene){
 async function directorScene(){
   state.dynamicScene=null; save(); renderScene();
   const cfg={url:"http://127.0.0.1:7897/v1",...JSON.parse(localStorage.getItem(API_STORE)||"{}")};
-  const focus=pickFocus(), program=dayPrograms[state.day], contract=slotContracts[state.daySlot], beat=currentBeat();
+  let focus=pickFocus(), program=dayPrograms[state.day], contract=slotContracts[state.daySlot], beat=currentBeat();
+  const neglected=neglectedSignalers();
+  if(state.daySlot>=2 && neglected.length && !focus.includes(neglected[0])) focus=[neglected[0],focus[0]];
+  const canUseSkill=skillAllowedToday();
   const usedScenes=(state.daySceneHistory||[]).filter(x=>x.day===state.day);
   try{
     const prompt=`你是成年女性向COD恋综《交火心跳：21日》的场景导演。不要输出JSON，不要Markdown，只使用下方指定的逐行标签。
@@ -1021,16 +1170,19 @@ async function directorScene(){
 本时段禁止：${contract.forbidden}
 今日已经使用的场景（绝对不能重复地点、核心事件或相同功能）：${JSON.stringify(usedScenes)}
 本幕优先角色：${focus.join(", ")}。关系：${JSON.stringify(relationSnapshot())}
+昨晚发过短信但今天尚未互动的人：${JSON.stringify(neglected)}。只有这些人可以因被忽略而出现克制醋意；没有在名单里的人不得凭空质问“为什么没选我”。
 角色圣经：
 ${focus.map(id=>characterBible[id]).join("\n")}
 ${proseBible}
 ${programmeMechanics}
+${beat.format==="observer"||state.day===10||state.day===16?studioBible:""}
 ${continuityBrief()}
 近期记忆：${JSON.stringify(state.memories.slice(-12))}
 最近日志：${JSON.stringify(state.dailyLog.slice(-8))}
 男嘉宾彼此关系：${JSON.stringify(pairSnapshot())}
 亲密规则：${intimacyDirective()}
-要求：正文总量900-1400字；只让1-4名自然相关角色出场；每个旁白块至少120字；必须把“本幕必须实际发生”的所有事项写进剧情，不能只提一句任务名称；必须有至少一次节目机制、一次角色之间的相互反应和一次玩家能介入的具体矛盾；与今日所有已用地点和事件明显不同；保留军人职业习惯、母语台词及中文翻译；慢热，不跳阶段，不替玩家说话或决定。本幕结尾只能停在当前时段余波，不能提前跳到下一幕。最后给出3-4个具体选项：一个常规行动/情绪表达，一个提问/质疑规则，一个采访/观察/沉默/拒绝路径；最多一个自然调用玩家专长或短板，不能把职业或专长写成每幕核心。
+玩家职业/专长调用状态：${canUseSkill?"本幕允许最多一个选项自然调用，只有确实适配当前活动时才使用。":"本幕禁止把玩家职业、专长或短板写进核心冲突和选项；改用关系、规则、情绪与观察策略。"}
+要求：正文总量900-1400字；只让1-4名自然相关角色出场；每个旁白块至少120字；必须把“本幕必须实际发生”的所有事项写进剧情，不能只提一句任务名称；必须有至少一次节目机制、一次角色之间的相互反应和一次玩家能介入的具体矛盾；与今日所有已用地点和事件明显不同；保留军人职业习惯、母语台词及中文翻译；慢热，不跳阶段，不替玩家说话或决定。本幕结尾只能停在当前时段余波，不能提前跳到下一幕。最后给出3-4个具体选项：一个常规行动/情绪表达，一个提问/质疑规则，一个采访/观察/沉默/拒绝路径。
 严格按以下格式逐行输出：
 [标题] 短标题
 [副标题] 一句氛围
@@ -1039,6 +1191,11 @@ ${continuityBrief()}
 [系统] 节目规则或时段说明
 [任务卡] 只有节目正式发布挑战或规则时使用
 [节目组] 只有制作组临时通知、加码或干预时使用
+[事实:搭档] 已正式公布的搭档（没有则不写）
+[事实:分组] 已正式公布的分组（没有则不写）
+[事实:约会对象] 已确认约会对象（没有则不写）
+[事实:地点] 本幕正式活动地点
+[事实:结果] 已经公布且后续必须遵守的结果（没有则不写）
 [旁白] 一整段沉浸叙事
 [台词:ghost] (动作) English dialogue | 「中文翻译」
 [单采:ghost] 角色在独立采访中说的未播内容
@@ -1056,6 +1213,7 @@ ${continuityBrief()}
     if(!raw) throw new Error(`API返回成功但正文为空；响应结构：${responseShape(data)}`);
     const parsed=parseTaggedScene(raw,focus);
     validateSceneDiversity(parsed);
+    mergeEpisodeFacts(parsed.facts);
     state.dynamicScene={...parsed,source:"ai",diagnostic:`${cfg.model||"gpt-4o-mini"} · ${new Date().toLocaleTimeString()}`};
   }catch(e){
     console.warn("AI导演生成失败",e);
@@ -1112,6 +1270,8 @@ ${continuityBrief()}
 只允许使用：
 [旁白] 一整段剧情
 [台词:ghost] (动作) English dialogue | 「中文翻译」
+[事实:约会对象] 只有本次选择正式确认或改变节目事实时使用
+[事实:结果] 只有本次选择正式产生不可逆结果时使用
 台词角色ID只能是 keegan、krueger、ghost、nikto、konig、zimo。绝对不能使用玩家姓名或player。`;
     const headers={"Content-Type":"application/json"}; if(cfg.key) headers.Authorization=`Bearer ${cfg.key}`;
     const res=await fetchWithTimeout(apiEndpoint(cfg.url),{method:"POST",headers,body:JSON.stringify({model:cfg.model||"gpt-4o-mini",messages:[{role:"system",content:prompt},{role:"user",content:"按逐行标签格式续写选择后果。"}],max_tokens:2600,temperature:.86})},180000);
@@ -1146,6 +1306,7 @@ function relationshipFeedback(ids){
 }
 
 async function advanceAfterCurrentMoment(){
+  state.followUpMode=false;
   const signature=sceneSignature(state.dynamicScene);
   if(state.dynamicScene && !state.daySceneHistory.some(x=>x.day===state.day&&x.slot===state.daySlot)){
     state.daySceneHistory.push({day:state.day,...signature});
@@ -1165,7 +1326,16 @@ async function advanceAfterCurrentMoment(){
 
 function showMomentContinue(label="带着这段余波继续节目"){
   $("#choiceHint").textContent="这一幕尚未完全结束";
-  $("#choices").innerHTML=`<button class="choice-btn" id="continueDynamic"><span class="tag">CONTINUE</span>${label}</button>`;
+  const turns=state.momentTurns?.[momentKey()]||0;
+  $("#choices").innerHTML=`${turns<3?`<button class="choice-btn" id="stayMoment"><span class="tag">STAY</span>继续当前互动（${3-turns}轮可用）</button>`:""}
+    <button class="choice-btn" id="continueDynamic"><span class="tag">CONTINUE</span>${label}</button>`;
+  if($("#stayMoment")) $("#stayMoment").onclick=()=>{
+    state.followUpMode=true;
+    $("#choices").innerHTML="";
+    $("#choiceHint").textContent="继续说话、追问或行动；不会切换地点";
+    $("#freeInputWrap").classList.remove("hidden");
+    $("#freeInput").focus();
+  };
   $("#continueDynamic").onclick=advanceAfterCurrentMoment;
 }
 
@@ -1177,6 +1347,7 @@ async function chooseDynamic(choice){
 }
 
 async function resolveDynamicChoice(choice){
+  if(currentResolution()) return;
   $("#choiceHint").textContent="正在生成这一选择带来的后果 · 最长等待3分钟";
   $("#choices").innerHTML="";
   const thinking=document.createElement("div"); thinking.className="story-block thinking"; thinking.innerHTML="<i></i><i></i><i></i>"; $("#storyFeed").appendChild(thinking);
@@ -1186,12 +1357,16 @@ async function resolveDynamicChoice(choice){
     const safeBlocks=sanitizeStoryBlocks(reaction.blocks);
     if(!safeBlocks.length) throw new Error("AI后续中没有可显示的合格剧情");
     applyStructuredEffects(choice);
+    mergeEpisodeFacts(reaction.facts);
+    markSkillUsed(choice.text);
     state.dailyLog.push({day:state.day,slot:slotNames[state.daySlot],choice:choice.text,focus:choice.focus||[]});
     safeBlocks.forEach(addBlock);
+    storeMomentResult(safeBlocks);
     if(reaction.memory) state.memories.push(reaction.memory);
     applyReactionEffects(reaction.effects);
     const feedback=relationshipFeedback([...(choice.focus||[]),...Object.keys(reaction.effects||{})]);
     if(feedback) addBlock({type:"system",text:`关系线索 · ${feedback}`});
+    markMomentResolved("choice",choice.text);
     if(reaction.formatFallback) toast("AI返回了正文格式，已直接作为剧情采用");
     if(reaction.recoveredJson) toast("AI返回被截断，已安全恢复完整剧情段落");
     showMomentContinue("带着这段余波继续节目");
@@ -1224,7 +1399,12 @@ function choose(choice){
   $("#choices").innerHTML=""; $("#freeInputWrap").classList.add("hidden");
   $("#choiceHint").textContent="你的选择正在改变第一印象";
   setTimeout(()=>{
-    if(choice.reply) addBlock({type:"narration",text:choice.reply});
+    if(choice.reply){
+      addBlock({type:"narration",text:choice.reply});
+      storeMomentResult([{type:"narration",text:choice.reply}]);
+    }
+    markMomentResolved("choice",choice.text);
+    save();
     $("#choices").innerHTML=`<button class="choice-btn" id="continueScene"><span class="tag">CONTINUE</span>继续这一晚</button>`;
     $("#continueScene").onclick=()=>{
       state.scene=Math.min(state.scene+1,scenes.length-1);
@@ -1273,9 +1453,11 @@ async function settleSignals(){
 当日选择：${JSON.stringify(state.dailyLog.filter(x=>x.day===state.day))}
 关键记忆：${JSON.stringify(state.memories.slice(-10))}
 六位男嘉宾都必须给唯一女嘉宾各发送一封短信；短信必须匿名、1-2句、符合角色口吻，不直接在正文署名，不轮流告白。若关系较低，也要写成克制、观察、礼貌或任务式的短信，而不是不发。
+此外六位男嘉宾每人发布一条当天朋友圈，可以是照片描述、物件、风景、训练或含蓄情绪，不能六条都围着玩家。
 每封短信单独一行，严格使用：
 [短信:ghost] 短信正文
-发送者ID只能是 keegan、krueger、ghost、nikto、konig、zimo。`;
+[动态:ghost] 朋友圈正文
+发送者ID只能是 keegan、krueger、ghost、nikto、konig、zimo。每个ID各一封短信、各一条动态。`;
     const headers={"Content-Type":"application/json"}; if(cfg.key) headers.Authorization=`Bearer ${cfg.key}`;
     const res=await fetchWithTimeout(apiEndpoint(cfg.url),{method:"POST",headers,body:JSON.stringify({model:cfg.model||"gpt-4o-mini",messages:[{role:"system",content:prompt},{role:"user",content:"按逐行标签格式生成今晚短信。"}],max_tokens:800,temperature:.85})},180000);
     if(!res.ok) await throwResponseError(res);
@@ -1284,8 +1466,13 @@ async function settleSignals(){
     if(!raw) throw new Error(`API返回成功但正文为空；响应结构：${responseShape(data)}`);
     let signals=parseTaggedSignals(raw);
     if(!signals.length) signals=proseToSignals(raw);
-    state.receivedSignals=completeSignals(signals);
-    if(!state.receivedSignals.length) throw new Error("AI没有返回任何有效短信");
+    state.receivedSignals=sanitizeSignals(signals);
+    const senders=new Set(state.receivedSignals.map(s=>s.sender).filter(Boolean));
+    if(senders.size!==6) throw new Error(`AI只生成了 ${senders.size}/6 位嘉宾的有效短信，请重新生成`);
+    const posts=parseTaggedSocial(raw);
+    const postAuthors=new Set(posts.map(post=>post.author));
+    if(postAuthors.size!==6) throw new Error(`AI只生成了 ${postAuthors.size}/6 位嘉宾的朋友圈，请重新生成`);
+    state.socialPosts.push(...posts.map(post=>({...post,day:state.day,at:new Date().toISOString()})));
     state.signalError=null;
     if(!state.signalCommitted){
       const r=state.relations[state.signalSent];
@@ -1294,6 +1481,8 @@ async function settleSignals(){
       unlock("signal");
     }
     if(state.receivedSignals.length===6) unlock("allVotes");
+    state.signalHistory=state.signalHistory.filter(entry=>entry.day!==state.day);
+    state.signalHistory.push({day:state.day,playerTarget:state.signalSent,playerText:state.signalSentText,senders:[...senders]});
   }catch(e){
     state.receivedSignals=[];
     state.signalError=readableApiError(e);
@@ -1386,7 +1575,7 @@ async function generateEnding(choice){
 关键选择：${JSON.stringify(state.dailyLog.slice(-30))}
 角色圣经：${selected.map(c=>characterBible[c.id]).join("\n")}
 ${proseBible}
-写1200-1800字。包含最终选择现场、离开别墅、三个月后采访。单人结局面对军人职业现实；多人结局必须逐人表达自愿、边界和仍待解决的问题，不能突然和平共享；all是开放式“规则之外”，不是所有人瞬间建立稳定关系；solo必须有力量而非惩罚。成人内容不得出现在公开结局现场。`;
+写1200-1800字。包含最终选择现场、离开别墅、三个月后采访，以及一个节目后番外片段（共同vlog、粉丝偶遇、机场/基地外短暂见面或公开视频回应四选一）。单人结局面对军人职业现实；多人结局必须逐人表达自愿、边界和仍待解决的问题，不能突然和平共享；all是开放式“规则之外”，不是所有人瞬间建立稳定关系；solo必须有力量而非惩罚。成人内容不得出现在公开结局现场。`;
     const headers={"Content-Type":"application/json"}; if(cfg.key) headers.Authorization=`Bearer ${cfg.key}`;
     const res=await fetchWithTimeout(apiEndpoint(cfg.url),{method:"POST",headers,body:JSON.stringify({model:cfg.model||"gpt-4o-mini",messages:[{role:"system",content:prompt},{role:"user",content:"按标签格式生成完整结局。"}],max_tokens:4200,temperature:.88})},180000);
     if(!res.ok) await throwResponseError(res);
@@ -1418,12 +1607,12 @@ function startNewCycle(){
   const kept={achievements:[...state.achievements],playthrough:(state.playthrough||1)+1,profile:state.profile};
   localStorage.removeItem(STORE);
   state={
-    contentRevision:9,started:true,day:1,scene:0,profile:kept.profile,achievements:kept.achievements,firstFocus:null,
+    contentRevision:10,started:true,day:1,scene:0,profile:kept.profile,achievements:kept.achievements,firstFocus:null,
     signalSent:null,signalError:null,signalCommitted:false,
     relations:Object.fromEntries(cast.map(c=>[c.id,{stage:0,heart:0,trust:0,respect:0,desire:0,jealousy:0,safety:35}])),
     pairRelations:createPairRelations(),
     history:[],memories:[],dailyLog:[],dynamicScene:null,daySlot:0,usedFocus:[],receivedSignals:[],daySceneHistory:[],
-    signalTarget:null,signalText:"",signalSentText:"",playerAgencyLog:[],episodeFacts:{},
+    signalTarget:null,signalText:"",signalSentText:"",playerAgencyLog:[],episodeFacts:{},resolvedMoments:{},momentResults:{},momentTurns:{},followUpMode:false,skillUsage:{lastDay:0,count:0},socialPosts:[],anonymousTalks:[],signalHistory:[],
     playthrough:kept.playthrough,ending:null,endingText:"",endingChoice:null,routePolicy:"undecided"
   };
   normalizeState(); save(); switchPanel("storyPanel"); renderCast(); renderSignals(); renderAchievements(); renderScene();
@@ -1431,10 +1620,16 @@ function startNewCycle(){
 function switchPanel(id){
   $$(".panel").forEach(p=>p.classList.toggle("active",p.id===id));
   $$(".bottom-nav button").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));
+  if(id==="programPanel") renderProgramPanel();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 async function sendFree(){
   const text=$("#freeInput").value.trim(); if(!text) return;
+  if(currentResolution() && !state.followUpMode){
+    toast("这一幕已经结算，请继续节目");
+    showMomentContinue();
+    return;
+  }
   addBlock({type:"player",text}); $("#freeInput").value="";
   $("#choices").innerHTML="";
   $("#freeInputWrap").classList.add("hidden");
@@ -1464,8 +1659,13 @@ ${continuityBrief()}
     const data=await res.json(); const answer=extractAssistantText(data);
     if(!answer) throw new Error(`API返回成功但正文为空；响应结构：${responseShape(data)}`);
     thinking.remove(); addBlock({type:"narration",text:answer});
+    storeMomentResult([{type:"narration",text:answer}]);
     state.history.push({role:"user",content:text},{role:"assistant",content:answer});
     state.dailyLog.push({day:state.day,slot:state.day>1?slotNames[state.daySlot]:`序章${state.scene+1}`,choice:`自由行动：${text}`,focus,free:true});
+    markSkillUsed(text);
+    if(!currentResolution()) markMomentResolved("free",text);
+    state.momentTurns[momentKey()]=(state.momentTurns[momentKey()]||0)+(state.followUpMode?1:0);
+    state.followUpMode=false;
     if(focus.length){
       focus.forEach(id=>{
         const r=state.relations[id];
@@ -1520,6 +1720,7 @@ $("#profileForm").onsubmit=e=>{
   state.started=true; save(); startApp();
 };
 $$(".bottom-nav button").forEach(b=>b.onclick=()=>switchPanel(b.dataset.panel));
+$$("[data-agency]").forEach(button=>button.onclick=()=>handleAgencyButton(button));
 $$("[data-close]").forEach(b=>b.onclick=()=>$("#"+b.dataset.close).classList.add("hidden"));
 $$(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.add("hidden");});
 $("#settingsBtn").onclick=()=>{
@@ -1613,7 +1814,7 @@ $("#importSaveFile").onchange=async e=>{
   try{
     const imported=JSON.parse(await file.text());
     if(!imported.profile || !imported.relations) throw new Error("缺少游戏数据");
-    state={...state,...imported,contentRevision:9,pairRelations:imported.pairRelations||createPairRelations()};
+    state={...state,...imported,contentRevision:10,pairRelations:imported.pairRelations||createPairRelations()};
     normalizeState(); save(); $("#settingsModal").classList.add("hidden"); startApp(); toast("存档导入成功");
   }catch(err){ toast(`导入失败：${err.message}`); }
   e.target.value="";
