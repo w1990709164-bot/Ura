@@ -5,159 +5,212 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>里世界 · LIWORLD ARCHIVE</title>
 <style>
-:root {
-  --bg:#0f0f12;
-  --bg-panel:#141418;
-  --text:#f0eef8;
-  --text-muted:#5a5570;
-  --accent:#e8354a;
-  --accent-dim:#3a0a10;
-  --card-bg:#1c1c22;
-  --card-hover:#2a2a38;
-  --safe-b:env(safe-area-inset-bottom,0px);
-  --radius:8px;
-  --gap:16px;
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Noto Serif SC',serif;}
-body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:24px;}
-h1{font-size:3rem;text-align:center;margin-bottom:0.5rem;letter-spacing:4px;}
-h2{font-size:1.2rem;text-align:center;margin-bottom:2rem;color:var(--text-muted);}
-button{padding:12px 20px;font-size:1rem;border:none;border-radius:var(--radius);cursor:pointer;transition:all 0.2s;}
-#start-btn{background:var(--accent);color:var(--text);margin-bottom:var(--gap);}
-#start-btn:hover{background:var(--accent-dim);}
-#api-btn{background:transparent;color:var(--accent);border:1px solid var(--accent);margin-bottom:24px;}
-#api-btn:hover{background:var(--accent);color:var(--text);}
-#api-status{min-height:20px;margin:-10px 0 10px;color:var(--text-muted);font-size:.9rem;text-align:center;}
-#game-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--gap);width:100%;max-width:920px;margin-top:16px;display:none;}
-.card{background:var(--card-bg);padding:16px;border-radius:var(--radius);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;min-height:150px;justify-content:center;}
-.card:hover{background:var(--card-hover);}
-.card h3{margin-bottom:8px;color:var(--accent);}.card-tag{position:absolute;top:10px;right:12px;font-size:11px;color:var(--text-muted);letter-spacing:1px;}
-#api-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:1000;}
-#api-modal .modal-content{background:var(--bg-panel);padding:24px;border-radius:var(--radius);width:90%;max-width:360px;display:flex;flex-direction:column;gap:12px;}
-#api-modal label{font-size:0.85rem;color:var(--text-muted);}
-#api-modal input{padding:8px;border-radius:var(--radius);border:1px solid var(--accent-dim);background:#1a1a1f;color:var(--text);outline:none;}
-#api-modal input:focus{border-color:var(--accent);}
-#api-modal button{align-self:flex-end;}
-#api-close{background:transparent;color:var(--accent);border:1px solid var(--accent);}
-#api-close:hover{background:var(--accent);color:var(--text);}
+:root{--bg:#0f0f12;--panel:#17171c;--text:#f0eef8;--muted:#777187;--accent:#e8354a;--line:#3a252c;--card:#1c1c22;--hover:#292933;--ok:#7bc99a;--bad:#ff7b86;--r:8px}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:24px;background:var(--bg);color:var(--text);font-family:"Noto Serif SC","Microsoft YaHei",serif;display:flex;flex-direction:column;align-items:center}
+h1{font-size:3rem;letter-spacing:4px;margin:12px 0 0}h2{font-size:1.05rem;letter-spacing:3px;color:var(--muted);margin:4px 0 28px}
+button{font:inherit;color:inherit;padding:11px 18px;border:1px solid transparent;border-radius:var(--r);cursor:pointer;background:#25252c}
+button:hover{filter:brightness(1.12)}button:disabled{opacity:.55;cursor:wait}
+#start-btn{background:var(--accent);margin-bottom:12px}#api-btn{background:transparent;color:var(--accent);border-color:var(--accent)}
+#api-status{min-height:22px;margin:12px 0;color:var(--muted);font-size:.86rem;text-align:center;max-width:760px}
+#game-cards{display:none;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;width:100%;max-width:920px;margin-top:14px}
+.card{position:relative;min-height:152px;padding:18px;background:var(--card);border:1px solid transparent;border-radius:var(--r);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;cursor:pointer;transition:.2s}
+.card:hover{background:var(--hover);border-color:var(--line)}.card h3{margin:0 0 8px;color:var(--accent)}.card p{margin:0;color:#aaa5b4;font-size:.88rem;line-height:1.65}.card-tag{position:absolute;right:11px;top:9px;font-size:.68rem;color:var(--muted);letter-spacing:1px}
+#api-modal{position:fixed;inset:0;z-index:1000;padding:18px;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center}
+.modal-content{width:min(460px,100%);max-height:92vh;overflow:auto;padding:24px;background:var(--panel);border:1px solid #332e38;border-radius:12px;display:flex;flex-direction:column;gap:10px;box-shadow:0 22px 70px rgba(0,0,0,.45)}
+.modal-title{font-size:1.25rem;margin:0 0 4px}.modal-note{font-size:.79rem;color:var(--muted);line-height:1.6;margin:0 0 4px}
+label{font-size:.82rem;color:#aaa5b4}input,select{width:100%;padding:10px 11px;border:1px solid #3a3540;border-radius:var(--r);background:#111115;color:var(--text);outline:none;font:inherit}input:focus,select:focus{border-color:var(--accent)}
+.model-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.model-row button{padding:9px 13px;white-space:nowrap}
+#api-result{display:none;padding:10px 12px;border-radius:var(--r);font-size:.82rem;line-height:1.55;word-break:break-word}.result-ok{display:block!important;background:rgba(123,201,154,.1);border:1px solid rgba(123,201,154,.35);color:var(--ok)}.result-bad{display:block!important;background:rgba(255,123,134,.1);border:1px solid rgba(255,123,134,.35);color:var(--bad)}
+.modal-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:8px}.modal-actions #api-test{margin-right:auto;border-color:#565063;background:transparent}.modal-actions #api-save{background:var(--accent)}#api-close{background:transparent;border-color:#4a4450;color:#bbb5c3}
+@media(max-width:520px){body{padding:18px 14px}h1{font-size:2.25rem}.model-row{grid-template-columns:1fr}.model-row button{width:100%}.modal-actions button{flex:1}.modal-actions #api-test{flex-basis:100%}}
 </style>
 </head>
 <body>
-
 <h1>里世界</h1>
 <h2>LIWORLD ARCHIVE</h2>
-
 <button id="start-btn">开始游戏</button>
 <button id="api-btn">设置 API</button>
-
 <div id="api-status" aria-live="polite"></div>
 
 <div id="game-cards">
-  <div class="card" data-game="parallel-world">
-    <span class="card-tag">01</span>
-    <h3>我在基地打工</h3>
-    <p>现代军事基地，特遣队，情报系统</p>
-  </div>
-  <div class="card" data-game="medical-room">
-    <span class="card-tag">02</span>
-    <h3>我在白塔打工</h3>
-    <p>哨向医疗塔，精神图景，白塔体系</p>
-  </div>
-  <div class="card" data-game="gray-ridge">
-    <span class="card-tag">03</span>
-    <h3>我在灰脊打工</h3>
-    <p>荒原部落，灰盟政治，兽人文化</p>
-  </div>
-  <div class="card" data-game="capture-her">
-    <span class="card-tag">04</span>
-    <h3>我在恋综打工</h3>
-    <p>系统角色攻略用户，恋爱剧情，修罗场</p>
-  </div>
-  <div class="card" data-game="hearts-in-crossfire">
-    <span class="card-tag">05</span>
-    <h3>交火心跳：21日</h3>
-    <p>COD恋综观察，六位男嘉宾，21日动态剧情</p>
-  </div>
-  <div class="card" data-game="cod-hogwarts">
-    <span class="card-tag">06 · NEW</span>
-    <h3>魔法学院·异乡仙途</h3>
-    <p>霍格沃茨×COD×东方仙术，14位角色乙女向剧情</p>
-  </div>
+  <div class="card" data-game="parallel-world"><span class="card-tag">01</span><h3>我在基地打工</h3><p>现代军事基地，特遣队，情报系统</p></div>
+  <div class="card" data-game="medical-room"><span class="card-tag">02</span><h3>我在白塔打工</h3><p>哨向医疗塔，精神图景，白塔体系</p></div>
+  <div class="card" data-game="gray-ridge"><span class="card-tag">03</span><h3>我在灰脊打工</h3><p>荒原部落，灰盟政治，兽人文化</p></div>
+  <div class="card" data-game="capture-her"><span class="card-tag">04</span><h3>我在恋综打工</h3><p>系统角色攻略用户，恋爱剧情，修罗场</p></div>
+  <div class="card" data-game="hearts-in-crossfire"><span class="card-tag">05</span><h3>交火心跳 · 21日</h3><p>COD恋综观察，六位男嘉宾，21日动态剧情</p></div>
+  <div class="card" data-game="cod-hogwarts"><span class="card-tag">06 · NEW</span><h3>魔法学院 · 异乡仙途</h3><p>霍格沃茨 × COD × 东方仙术，乙女向剧情</p></div>
 </div>
 
-<div id="api-modal">
+<div id="api-modal" role="dialog" aria-modal="true" aria-labelledby="api-title">
   <div class="modal-content">
-    <label for="api-url">接口链接（OpenAI 兼容；留空则用 Anthropic 官方接口）</label>
-    <input type="text" id="api-url" placeholder="https://api.openai.com/v1（可留空）">
+    <h3 class="modal-title" id="api-title">全局 API 设置</h3>
+    <p class="modal-note">先拉取模型并测试连接。测试成功后再进入游戏，可以提前排除地址、密钥或模型不可用的问题。</p>
+    <label for="api-url">OpenAI 兼容接口地址</label>
+    <input id="api-url" type="text" placeholder="例如：https://api.example.com/v1">
     <label for="api-key">API Key</label>
-    <input type="text" id="api-key" placeholder="输入你的密钥">
-    <label for="api-model">模型名称</label>
-    <input type="text" id="api-model" placeholder="如 gpt-4o 或 claude-sonnet-4-20250514">
-    <div style="display:flex;justify-content:space-between;margin-top:8px;">
-      <button id="api-save">保存</button>
-      <button id="api-close">关闭</button>
+    <input id="api-key" type="password" autocomplete="off" placeholder="输入 API Key">
+    <label for="api-model">模型</label>
+    <div class="model-row">
+      <select id="api-model-select" aria-label="已拉取的模型"><option value="">先点击“拉取模型”</option></select>
+      <button id="api-load-models" type="button">拉取模型</button>
+    </div>
+    <input id="api-model" type="text" placeholder="也可以手动填写模型名">
+    <div id="api-result" aria-live="polite"></div>
+    <div class="modal-actions">
+      <button id="api-test" type="button">测试连接</button>
+      <button id="api-save" type="button">保存设置</button>
+      <button id="api-close" type="button">关闭</button>
     </div>
   </div>
 </div>
 
 <script>
-const startBtn = document.getElementById('start-btn');
-const apiBtn = document.getElementById('api-btn');
-const gameCards = document.getElementById('game-cards');
-const apiModal = document.getElementById('api-modal');
-const apiClose = document.getElementById('api-close');
-const apiSave = document.getElementById('api-save');
-const apiStatus = document.getElementById('api-status');
+const $ = id => document.getElementById(id);
+const apiModal = $('api-modal');
+const apiResult = $('api-result');
+let lastVerifiedSignature = localStorage.getItem('LW_API_VERIFIED') || '';
 
-startBtn.addEventListener('click', ()=>{gameCards.style.display='grid';});
-apiBtn.addEventListener('click', ()=>{apiModal.style.display='flex';});
-apiClose.addEventListener('click', ()=>{apiModal.style.display='none';});
-apiSave.addEventListener('click', ()=>{
-    const url=document.getElementById('api-url').value.trim();
-    const key=document.getElementById('api-key').value.trim();
-    const model=document.getElementById('api-model').value.trim();
-    // 链接可留空（留空表示使用 Anthropic 官方接口），但密钥与模型必填
-    if(key && model){
-        localStorage.setItem('LW_API_URL',url);
-        localStorage.setItem('LW_API_KEY',key);
-        localStorage.setItem('LW_API_MODEL',model);
-        alert('API 设置已保存，全局有效');
-        updateApiStatus();
-        apiModal.style.display='none';
-    }else{
-        alert('请至少填写 API Key 和模型名称');
-    }
-});
-
-// 点击游戏卡片跳转
-document.querySelectorAll('.card').forEach(c=>{
-    c.addEventListener('click',()=>{
-        const game=c.dataset.game;
-        window.location.href=`games/${game}/index.html`;
-    });
-});
-
-// 页面加载自动填充已有 API
-window.addEventListener('load',()=>{
-    const url=localStorage.getItem('LW_API_URL')||'';
-    const key=localStorage.getItem('LW_API_KEY')||'';
-    const model=localStorage.getItem('LW_API_MODEL')||'';
-    document.getElementById('api-url').value=url;
-    document.getElementById('api-key').value=key;
-    document.getElementById('api-model').value=model;
-    updateApiStatus();
-});
-
-function updateApiStatus(){
-    const key=localStorage.getItem('LW_API_KEY')||'';
-    const model=localStorage.getItem('LW_API_MODEL')||'';
-    const url=localStorage.getItem('LW_API_URL')||'';
-    if(!apiStatus) return;
-    apiStatus.textContent = key && model
-      ? `API：已配置 · ${url || 'Anthropic 官方接口'} · ${model}`
-      : 'API：未配置。请先点“设置 API”，所有游戏都会共用这里的设置。';
+function cleanBase(value){
+  return value.trim().replace(/\/+$/, '');
 }
-</script>
+function chatEndpoint(value){
+  const base = cleanBase(value);
+  if (!base) return 'https://api.anthropic.com/v1/messages';
+  if (/\/chat\/completions$/i.test(base)) return base;
+  return base.endsWith('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`;
+}
+function modelsEndpoints(value){
+  const base = cleanBase(value).replace(/\/chat\/completions$/i, '');
+  if (!base) return [];
+  const primary = base.endsWith('/v1') ? `${base}/models` : `${base}/v1/models`;
+  const fallback = `${base}/models`;
+  return [...new Set([primary, fallback])];
+}
+function signature(url,key,model){
+  return `${cleanBase(url)}|${key.slice(-8)}|${model}`;
+}
+function fields(){
+  return {url:$('api-url').value.trim(),key:$('api-key').value.trim(),model:$('api-model').value.trim()};
+}
+function showResult(message, ok){
+  apiResult.className = ok ? 'result-ok' : 'result-bad';
+  apiResult.textContent = message;
+}
+function setBusy(button, busy, text){
+  if (!button.dataset.label) button.dataset.label = button.textContent;
+  button.disabled = busy;
+  button.textContent = busy ? text : button.dataset.label;
+}
+function authHeaders(key){
+  return {'Content-Type':'application/json','Authorization':`Bearer ${key}`};
+}
+async function fetchWithTimeout(url, options={}, timeout=60000){
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), timeout);
+  try{return await fetch(url,{...options,signal:controller.signal})}
+  finally{clearTimeout(timer)}
+}
+function extractModels(json){
+  const list = Array.isArray(json?.data) ? json.data : Array.isArray(json?.models) ? json.models : Array.isArray(json) ? json : [];
+  return [...new Set(list.map(x => typeof x === 'string' ? x : (x?.id || x?.name || x?.model)).filter(Boolean))].sort();
+}
+function extractText(json){
+  const content = json?.choices?.[0]?.message?.content;
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) return content.map(x=>x?.text||x?.content||'').join('');
+  return json?.choices?.[0]?.message?.reasoning_content
+    || json?.candidates?.[0]?.content?.parts?.map(x=>x?.text||'').join('')
+    || json?.content?.[0]?.text || json?.output_text || json?.response || '';
+}
 
+$('start-btn').addEventListener('click',()=>{$('game-cards').style.display='grid'});
+$('api-btn').addEventListener('click',()=>{apiModal.style.display='flex';apiResult.className='';apiResult.textContent=''});
+$('api-close').addEventListener('click',()=>{apiModal.style.display='none'});
+apiModal.addEventListener('click',e=>{if(e.target===apiModal)apiModal.style.display='none'});
+$('api-model-select').addEventListener('change',e=>{if(e.target.value)$('api-model').value=e.target.value});
+
+$('api-load-models').addEventListener('click',async()=>{
+  const btn=$('api-load-models'), {url,key}=fields();
+  if(!url||!key){showResult('请先填写接口地址和 API Key。',false);return}
+  setBusy(btn,true,'拉取中…');
+  let lastError='';
+  try{
+    for(const endpoint of modelsEndpoints(url)){
+      try{
+        const res=await fetchWithTimeout(endpoint,{headers:authHeaders(key)},60000);
+        if(!res.ok){lastError=`HTTP ${res.status} · ${(await res.text()).slice(0,180)}`;continue}
+        const models=extractModels(await res.json());
+        if(!models.length){lastError='接口已响应，但没有识别到模型列表。';continue}
+        const select=$('api-model-select');
+        select.innerHTML='<option value="">请选择模型</option>'+models.map(id=>`<option value="${id.replace(/"/g,'&quot;')}">${id}</option>`).join('');
+        const current=$('api-model').value.trim();
+        if(models.includes(current))select.value=current;
+        showResult(`已拉取 ${models.length} 个模型，请从下拉框选择。`,true);
+        return;
+      }catch(e){lastError=e.name==='AbortError'?'拉取模型超时。':e.message}
+    }
+    throw new Error(lastError||'无法访问模型列表接口');
+  }catch(e){showResult(`模型拉取失败：${e.message}`,false)}
+  finally{setBusy(btn,false)}
+});
+
+$('api-test').addEventListener('click',async()=>{
+  const btn=$('api-test'), {url,key,model}=fields();
+  if(!key||!model){showResult('请填写 API Key 并选择或填写模型。',false);return}
+  setBusy(btn,true,'测试中…');
+  try{
+    let res;
+    if(url){
+      res=await fetchWithTimeout(chatEndpoint(url),{
+        method:'POST',headers:authHeaders(key),
+        body:JSON.stringify({model,messages:[{role:'user',content:'连接测试。请只回复 OK。'}],max_tokens:16,temperature:0})
+      },90000);
+    }else{
+      res=await fetchWithTimeout('https://api.anthropic.com/v1/messages',{
+        method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model,messages:[{role:'user',content:'连接测试。请只回复 OK。'}],max_tokens:16,temperature:0})
+      },90000);
+    }
+    if(!res.ok)throw new Error(`HTTP ${res.status} · ${(await res.text()).slice(0,240)}`);
+    const text=extractText(await res.json());
+    if(!text.trim())throw new Error('接口返回成功，但没有可读取的文本内容。');
+    lastVerifiedSignature=signature(url,key,model);
+    localStorage.setItem('LW_API_VERIFIED',lastVerifiedSignature);
+    showResult(`连接成功，模型已正常回复：${text.trim().slice(0,80)}`,true);
+    updateApiStatus();
+  }catch(e){
+    lastVerifiedSignature='';
+    localStorage.removeItem('LW_API_VERIFIED');
+    showResult(`连接失败：${e.name==='AbortError'?'请求超过 90 秒。':e.message}`,false);
+    updateApiStatus();
+  }finally{setBusy(btn,false)}
+});
+
+$('api-save').addEventListener('click',()=>{
+  const {url,key,model}=fields();
+  if(!key||!model){showResult('请至少填写 API Key 和模型名称。',false);return}
+  localStorage.setItem('LW_API_URL',url);
+  localStorage.setItem('LW_API_KEY',key);
+  localStorage.setItem('LW_API_MODEL',model);
+  if(lastVerifiedSignature!==signature(url,key,model))localStorage.removeItem('LW_API_VERIFIED');
+  updateApiStatus();
+  showResult(lastVerifiedSignature===signature(url,key,model)?'设置已保存，且当前配置已通过连接测试。':'设置已保存；建议先点击“测试连接”确认可用。',lastVerifiedSignature===signature(url,key,model));
+});
+
+document.querySelectorAll('.card').forEach(card=>card.addEventListener('click',()=>{location.href=`games/${card.dataset.game}/index.html`}));
+function updateApiStatus(){
+  const url=localStorage.getItem('LW_API_URL')||'', key=localStorage.getItem('LW_API_KEY')||'', model=localStorage.getItem('LW_API_MODEL')||'';
+  const verified=localStorage.getItem('LW_API_VERIFIED')===signature(url,key,model);
+  $('api-status').textContent=key&&model
+    ? `API：已配置 · ${model} · ${verified?'已通过连接测试':'尚未测试或配置已变更'}`
+    : 'API：未配置。进入游戏前建议先拉取模型并测试连接。';
+}
+window.addEventListener('load',()=>{
+  $('api-url').value=localStorage.getItem('LW_API_URL')||'';
+  $('api-key').value=localStorage.getItem('LW_API_KEY')||'';
+  $('api-model').value=localStorage.getItem('LW_API_MODEL')||'';
+  updateApiStatus();
+});
+</script>
 </body>
 </html>
