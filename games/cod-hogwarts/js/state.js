@@ -32,7 +32,7 @@ function buildInitialCharacterState() {
 
 function createFreshState() {
   return {
-    phase: 'setup',        // setup | creation | sorting | game
+    phase: 'creation',     // creation | sorting | game
     player: {
       name: '',
       age: '',

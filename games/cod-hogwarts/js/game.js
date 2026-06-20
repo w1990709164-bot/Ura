@@ -3,10 +3,15 @@
 // ── 初始化 ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadAll();
-  initSetupScreen();
   initCreationScreen();
   initSortingScreen();
   initGameScreen();
+
+  const cfg = getApiConfig();
+  if (!cfg.key || !cfg.model) {
+    showScreen('no-api');
+    return;
+  }
 
   if (G.phase === 'game') {
     showScreen('game');
@@ -15,91 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
       renderStory(G.currentStory);
       renderOptions(G.currentOptions || []);
     }
-  } else if (G.phase === 'creation') {
-    showScreen('creation');
   } else if (G.phase === 'sorting') {
     showScreen('sorting');
     renderSortingQuestion();
   } else {
-    showScreen('setup');
+    showScreen('creation');
   }
 });
-
-// ── Setup Screen ───────────────────────────────────────────
-function initSetupScreen() {
-  const cfg = getApiConfig();
-  const epInput    = document.getElementById('api-endpoint');
-  const keyInput   = document.getElementById('api-key');
-  const modelSel   = document.getElementById('api-model');
-  const fetchBtn   = document.getElementById('btn-fetch-models');
-  const startBtn   = document.getElementById('btn-start');
-  const errEl      = document.getElementById('setup-error');
-
-  if (epInput && cfg.url) epInput.value = cfg.url;
-  if (keyInput && cfg.key) keyInput.value = cfg.key;
-
-  function checkReady() {
-    if (startBtn) startBtn.disabled = !keyInput?.value.trim() || !modelSel?.value;
-  }
-
-  keyInput?.addEventListener('input', checkReady);
-  modelSel?.addEventListener('change', checkReady);
-
-  // 如果已有模型配置，填入select
-  if (cfg.model) {
-    const opt = document.createElement('option');
-    opt.value = cfg.model;
-    opt.textContent = cfg.model;
-    opt.selected = true;
-    modelSel?.appendChild(opt);
-    modelSel && (modelSel.disabled = false);
-    checkReady();
-  }
-
-  fetchBtn?.addEventListener('click', async () => {
-    const ep  = epInput?.value.trim() || '';
-    const key = keyInput?.value.trim() || '';
-    if (!key) { showSetupError('请先填写 API Key'); return; }
-    fetchBtn.textContent = '获取中...';
-    fetchBtn.disabled = true;
-    try {
-      const models = await fetchModels(ep, key);
-      if (modelSel) {
-        modelSel.innerHTML = '';
-        models.forEach(m => {
-          const opt = document.createElement('option');
-          opt.value = m; opt.textContent = m;
-          if (m === cfg.model) opt.selected = true;
-          modelSel.appendChild(opt);
-        });
-        modelSel.disabled = false;
-      }
-      hideSetupError();
-      checkReady();
-    } catch(e) {
-      showSetupError(e.message);
-    } finally {
-      fetchBtn.textContent = '获取';
-      fetchBtn.disabled = false;
-    }
-  });
-
-  startBtn?.addEventListener('click', () => {
-    const ep    = epInput?.value.trim() || '';
-    const key   = keyInput?.value.trim() || '';
-    const model = modelSel?.value || '';
-    if (!key || !model) { showSetupError('请填写 API Key 并选择模型'); return; }
-    localStorage.setItem('LW_API_URL', ep);
-    localStorage.setItem('LW_API_KEY', key);
-    localStorage.setItem('LW_API_MODEL', model);
-    G.phase = 'creation';
-    persistAll();
-    showScreen('creation');
-  });
-
-  function showSetupError(msg) { if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; } }
-  function hideSetupError()    { if (errEl) errEl.style.display = 'none'; }
-}
 
 // ── Creation Screen ────────────────────────────────────────
 function initCreationScreen() {

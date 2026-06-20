@@ -492,6 +492,35 @@ textarea { resize:vertical; min-height:72px; }
   to { opacity:0; }
 }
 
+/* ── 返回里世界悬浮按钮 ───────────────────────────────── */
+.liworld-back {
+  position:fixed; left:14px; top:14px; z-index:80;
+  background:rgba(20,17,15,.78);
+  border:1px solid var(--gold-line);
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:0.75rem; color:var(--text-muted);
+  text-decoration:none; letter-spacing:1px;
+  backdrop-filter:blur(4px);
+  transition:color 0.2s, border-color 0.2s;
+}
+.liworld-back:hover { color:var(--gold); border-color:var(--gold); }
+
+/* ── No-API 提示框 ────────────────────────────────────── */
+.no-api-box {
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius-lg); padding:20px;
+  max-width:340px; text-align:center;
+  font-size:0.9rem; line-height:1.7; color:var(--text-muted);
+}
+.no-api-box strong { color:var(--gold); }
+
+/* ── API统一说明 ──────────────────────────────────────── */
+.api-unified-note {
+  font-size:0.85rem; color:var(--text-muted);
+  line-height:1.6; padding:10px 0;
+}
+
 /* ── 滚动条样式 ───────────────────────────────────────── */
 ::-webkit-scrollbar { width:3px; }
 ::-webkit-scrollbar-track { background:transparent; }

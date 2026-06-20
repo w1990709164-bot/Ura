@@ -9,44 +9,25 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════
-     Setup Screen — API 设定
-═══════════════════════════════════════════════ -->
-<div id="screen-setup" class="screen">
-  <div class="setup-container">
-    <a class="liworld-back" href="../../index.html" style="position:absolute;top:16px;left:16px;color:var(--text-muted);font-size:0.8rem;text-decoration:none;">← 返回里世界</a>
+<!-- 返回里世界（固定悬浮，所有界面都可见） -->
+<a class="liworld-back" href="../../index.html">← 返回里世界</a>
 
+<!-- ═══════════════════════════════════════════════
+     API未配置提示界面
+═══════════════════════════════════════════════ -->
+<div id="screen-no-api" class="screen">
+  <div class="setup-container">
     <div class="setup-logo">
       <span class="logo-east">仙</span>
       <span class="logo-divider">·</span>
       <span class="logo-west">✦</span>
     </div>
     <h1 class="setup-title">魔法学院<br><span>异乡仙途</span></h1>
-
-    <div class="form-section">
-      <div class="form-group">
-        <label>API 端口</label>
-        <input id="api-endpoint" type="text" placeholder="https://api.openai.com（留空使用Anthropic）" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label>API Key</label>
-        <input id="api-key" type="password" placeholder="sk-..." autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label>选择模型</label>
-        <div class="model-select-row">
-          <select id="api-model" disabled><option value="">— 请先获取模型列表 —</option></select>
-          <button id="btn-fetch-models" class="btn-secondary">获取</button>
-        </div>
-      </div>
+    <div class="no-api-box">
+      <p>尚未配置 API。</p>
+      <p>请先返回里世界首页，点击<strong>「设置 API」</strong>完成配置后再进入游戏。</p>
+      <a href="../../index.html" class="btn-primary" style="display:block;text-align:center;text-decoration:none;margin-top:16px;">前往里世界设置 →</a>
     </div>
-
-    <button id="btn-start" class="btn-primary" disabled>开始游戏</button>
-    <div id="setup-error" class="error-msg" style="display:none"></div>
-
-    <p style="font-size:0.72rem;color:var(--text-dim);text-align:center;max-width:300px;">
-      所有数据保存在本地浏览器，API Key 不会上传到任何服务器。
-    </p>
   </div>
 </div>
 
@@ -149,7 +130,6 @@
 
     <!-- ── 剧情面板 ── -->
     <div id="panel-story" class="panel active">
-      <!-- 故事文本滚动区 -->
       <div id="story-scroll-area">
         <div id="story-text">
           <div class="story-placeholder">故事即将开始...</div>
@@ -162,14 +142,11 @@
         <button id="btn-regenerate" class="btn-regenerate" style="display:none">↺ 重新生成</button>
       </div>
 
-      <!-- 选项区（可折叠） -->
       <div id="options-area">
-        <div id="options-drag-handle" id="options-toggle">
+        <div id="options-drag-handle">
           <div class="handle-bar"></div>
         </div>
-        <div id="options-list">
-          <!-- 动态生成 -->
-        </div>
+        <div id="options-list"></div>
         <div id="custom-input-row">
           <input id="custom-input" type="text" placeholder="自定义行动...">
           <button id="btn-send">发</button>
@@ -205,7 +182,7 @@
         <!-- 成就（最上方） -->
         <div class="records-section">
           <div class="records-section-title">成就</div>
-          <div id="achievement-summary" class="achievement-summary">
+          <div class="achievement-summary">
             已解锁 <span id="achievement-count">0</span> / <span id="achievement-total">64</span>
           </div>
           <div id="achievements-grid"></div>
@@ -239,26 +216,20 @@
           </div>
         </div>
 
-        <!-- API 设定 -->
+        <!-- API说明 -->
         <div class="records-section">
           <div class="records-section-title">API 设定</div>
-          <div class="api-info-display">
-            <div class="api-info-row">
-              <span>端口</span>
-              <span id="api-display-endpoint">—</span>
-            </div>
-            <div class="api-info-row">
-              <span>模型</span>
-              <span id="api-display-model">—</span>
-            </div>
+          <div class="api-unified-note">
+            API 由里世界主页统一管理。当前使用：<br>
+            <span id="api-display-model" style="color:var(--gold)">—</span>
           </div>
-          <button id="btn-change-api" class="btn-secondary" style="width:100%">修改 API 设定</button>
+          <a href="../../index.html" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;margin-top:10px;">前往里世界修改设置</a>
         </div>
 
       </div>
     </div>
 
-  </div><!-- end #tab-content -->
+  </div>
 
   <!-- 底部导航 -->
   <nav id="bottom-nav">
@@ -280,13 +251,9 @@
     </button>
   </nav>
 
-</div><!-- end #screen-game -->
+</div>
 
-<!-- ═══════════════════════════════════════════════
-     Modals
-═══════════════════════════════════════════════ -->
-
-<!-- 道具弹窗 -->
+<!-- ═══ Modals ════ -->
 <div id="modal-item" class="modal" style="display:none">
   <div class="modal-backdrop" id="modal-item-backdrop"></div>
   <div class="modal-content">
@@ -304,7 +271,6 @@
   </div>
 </div>
 
-<!-- 成就弹出通知 -->
 <div id="modal-achievement" class="achievement-popup" style="display:none">
   <div class="achievement-popup-content">
     <div class="achievement-popup-icon">✦</div>
@@ -313,9 +279,6 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     Scripts
-═══════════════════════════════════════════════ -->
 <script src="js/characters.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/state.js"></script>

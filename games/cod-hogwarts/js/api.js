@@ -7,16 +7,6 @@ function getApiConfig() {
   };
 }
 
-async function fetchModels(endpoint, key) {
-  const base = endpoint.replace(/\/+$/, '');
-  const url = base ? `${base}/v1/models` : 'https://api.openai.com/v1/models';
-  const res = await fetch(url, {
-    headers: { 'Authorization': `Bearer ${key}` }
-  });
-  if (!res.ok) throw new Error(`获取模型失败 (${res.status})`);
-  const data = await res.json();
-  return (data.data || []).map(m => m.id).sort();
-}
 
 async function callAPI(messages, opts = {}) {
   const cfg = getApiConfig();
