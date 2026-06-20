@@ -114,13 +114,67 @@ function extractModels(json){
   const list = Array.isArray(json?.data) ? json.data : Array.isArray(json?.models) ? json.models : Array.isArray(json) ? json : [];
   return [...new Set(list.map(x => typeof x === 'string' ? x : (x?.id || x?.name || x?.model)).filter(Boolean))].sort();
 }
+function cleanText(value){
+  if(Array.isArray(value)) return value.map(cleanText).filter(Boolean).join('\n').trim();
+  if(value && typeof value==='object'){
+    return cleanText(value.text ?? value.content ?? value.output_text ?? value.value ?? '');
+  }
+  return String(value ?? '').replace(/<think>[\s\S]*?<\/think>/gi,'').trim();
+}
 function extractText(json){
-  const content = json?.choices?.[0]?.message?.content;
-  if (typeof content === 'string') return content;
-  if (Array.isArray(content)) return content.map(x=>x?.text||x?.content||'').join('');
-  return json?.choices?.[0]?.message?.reasoning_content
-    || json?.candidates?.[0]?.content?.parts?.map(x=>x?.text||'').join('')
-    || json?.content?.[0]?.text || json?.output_text || json?.response || '';
+  const candidates=[
+    json?.choices?.[0]?.message?.content,
+    json?.choices?.[0]?.message?.reasoning_content,
+    json?.choices?.[0]?.message?.reasoning,
+    json?.choices?.[0]?.delta?.content,
+    json?.choices?.[0]?.text,
+    json?.output_text,
+    json?.output,
+    json?.response,
+    json?.text,
+    json?.content,
+    json?.candidates?.[0]?.content?.parts,
+    json?.candidates?.[0]?.content,
+    json?.result?.choices?.[0]?.message?.content,
+    json?.result?.response,
+    json?.data?.choices?.[0]?.message?.content
+  ];
+  for(const value of candidates){
+    const text=cleanText(value);
+    if(text) return text;
+  }
+  return '';
+}
+function responseShape(json){
+  try{
+    return JSON.stringify({
+      top:Object.keys(json||{}).slice(0,10),
+      choice:Object.keys(json?.choices?.[0]||{}).slice(0,10),
+      message:Object.keys(json?.choices?.[0]?.message||{}).slice(0,10),
+      finish:json?.choices?.[0]?.finish_reason||json?.candidates?.[0]?.finishReason||''
+    });
+  }catch{return '无法读取响应结构'}
+}
+async function requestConnectionTest(url,key,model,maxTokens){
+  if(url){
+    return fetchWithTimeout(chatEndpoint(url),{
+      method:'POST',headers:authHeaders(key),
+      body:JSON.stringify({
+        model,
+        messages:[
+          {role:'system',content:'你正在执行接口连通性测试。不要思考或解释。'},
+          {role:'user',content:'请直接回复：OK'}
+        ],
+        max_tokens:maxTokens,
+        temperature:0
+      })
+    },120000);
+  }
+  return fetchWithTimeout('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model,messages:[{role:'user',content:'请直接回复：OK'}],max_tokens:maxTokens,temperature:0})
+  },120000);
 }
 
 $('start-btn').addEventListener('click',()=>{$('game-cards').style.display='grid'});
@@ -159,21 +213,18 @@ $('api-test').addEventListener('click',async()=>{
   if(!key||!model){showResult('请填写 API Key 并选择或填写模型。',false);return}
   setBusy(btn,true,'测试中…');
   try{
-    let res;
-    if(url){
-      res=await fetchWithTimeout(chatEndpoint(url),{
-        method:'POST',headers:authHeaders(key),
-        body:JSON.stringify({model,messages:[{role:'user',content:'连接测试。请只回复 OK。'}],max_tokens:16,temperature:0})
-      },90000);
-    }else{
-      res=await fetchWithTimeout('https://api.anthropic.com/v1/messages',{
-        method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model,messages:[{role:'user',content:'连接测试。请只回复 OK。'}],max_tokens:16,temperature:0})
-      },90000);
-    }
+    let res=await requestConnectionTest(url,key,model,512);
     if(!res.ok)throw new Error(`HTTP ${res.status} · ${(await res.text()).slice(0,240)}`);
-    const text=extractText(await res.json());
-    if(!text.trim())throw new Error('接口返回成功，但没有可读取的文本内容。');
+    let json=await res.json();
+    let text=extractText(json);
+    if(!text){
+      showResult('接口已连接，模型首次回复为空，正在用思考模型兼容参数重试…',true);
+      res=await requestConnectionTest(url,key,model,2048);
+      if(!res.ok)throw new Error(`兼容重试 HTTP ${res.status} · ${(await res.text()).slice(0,240)}`);
+      json=await res.json();
+      text=extractText(json);
+    }
+    if(!text)throw new Error(`模型连续返回空正文。响应结构：${responseShape(json)}`);
     lastVerifiedSignature=signature(url,key,model);
     localStorage.setItem('LW_API_VERIFIED',lastVerifiedSignature);
     showResult(`连接成功，模型已正常回复：${text.trim().slice(0,80)}`,true);
@@ -181,7 +232,7 @@ $('api-test').addEventListener('click',async()=>{
   }catch(e){
     lastVerifiedSignature='';
     localStorage.removeItem('LW_API_VERIFIED');
-    showResult(`连接失败：${e.name==='AbortError'?'请求超过 90 秒。':e.message}`,false);
+    showResult(`连接失败：${e.name==='AbortError'?'请求超过 120 秒。':e.message}`,false);
     updateApiStatus();
   }finally{setBusy(btn,false)}
 });
