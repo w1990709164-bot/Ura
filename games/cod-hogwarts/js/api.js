@@ -14,7 +14,7 @@ async function callAPI(messages, opts = {}) {
   if (!cfg.model) throw new Error('未选择模型，请返回首页设置。');
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 60000);
+  const timer = setTimeout(() => controller.abort(), 180000);
 
   const payload = {
     model: cfg.model,
@@ -26,7 +26,9 @@ async function callAPI(messages, opts = {}) {
   try {
     if (cfg.url) {
       const base = cfg.url.replace(/\/+$/, '');
-      const endpoint = base.endsWith('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`;
+      const endpoint = /\/chat\/completions$/i.test(base)
+        ? base
+        : (base.endsWith('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`);
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.key}` },
@@ -38,7 +40,15 @@ async function callAPI(messages, opts = {}) {
         throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`);
       }
       const json = await res.json();
-      const text = json.choices?.[0]?.message?.content;
+      const content = json.choices?.[0]?.message?.content;
+      const text = typeof content === 'string'
+        ? content
+        : Array.isArray(content)
+          ? content.map(part => part?.text || part?.content || '').join('')
+          : json.choices?.[0]?.message?.reasoning_content
+            || json.candidates?.[0]?.content?.parts?.map(part => part?.text || '').join('')
+            || json.output_text
+            || json.response;
       if (!text) throw new Error(`API返回空内容，请检查模型名称是否正确（status:${res.status}）`);
       return text;
     }
@@ -74,7 +84,7 @@ async function callAPI(messages, opts = {}) {
     if (!text) throw new Error(`API返回空内容，请检查模型名称是否正确（status:${res.status}）`);
     return text;
   } catch(e) {
-    if (e.name === 'AbortError') throw new Error('请求超时（60秒），请检查网络或API配置。');
+    if (e.name === 'AbortError') throw new Error('请求超时（180秒），请检查网络或API配置。');
     throw e;
   } finally {
     clearTimeout(timer);

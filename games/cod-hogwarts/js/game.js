@@ -16,11 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (G.phase === 'game') {
     showScreen('game');
     updateTopBar();
-    if (G.currentStory) {
+    const hasRealStory = G.currentStory
+      && !/故事即将开始|故事即將開始/.test(G.currentStory);
+    if (hasRealStory) {
       renderStory(G.currentStory);
       renderOptions(G.currentOptions || []);
     } else {
-      // 首次进入游戏（分院后跳转）或存档中故事为空
+      // 首次进入游戏，或旧存档只保存了占位文字。
+      G.currentStory = '';
+      G.currentOptions = [];
       enterGame();
     }
   } else if (G.phase === 'sorting') {
@@ -139,31 +143,38 @@ async function enterGame() {
   updateTopBar();
   unlockAchievement('arrival');
 
-  // 立即显示占位文字，让用户知道正在加载
-  renderStory('正在召唤序章，请稍候……\n\n（首次加载需要调用AI，可能需要数秒）');
+  // 先立即提供可玩的本地序章，避免慢速/失败 API 让页面停在占位文字。
+  const houseId = G.player.house || 'gryffindor';
+  G.player.house = houseId;
+  const house = HOUSES[houseId];
+  const fallbackStory = `九月一日的晨光穿过霍格沃茨大厅高处的彩色玻璃，在石板地面上割出一片片陌生的颜色。
+
+分院帽刚刚喊出「${house.name}」时，长桌方向响起掌声。你从高脚凳上起身，袖口下的灵力却被城堡里无处不在的魔力轻轻推了一下——不像敌意，更像两种互不相识的潮水第一次碰面。
+
+你握着那根用于融入这里的魔杖，清楚自己真正依赖的仍是经脉中熟悉的灵息。远处有人正在打量这位来自东方的交换生；楼梯已经开始改变方向，通往${house.name}公共休息室的路并不打算安静等候。`;
+  const fallbackOptions = ['跟随学院级长前往公共休息室', '先观察大厅里正在注视自己的人', '尝试收敛灵力，适应城堡的魔力场', '向身边最近的学生询问移动楼梯'];
+  renderStory(fallbackStory);
+  renderOptions(fallbackOptions);
+  G.currentStory = fallbackStory;
+  G.currentOptions = fallbackOptions;
+  persistAll();
+
+  // AI 在本地序章已可玩的前提下继续生成正式版本。
   setLoading(true);
 
   try {
-    // 确保学院已分配
-    if (!G.player.house) {
-      G.player.house = 'gryffindor';
-    }
     const { story, options } = await generatePrologue();
-
-    // 防御：AI返回空内容时使用fallback
-    const finalStory = story?.trim()
-      ? story
-      : `你踏入霍格沃茨城堡的那一刻，灵力与周围古老的魔力场轻轻碰撞，像两道涟漪相遇。\n\n九月一日，晨光透过彩色玻璃窗碎成万千色彩，洒在古老的石板地上。大厅里的烛火在看不见的气流中轻轻摇曳，空气中飘着某种陌生的草药气息。\n\n你是第一次踏上这片遥远的西方大陆——这里的一切都与你熟悉的仙境截然不同。`;
-
-    renderStory(finalStory);
-    renderOptions(options?.length ? options : ['环顾四周，感受这里的气场', '找到自己的学院公告栏', '先和最近的人打声招呼', '找个安静的角落整理思绪']);
-    G.currentStory = finalStory;
-    G.currentOptions = options;
+    if (story?.trim()) {
+      renderStory(story);
+      renderOptions(options?.length ? options : fallbackOptions);
+      G.currentStory = story;
+      G.currentOptions = options?.length ? options : fallbackOptions;
+    }
     persistAll();
   } catch(e) {
     const errMsg = e?.message || '未知错误';
-    renderStory(`（序章加载失败：${errMsg}）\n\n你站在霍格沃茨的入口，感受着这个陌生的西方魔法世界。灵力与魔力场轻微碰撞，带来一丝隐约的不适。`);
-    renderOptions(['进入大厅', '环顾四周', '感受一下这里的魔力场', '确认背包里的东西']);
+    renderStory(`${fallbackStory}\n\n（AI序章暂未生成：${errMsg}。你仍可使用下方选项继续游戏。）`);
+    renderOptions(fallbackOptions);
     showRegenButton();
   } finally {
     setLoading(false);
