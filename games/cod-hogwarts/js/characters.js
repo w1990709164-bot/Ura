@@ -34,8 +34,6 @@ function getAffectionStage(value) {
 }
 
 // 数值阶段上限
-const STAT_STAGE_CAPS = { 1:40, 2:60, 3:80, 4:100 };
-
 const CHARACTERS = [
   {
     id: 'ghost',

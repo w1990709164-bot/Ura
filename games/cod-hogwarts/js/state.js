@@ -133,7 +133,10 @@ function changeAffection(charId, delta) {
   const cs = G.characters[charId];
   if (!cs) return;
   cs.affection = Math.max(0, Math.min(100, cs.affection + delta));
-  const newStage = AFFECTION_STAGES.findLastIndex(s => cs.affection >= s.range[0]);
+  let newStage = 0;
+  AFFECTION_STAGES.forEach((stage, index) => {
+    if (cs.affection >= stage.range[0]) newStage = index;
+  });
   if (newStage > cs.stage) {
     cs.stage = newStage;
     return 'stage_up';
