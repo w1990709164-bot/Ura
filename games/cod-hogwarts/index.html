@@ -1,336 +1,322 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0916">
-  <title>魔法学院·异乡仙途</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+// ── UI 渲染 ───────────────────────────────────────────────
 
-<!-- 返回里世界（仅在非游戏界面显示悬浮按钮） -->
-<a class="liworld-back" href="../../index.html">← 返回里世界</a>
+// ─ 屏幕切换 ─
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(`screen-${id}`);
+  if (el) el.classList.add('active');
+  // 游戏主界面已有顶栏返回链接，隐藏全局悬浮按钮
+  const floatBack = document.querySelector('.liworld-back');
+  if (floatBack) floatBack.style.display = id === 'game' ? 'none' : '';
+}
 
-<!-- ═══════════════════════════════════════════════
-     API未配置提示界面
-═══════════════════════════════════════════════ -->
-<div id="screen-no-api" class="screen">
-  <div class="setup-container">
-    <div class="setup-logo">
-      <span class="logo-east">仙</span>
-      <span class="logo-divider">·</span>
-      <span class="logo-west">✦</span>
-    </div>
-    <h1 class="setup-title">魔法学院<br><span>异乡仙途</span></h1>
-    <div class="no-api-box">
-      <p>尚未配置 API。</p>
-      <p>请先返回里世界首页，点击<strong>「设置 API」</strong>完成配置后再进入游戏。</p>
-      <a href="../../index.html" class="btn-primary" style="display:block;text-align:center;text-decoration:none;margin-top:16px;">前往里世界设置 →</a>
-    </div>
-  </div>
-</div>
+// ─ 顶栏更新 ─
+function updateTopBar() {
+  const dateEl = document.getElementById('display-date');
+  const timeEl = document.getElementById('display-time');
+  if (dateEl) dateEl.textContent = formatDate();
+  if (timeEl) timeEl.textContent = formatTime();
 
-<!-- ═══════════════════════════════════════════════
-     Creation Screen — 角色创建
-═══════════════════════════════════════════════ -->
-<div id="screen-creation" class="screen">
-  <div class="screen-scrollable">
-    <div class="screen-header">
-      <h2>创建角色</h2>
-      <p class="subtitle">来自东方的交换生，修炼仙术</p>
-    </div>
+  const badge = document.getElementById('house-badge');
+  if (badge && G.player.house) {
+    const h = HOUSES[G.player.house];
+    badge.textContent = h.symbol;
+    badge.style.color = h.accent;
+    badge.title = h.name;
+  }
+}
 
-    <div class="form-section" style="max-width:100%">
-      <div class="form-row">
-        <div class="form-group half">
-          <label>姓名</label>
-          <input id="char-name" type="text" placeholder="你的名字" maxlength="16">
+// ─ 故事文本渲染 ─
+function renderStory(text) {
+  const el = document.getElementById('story-text');
+  if (!el) return;
+
+  // 将纯文本转为HTML
+  // 格式：角色名: "native" 「translation」→ 对话块
+  const paragraphs = text.split(/\n{2,}/).filter(p => p.trim());
+  el.innerHTML = paragraphs.map(p => {
+    const trimmed = p.trim();
+    // 检测对话行（包含"和「）
+    if ((trimmed.includes('"') || trimmed.includes('“') || trimmed.includes('"')) && trimmed.includes('「')) {
+      // 拆出母语原文和中文翻译
+      const formatted = trimmed
+        .replace(/"([^"]+)"/g, '<span class="native-text">"$1"</span>')
+        .replace(/“([^”]+)”/g, '<span class="native-text">“$1”</span>')
+        .replace(/「([^」]+)」/g, '<span class="cn-trans">「$1」</span>');
+      return `<p class="story-dialogue">${formatted}</p>`;
+    }
+    // 环境/氛围描写（以*开头或结尾，或纯景物描写）
+    return `<p class="story-para">${trimmed.replace(/\n/g, '<br>')}</p>`;
+  }).join('');
+
+  // 滚动到底部
+  const scrollArea = document.getElementById('story-scroll-area');
+  if (scrollArea) setTimeout(() => scrollArea.scrollTop = scrollArea.scrollHeight, 50);
+}
+
+// ─ 选项渲染 ─
+function renderOptions(options) {
+  const list = document.getElementById('options-list');
+  if (!list) return;
+  list.innerHTML = options.map((opt, i) =>
+    `<button class="option-btn" data-index="${i}">${opt}</button>`
+  ).join('');
+  list.querySelectorAll('.option-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.textContent;
+      handlePlayerChoice(text);
+    });
+  });
+}
+
+// ─ 加载状态 ─
+function setLoading(on) {
+  const loading = document.getElementById('story-loading');
+  const regen   = document.getElementById('btn-regenerate');
+  const optArea = document.getElementById('options-area');
+  if (loading) loading.style.display = on ? 'flex' : 'none';
+  if (regen)   regen.style.display   = 'none';
+  if (optArea) {
+    // 只禁用选项按钮，保留自定义输入发送功能
+    optArea.querySelectorAll('.option-btn').forEach(b => b.disabled = on);
+  }
+}
+
+function showRegenButton() {
+  const regen = document.getElementById('btn-regenerate');
+  if (regen) regen.style.display = 'block';
+}
+
+// ─ 角色面板渲染 ─
+function renderCharactersPanel() {
+  const container = document.getElementById('house-accordion');
+  if (!container) return;
+
+  const houseOrder = ['gryffindor','slytherin','ravenclaw','hufflepuff'];
+  container.innerHTML = houseOrder.map(houseId => {
+    const h = HOUSES[houseId];
+    const chars = CHARACTERS.filter(c => c.house === houseId);
+    const charCards = chars.map(c => {
+      const cs = G.characters[c.id] || { affection:0, stage:0, location:'未知', psychology:'', heartGuardBroken:false, metPlayer:false };
+      const stage = AFFECTION_STAGES[cs.stage]?.name || '陌生人';
+      const bar = Math.round((cs.affection / 100) * 100);
+
+      return `<div class="char-card" data-char="${c.id}">
+        <div class="char-card-name" style="color:${c.color};">${c.name}</div>
+        <div class="char-card-lang">${c.langLabel}</div>
+        <div class="char-affection-row">
+          <span class="aff-stage">${stage}</span>
+          <div class="aff-bar"><div class="aff-fill" style="width:${bar}%;background:${h.accent};"></div></div>
+          <span class="aff-val">${cs.affection}</span>
         </div>
-        <div class="form-group half">
-          <label>年龄</label>
-          <input id="char-age" type="number" placeholder="17" min="15" max="20">
+        <div class="char-meta-row">
+          <span class="meta-label">位置</span>
+          <span class="meta-val">${cs.location || '未知'}</span>
         </div>
+        <div class="char-psychology">${cs.psychology || '...'}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="house-section">
+      <div class="house-header" data-house="${houseId}">
+        <span class="house-symbol">${h.symbol}</span>
+        <span class="house-name" style="color:${h.accent};">${h.name}</span>
+        <span class="house-chevron">▶</span>
       </div>
+      <div class="house-body" id="house-body-${houseId}">${charCards}</div>
+    </div>`;
+  }).join('');
 
-      <div class="form-group">
-        <label>外貌特征</label>
-        <textarea id="char-appearance" placeholder="描述发色、眼色、外貌风格..." rows="3"></textarea>
-      </div>
+  // 折叠/展开
+  container.querySelectorAll('.house-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const houseId = header.dataset.house;
+      const body = document.getElementById(`house-body-${houseId}`);
+      const chevron = header.querySelector('.house-chevron');
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      if (chevron) chevron.textContent = isOpen ? '▶' : '▼';
+    });
+  });
 
-      <div class="form-group">
-        <label>性格特点</label>
-        <textarea id="char-personality" placeholder="描述性格、特质、习惯..." rows="3"></textarea>
-      </div>
+  // 玩家学院默认展开
+  if (G.player.house) {
+    const myBody = document.getElementById(`house-body-${G.player.house}`);
+    if (myBody) {
+      myBody.classList.add('open');
+      const myHeader = myBody.previousElementSibling;
+      const chevron = myHeader?.querySelector('.house-chevron');
+      if (chevron) chevron.textContent = '▼';
+    }
+  }
+}
 
-      <div class="form-divider">— 魔杖（伪装融入，实际不依赖）—</div>
+// ─ 背包面板渲染 ─
+function renderInventoryPanel() {
+  const goldEl = document.getElementById('gold-amount');
+  if (goldEl) goldEl.textContent = G.player.gold;
 
-      <div class="form-row">
-        <div class="form-group half">
-          <label>木材</label>
-          <input id="wand-wood" type="text" placeholder="青竹">
-        </div>
-        <div class="form-group half">
-          <label>内核</label>
-          <input id="wand-core" type="text" placeholder="白虎须">
-        </div>
-      </div>
+  const list = document.getElementById('inventory-list');
+  if (!list) return;
 
-      <div class="form-group">
-        <label>长度</label>
-        <input id="wand-length" type="text" placeholder="10英寸">
-      </div>
-    </div>
+  // 分类显示：特殊/药剂 vs 材料
+  const potions = G.player.inventory.filter(i => i.type === 'potion' || i.type === 'special');
+  const materials = G.player.inventory.filter(i => i.type === 'ingredient');
+  const others = G.player.inventory.filter(i => !i.type || i.type === 'item');
 
-    <button id="btn-creation-next" class="btn-primary">前往分院仪式 →</button>
-  </div>
-</div>
+  const allDisplay = [...others, ...potions];
 
-<!-- ═══════════════════════════════════════════════
-     Sorting Screen — 分院仪式
-═══════════════════════════════════════════════ -->
-<div id="screen-sorting" class="screen">
-  <div class="screen-scrollable">
-    <div class="sorting-hat-container">
-      <div class="sorting-hat-icon">⌂</div>
-      <h2>分院帽</h2>
-      <p class="sorting-subtitle" id="sorting-subtitle">分院帽正在审视你的内心...</p>
-    </div>
+  if (!allDisplay.length && !materials.length) {
+    list.innerHTML = '<div class="empty-hint">背包空空如也</div>';
+  } else {
+    let html = '';
+    if (allDisplay.length) {
+      html += allDisplay.map(item => {
+        const qualTag = item.quality === 'perfect' ? '<span class="qual-tag qt-perfect">极品</span>'
+                      : item.quality === 'poor'    ? '<span class="qual-tag qt-poor">劣品</span>' : '';
+        return `<div class="inventory-item" data-item-id="${item.id}">
+          <div class="item-name">${item.name}${qualTag}</div>
+          <div class="item-qty">×${item.quantity || 1}</div>
+        </div>`;
+      }).join('');
+    }
+    if (materials.length) {
+      html += `<div class="inv-section-label">炼药材料 (${materials.length}种)</div>`;
+      html += materials.map(item =>
+        `<div class="inventory-item inv-material" data-item-id="${item.id}">
+          <div class="item-name">${item.name}</div>
+          <div class="item-qty">×${item.quantity || 1}</div>
+        </div>`
+      ).join('');
+    }
+    list.innerHTML = html;
+  }
 
-    <div id="sorting-questions"></div>
+  list.querySelectorAll('.inventory-item').forEach(el => {
+    el.addEventListener('click', () => openItemModal(el.dataset.itemId));
+  });
 
-    <div id="sorting-result" style="display:none">
-      <div class="sorting-result">
-        <div class="result-house-icon" id="result-house-icon"></div>
-        <h2 id="result-house-name"></h2>
-        <p id="result-house-desc"></p>
-        <button id="btn-enter-game" class="btn-primary">踏入霍格沃茨</button>
-      </div>
-    </div>
-  </div>
-</div>
+  // 黑市按钮可见性
+  const marketBtn = document.getElementById('btn-open-market');
+  if (marketBtn) marketBtn.style.display = G.flags?.marketUnlocked ? 'block' : 'none';
+}
 
-<!-- ═══════════════════════════════════════════════
-     Main Game Screen
-═══════════════════════════════════════════════ -->
-<div id="screen-game" class="screen">
+// ─ 道具弹窗 ─
+let _openItemId = null;
+function openItemModal(itemId) {
+  const item = G.player.inventory.find(i => i.id === itemId);
+  if (!item) return;
+  _openItemId = itemId;
 
-  <!-- 顶栏：返回 + 日期时间 + 学院标志 -->
-  <div id="top-bar">
-    <a class="topbar-back" href="../../index.html">← 里</a>
-    <div id="game-datetime">
-      <span id="display-date">九月一日</span>
-      <span class="time-dot">·</span>
-      <span id="display-time">清晨</span>
-    </div>
-    <div id="house-badge" class="house-badge"></div>
-  </div>
+  document.getElementById('modal-item-name').textContent = item.name;
+  document.getElementById('modal-item-desc').textContent = item.desc || '无描述';
+  document.getElementById('modal-item-source').textContent = item.source || (item.type === 'ingredient' ? '探索/黑市获取' : '炼制/购买');
+  document.getElementById('modal-item').style.display = 'flex';
 
-  <!-- Tab 内容区 -->
-  <div id="tab-content">
+  const useBtn = document.getElementById('btn-use-item');
+  if (useBtn) {
+    useBtn.style.display = item.usable ? 'block' : 'none';
+    useBtn.dataset.itemId = itemId;
+  }
+}
 
-    <!-- ── 剧情面板 ── -->
-    <div id="panel-story" class="panel active">
-      <div id="story-scroll-area">
-        <div id="story-text">
-          <div class="story-placeholder">故事即将开始...</div>
-        </div>
-        <div id="story-loading" style="display:none">
-          <div class="loading-wave">
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <button id="btn-regenerate" class="btn-regenerate" style="display:none">↺ 重新生成</button>
-      </div>
+function closeItemModal() {
+  document.getElementById('modal-item').style.display = 'none';
+}
 
-      <div id="options-area">
-        <div id="options-drag-handle">
-          <div class="handle-bar"></div>
-        </div>
-        <div id="options-list"></div>
-        <div id="custom-input-row">
-          <input id="custom-input" type="text" placeholder="自定义行动...">
-          <button id="btn-send">发</button>
-        </div>
-      </div>
-    </div>
+// ─ 记录面板渲染 ─
+function renderRecordsPanel() {
+  renderAchievements();
+  renderSaveSlots();
+  renderApiDisplay();
+}
 
-    <!-- ── 角色面板 ── -->
-    <div id="panel-characters" class="panel">
-      <div class="panel-scroll">
-        <div id="house-accordion"></div>
-      </div>
-    </div>
+function renderAchievements() {
+  const countEl = document.getElementById('achievement-count');
+  if (countEl) countEl.textContent = G.unlockedAchievements.length;
 
-    <!-- ── 背包面板 ── -->
-    <div id="panel-inventory" class="panel">
-      <div class="panel-scroll">
-        <div class="panel-title">背包</div>
-        <div id="gold-display" class="gold-display">
-          <span>金加隆</span>
-          <span id="gold-amount">50</span>
-        </div>
-        <div id="inventory-list">
-          <div class="empty-hint">背包空空如也</div>
-        </div>
-        <div class="inv-tools">
-          <button id="btn-open-alchemy" class="inv-tool-btn">✦ 炼药工坊</button>
-          <button id="btn-open-market" class="inv-tool-btn inv-tool-market" style="display:none">🏪 黑市</button>
-        </div>
-      </div>
-    </div>
+  const grid = document.getElementById('achievements-grid');
+  if (!grid) return;
 
-    <!-- ── 记录面板 ── -->
-    <div id="panel-records" class="panel">
-      <div class="panel-scroll">
+  const catOrder = ['story','relation','combat','craft','stat','house'];
+  const catNames = { story:'剧情', relation:'关系', combat:'战斗', craft:'探索', stat:'数值', house:'学院' };
 
-        <!-- 成就（最上方） -->
-        <div class="records-section">
-          <div class="records-section-title">成就</div>
-          <div class="achievement-summary">
-            已解锁 <span id="achievement-count">0</span> / <span id="achievement-total">64</span>
-          </div>
-          <div id="achievements-grid"></div>
-        </div>
+  grid.innerHTML = catOrder.map(cat => {
+    const items = ACHIEVEMENTS.filter(a => a.cat === cat);
+    const cells = items.map(a => {
+      const unlocked = G.unlockedAchievements.includes(a.id);
+      if (a.hidden && !unlocked) return ''; // 隐藏成就未解锁不显示
+      return `<div class="ach-cell ${unlocked ? 'unlocked' : 'locked'}" title="${unlocked ? a.desc : '???'}">
+        <div class="ach-icon">${unlocked ? a.icon : '？'}</div>
+        <div class="ach-name">${unlocked ? a.name : '未知'}</div>
+      </div>`;
+    }).join('');
+    if (!cells.trim()) return '';
+    return `<div class="ach-category">
+      <div class="ach-cat-title">${catNames[cat]}</div>
+      <div class="ach-grid">${cells}</div>
+    </div>`;
+  }).join('');
+}
 
-        <!-- 存档 -->
-        <div class="records-section">
-          <div class="records-section-title">存档</div>
-          <div id="save-slots">
-            <div class="save-slot" data-slot="0">
-              <div class="save-info">存档位 1 · 空</div>
-              <div class="save-actions">
-                <button class="btn-save-write" data-slot="0">保存</button>
-                <button class="btn-save-read" data-slot="0">读取</button>
-              </div>
-            </div>
-            <div class="save-slot" data-slot="1">
-              <div class="save-info">存档位 2 · 空</div>
-              <div class="save-actions">
-                <button class="btn-save-write" data-slot="1">保存</button>
-                <button class="btn-save-read" data-slot="1">读取</button>
-              </div>
-            </div>
-            <div class="save-slot" data-slot="2">
-              <div class="save-info">存档位 3 · 空</div>
-              <div class="save-actions">
-                <button class="btn-save-write" data-slot="2">保存</button>
-                <button class="btn-save-read" data-slot="2">读取</button>
-              </div>
-            </div>
-          </div>
-        </div>
+function renderSaveSlots() {
+  document.querySelectorAll('.save-slot').forEach(slot => {
+    const idx = parseInt(slot.dataset.slot);
+    const save = G.saves[idx];
+    const info = slot.querySelector('.save-info');
+    if (info) {
+      info.textContent = save
+        ? `存档位 ${idx+1} · ${save.dateLabel} ${save.timeLabel}`
+        : `存档位 ${idx+1} · 空`;
+    }
+  });
+}
 
-        <!-- API说明 -->
-        <div class="records-section">
-          <div class="records-section-title">API 设定</div>
-          <div class="api-unified-note">
-            API 由里世界主页统一管理。当前使用：<br>
-            <span id="api-display-model" style="color:var(--gold)">—</span>
-          </div>
-          <a href="../../index.html" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;margin-top:10px;">前往里世界修改设置</a>
-        </div>
+function renderApiDisplay() {
+  const cfg = getApiConfig();
+  const epEl = document.getElementById('api-display-endpoint');
+  const mdEl = document.getElementById('api-display-model');
+  if (epEl) epEl.textContent = cfg.url || 'Anthropic官方';
+  if (mdEl) mdEl.textContent = cfg.model || '未设置';
+}
 
-      </div>
-    </div>
+// ─ 成就弹出通知 ─
+function showAchievementToast(id) {
+  const ach = ACH_MAP[id];
+  if (!ach) return;
+  const modal = document.getElementById('modal-achievement');
+  const nameEl = document.getElementById('achievement-popup-name');
+  if (!modal || !nameEl) return;
+  nameEl.textContent = `${ach.icon} ${ach.name}`;
+  modal.style.display = 'flex';
+  setTimeout(() => modal.style.display = 'none', 2800);
+}
 
-  </div>
+// ─ Tab切换 ─
+function switchTab(panelId) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById(`panel-${panelId}`);
+  if (panel) panel.classList.add('active');
+  const btn = document.querySelector(`.nav-btn[data-panel="${panelId}"]`);
+  if (btn) btn.classList.add('active');
 
-  <!-- 底部导航 -->
-  <nav id="bottom-nav">
-    <button class="nav-btn active" data-panel="story">
-      <div class="nav-icon">卷</div>
-      <div class="nav-label">剧情</div>
-    </button>
-    <button class="nav-btn" data-panel="characters">
-      <div class="nav-icon">人</div>
-      <div class="nav-label">角色</div>
-    </button>
-    <button class="nav-btn" data-panel="inventory">
-      <div class="nav-icon">囊</div>
-      <div class="nav-label">背包</div>
-    </button>
-    <button class="nav-btn" data-panel="records">
-      <div class="nav-icon">册</div>
-      <div class="nav-label">记录</div>
-    </button>
-  </nav>
+  // 切换到对应面板时刷新数据
+  try {
+    if (panelId === 'characters') renderCharactersPanel();
+    if (panelId === 'inventory')  renderInventoryPanel();
+    if (panelId === 'records')    renderRecordsPanel();
+  } catch(e) {
+    console.error('Tab render error:', e);
+  }
+}
 
-</div>
-
-<!-- ═══ Modals ════ -->
-<div id="modal-item" class="modal" style="display:none">
-  <div class="modal-backdrop" id="modal-item-backdrop"></div>
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="modal-item-name"></h3>
-      <button class="modal-close" id="modal-item-close">×</button>
-    </div>
-    <div class="modal-body">
-      <p id="modal-item-desc"></p>
-      <p class="modal-item-source">获取方式：<span id="modal-item-source"></span></p>
-    </div>
-    <div class="modal-footer">
-      <button id="btn-use-item" class="btn-primary" style="display:none">使用</button>
-    </div>
-  </div>
-</div>
-
-<div id="modal-achievement" class="achievement-popup" style="display:none">
-  <div class="achievement-popup-content">
-    <div class="achievement-popup-icon">✦</div>
-    <div class="achievement-popup-title">成就解锁</div>
-    <div id="achievement-popup-name" class="achievement-popup-name"></div>
-  </div>
-</div>
-
-<!-- ═══ 战斗模态框（全屏）════ -->
-<div id="modal-combat" class="combat-fullscreen" style="display:none">
-  <div class="combat-header">
-    <span class="combat-title">⚔ 战斗</span>
-  </div>
-  <div id="combat-body" class="combat-body"></div>
-</div>
-
-<!-- ═══ 炼药工坊模态框 ════ -->
-<div id="modal-alchemy" class="modal" style="display:none">
-  <div class="modal-backdrop" id="modal-alchemy-backdrop"></div>
-  <div class="modal-content modal-tall">
-    <div class="modal-header">
-      <h3>✦ 炼药工坊</h3>
-      <button class="modal-close" id="modal-alchemy-close">×</button>
-    </div>
-    <div class="modal-body" style="padding:0;overflow:hidden">
-      <div id="alchemy-container" data-tab="materials"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ 黑市模态框 ════ -->
-<div id="modal-market" class="modal" style="display:none">
-  <div class="modal-backdrop" id="modal-market-backdrop"></div>
-  <div class="modal-content modal-tall">
-    <div class="modal-header">
-      <h3>地下走廊·黑市</h3>
-      <button class="modal-close" id="modal-market-close">×</button>
-    </div>
-    <div class="modal-body" id="market-modal-body" style="overflow-y:auto;max-height:60vh"></div>
-    <div id="market-msg" class="market-msg" style="display:none"></div>
-  </div>
-</div>
-
-<!-- 炼药结果提示 -->
-<div id="brew-toast" class="brew-toast" style="display:none"></div>
-
-<script src="js/characters.js?v=20260620c"></script>
-<script src="js/achievements.js?v=20260620c"></script>
-<script src="js/state.js?v=20260620c"></script>
-<script src="js/api.js?v=20260620c"></script>
-<script src="js/combat.js?v=20260620c"></script>
-<script src="js/alchemy.js?v=20260620c"></script>
-<script src="js/market.js?v=20260620c"></script>
-<script src="js/ui.js?v=20260620c"></script>
-<script src="js/game.js?v=20260620c"></script>
-
-</body>
-</html>
+// ─ 选项区折叠/展开 ─
+let optionsExpanded = true;
+function toggleOptions() {
+  optionsExpanded = !optionsExpanded;
+  const list = document.getElementById('options-list');
+  const handle = document.getElementById('options-toggle');
+  if (list) list.style.display = optionsExpanded ? 'flex' : 'none';
+  if (handle) handle.textContent = optionsExpanded ? '▼' : '▲';
+}
