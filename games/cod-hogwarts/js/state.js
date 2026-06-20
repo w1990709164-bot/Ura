@@ -207,14 +207,55 @@ function persistAll() {
   }
 }
 
+// 修复旧版本/损坏存档的结构漂移，确保任何异常存档都不会让玩家卡死。
+function sanitizeState() {
+  if (!G || typeof G !== 'object') { G = createFreshState(); return; }
+  const fresh = createFreshState();
+
+  // 核心容器缺失时补齐
+  if (!G.player || typeof G.player !== 'object') G.player = fresh.player;
+  if (!G.player.stats) G.player.stats = fresh.player.stats;
+  if (!G.player.wand)  G.player.wand  = fresh.player.wand;
+  if (!Array.isArray(G.player.inventory)) G.player.inventory = [];
+  if (!G.gameDate) G.gameDate = fresh.gameDate;
+  if (!Array.isArray(G.currentOptions))      G.currentOptions = [];
+  if (!Array.isArray(G.storyHistory))        G.storyHistory = [];
+  if (!Array.isArray(G.unlockedAchievements))G.unlockedAchievements = [];
+  if (!Array.isArray(G.saves))               G.saves = [null, null, null];
+  if (!G.flags)         G.flags = {};
+  if (!G.sortingScores) G.sortingScores = fresh.sortingScores;
+  if (typeof G.sortingAnswerIndex !== 'number') G.sortingAnswerIndex = 0;
+
+  // 角色状态缺失/不完整时补齐
+  if (!G.characters || typeof G.characters !== 'object' || !Object.keys(G.characters).length) {
+    G.characters = buildInitialCharacterState();
+  } else {
+    const init = buildInitialCharacterState();
+    Object.keys(init).forEach(id => { if (!G.characters[id]) G.characters[id] = init[id]; });
+  }
+
+  // 学院字段归一化：非法/旧版取值一律清空
+  if (G.player.house && !HOUSES[G.player.house]) G.player.house = '';
+
+  // 可恢复性校验：phase=game 却没有有效学院，说明该存档从未真正完成
+  // 角色创建+分院（旧版本或损坏数据）。直接重置为全新存档，让玩家正常走
+  // 角色创建 → 分院 → 序章流程，而不是卡在占位文字上。
+  if (G.phase === 'game' && !HOUSES[G.player.house]) {
+    G = createFreshState();
+  }
+}
+
 function loadAll() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const parsed = JSON.parse(raw);
     Object.assign(G, parsed);
+    sanitizeState();
     return true;
   } catch(e) {
+    // 存档解析失败 → 用全新状态兜底，绝不让损坏数据阻塞游戏启动。
+    G = createFreshState();
     return false;
   }
 }

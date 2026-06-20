@@ -20,9 +20,11 @@ function updateTopBar() {
   const badge = document.getElementById('house-badge');
   if (badge && G.player.house) {
     const h = HOUSES[G.player.house];
-    badge.textContent = h.symbol;
-    badge.style.color = h.accent;
-    badge.title = h.name;
+    if (h) {
+      badge.textContent = h.symbol;
+      badge.style.color = h.accent;
+      badge.title = h.name;
+    }
   }
 }
 

@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (G.phase === 'game') {
     showScreen('game');
-    updateTopBar();
+    try { updateTopBar(); } catch(e) { console.warn('updateTopBar:', e); }
     const hasRealStory = G.currentStory
       && !/故事即将开始|故事即將開始/.test(G.currentStory);
     if (hasRealStory) {
@@ -144,7 +144,7 @@ async function enterGame() {
   unlockAchievement('arrival');
 
   // 先立即提供可玩的本地序章，避免慢速/失败 API 让页面停在占位文字。
-  const houseId = G.player.house || 'gryffindor';
+  const houseId = HOUSES[G.player.house] ? G.player.house : 'gryffindor';
   G.player.house = houseId;
   const house = HOUSES[houseId];
   const fallbackStory = `九月一日的晨光穿过霍格沃茨大厅高处的彩色玻璃，在石板地面上割出一片片陌生的颜色。
