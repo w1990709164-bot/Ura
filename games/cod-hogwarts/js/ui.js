@@ -97,7 +97,7 @@ function renderCharactersPanel() {
     const h = HOUSES[houseId];
     const chars = CHARACTERS.filter(c => c.house === houseId);
     const charCards = chars.map(c => {
-      const cs = G.characters[c.id];
+      const cs = G.characters[c.id] || { affection:0, stage:0, location:'未知', psychology:'', heartGuardBroken:false, metPlayer:false };
       const stage = AFFECTION_STAGES[cs.stage]?.name || '陌生人';
       const bar = Math.round((cs.affection / 100) * 100);
 
@@ -302,9 +302,13 @@ function switchTab(panelId) {
   if (btn) btn.classList.add('active');
 
   // 切换到对应面板时刷新数据
-  if (panelId === 'characters') renderCharactersPanel();
-  if (panelId === 'inventory')  renderInventoryPanel();
-  if (panelId === 'records')    renderRecordsPanel();
+  try {
+    if (panelId === 'characters') renderCharactersPanel();
+    if (panelId === 'inventory')  renderInventoryPanel();
+    if (panelId === 'records')    renderRecordsPanel();
+  } catch(e) {
+    console.error('Tab render error:', e);
+  }
 }
 
 // ─ 选项区折叠/展开 ─
