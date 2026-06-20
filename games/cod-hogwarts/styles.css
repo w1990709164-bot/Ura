@@ -532,3 +532,242 @@ textarea { resize:vertical; min-height:72px; }
   background:linear-gradient(to right, transparent, var(--gold-line), transparent);
   margin:16px 0;
 }
+
+/* ── 背包工具栏 ───────────────────────────────────────── */
+.inv-tools {
+  display:flex; gap:8px; margin-top:14px;
+}
+.inv-tool-btn {
+  flex:1; padding:11px 8px; font-size:0.82rem; letter-spacing:1px;
+  border:1px solid var(--gold-line); color:var(--gold);
+  border-radius:var(--radius); background:var(--bg-surface);
+  transition:all 0.18s; text-align:center;
+}
+.inv-tool-btn:hover { background:var(--gold-dim); border-color:var(--gold); }
+.inv-tool-market { color:#8fbc8f; border-color:rgba(143,188,143,0.4); }
+.inv-tool-market:hover { background:rgba(143,188,143,0.1); border-color:#8fbc8f; }
+
+.inv-section-label {
+  font-size:0.72rem; color:var(--gold); letter-spacing:1px;
+  padding:10px 0 6px; border-bottom:1px solid var(--gold-dim);
+  margin-bottom:6px;
+}
+.inv-material { opacity:0.85; }
+.qual-tag {
+  display:inline-block; font-size:0.65rem; padding:1px 5px;
+  border-radius:4px; margin-left:5px; vertical-align:middle;
+}
+.qt-perfect { background:rgba(201,168,76,.2); color:var(--gold); border:1px solid var(--gold-line); }
+.qt-poor    { background:rgba(100,100,100,.2); color:var(--text-muted); border:1px solid rgba(100,100,100,.3); }
+
+/* ── 扩展底部弹窗高度 ─────────────────────────────────── */
+.modal-tall { max-height:82vh; display:flex; flex-direction:column; }
+.modal-tall .modal-body { flex:1; overflow-y:auto; }
+
+/* ══════════════════════════════════════════════════════
+   战斗系统
+══════════════════════════════════════════════════════ */
+.combat-fullscreen {
+  position:fixed; inset:0;
+  background:rgba(7,5,14,0.97);
+  z-index:300;
+  display:flex; flex-direction:column;
+}
+.combat-header {
+  padding:14px 16px;
+  border-bottom:1px solid var(--gold-line);
+  background:var(--bg-panel);
+  flex-shrink:0;
+}
+.combat-title { color:var(--gold); font-size:1rem; letter-spacing:3px; }
+
+.combat-body {
+  flex:1; overflow-y:auto;
+  padding:14px 16px;
+  display:flex; flex-direction:column; gap:12px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.combat-round-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:6px 10px;
+  background:var(--bg-panel); border:1px solid var(--gold-line);
+  border-radius:var(--radius); font-size:0.8rem;
+}
+.combat-round-bar span:first-child { color:var(--gold); }
+.conflict-badge { color:var(--text-muted); font-size:0.75rem; }
+
+.combat-section { display:flex; flex-direction:column; gap:7px; }
+.cs-label { font-size:0.7rem; color:var(--text-muted); letter-spacing:1px; margin-bottom:2px; }
+
+.cu {
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius); padding:10px 12px;
+  transition:opacity 0.3s;
+}
+.cu-dead { opacity:0.35; }
+.cu-top { display:flex; justify-content:space-between; margin-bottom:6px; }
+.cu-name { font-size:0.88rem; color:var(--text); }
+.cu-name em { font-style:normal; font-size:0.72rem; color:var(--red-bright); }
+.cu-hp-num { font-size:0.78rem; color:var(--text-muted); }
+
+.chp-wrap { height:5px; background:var(--bg-panel); border-radius:3px; overflow:hidden; }
+.chp-fill { height:100%; border-radius:3px; transition:width 0.4s; }
+.chp-enemy  { background:var(--red-bright); }
+.chp-ally   { background:var(--gold); }
+.chp-player { background:#5aa85a; }
+.chp-warn   { background:#d4a017; }
+.chp-danger { background:var(--red-bright); animation:pulseHP 0.8s ease infinite; }
+@keyframes pulseHP { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.combat-log {
+  background:var(--bg-panel); border:1px solid var(--gold-dim);
+  border-radius:var(--radius); padding:10px 12px;
+  max-height:120px; overflow-y:auto;
+  display:flex; flex-direction:column; gap:4px;
+}
+.cl-line { font-size:0.78rem; color:var(--text-muted); line-height:1.5; }
+.cl-dim  { color:var(--text-dim); font-style:italic; }
+
+.combat-actions {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px; flex-shrink:0;
+}
+.combat-actions.single { grid-template-columns:1fr; }
+.cbtn {
+  padding:12px 8px; border-radius:var(--radius);
+  font-size:0.82rem; text-align:center; line-height:1.4;
+  border:1px solid; transition:all 0.18s;
+}
+.cbtn small { font-size:0.68rem; color:inherit; opacity:0.7; }
+.cbtn-atk  { background:rgba(139,26,26,.25); border-color:var(--red);      color:var(--text); }
+.cbtn-def  { background:rgba(26,74,90,.25);  border-color:#2a6a8a;          color:var(--text); }
+.cbtn-spc  { background:rgba(201,168,76,.15);border-color:var(--gold-line); color:var(--gold); }
+.cbtn-flee { background:var(--bg-surface);   border-color:var(--gold-line); color:var(--text-muted); }
+.cbtn-end  { background:var(--gold);         border-color:var(--gold);      color:#1a1000; font-size:0.9rem; font-weight:600; }
+.cbtn:hover:not(:disabled) { filter:brightness(1.2); }
+.cbtn:disabled { opacity:0.35; cursor:not-allowed; }
+.combat-rolling {
+  display:flex; justify-content:center; align-items:center;
+  padding:16px; color:var(--text-muted); font-size:0.85rem;
+}
+
+/* ══════════════════════════════════════════════════════
+   炼药系统
+══════════════════════════════════════════════════════ */
+.alch-tabs {
+  display:flex; border-bottom:1px solid var(--gold-line);
+}
+.alch-tab {
+  flex:1; padding:11px 0; font-size:0.82rem; color:var(--text-muted);
+  border-bottom:2px solid transparent; transition:all 0.18s;
+  text-align:center; letter-spacing:1px;
+}
+.alch-tab.on { color:var(--gold); border-bottom-color:var(--gold); }
+.alch-tab:hover { color:var(--text); }
+
+#alch-body {
+  overflow-y:auto; padding:12px 14px;
+  max-height:calc(80vh - 120px);
+}
+
+.alch-mat {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 0; border-bottom:1px solid var(--gold-dim);
+}
+.alch-origin {
+  width:22px; height:22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.7rem; font-weight:600; flex-shrink:0;
+}
+.origin-east    { background:rgba(139,26,26,.4);  color:#e8a0a0; }
+.origin-west    { background:rgba(26,44,90,.4);   color:#a0b8e8; }
+.origin-special { background:rgba(74,40,100,.4);  color:#c8a0e8; }
+.alch-mat-info  { flex:1; min-width:0; }
+.alch-mat-name  { font-size:0.88rem; color:var(--text); }
+.alch-mat-desc  { font-size:0.72rem; color:var(--text-muted); margin-top:1px; }
+.alch-mat-qty   { font-size:0.82rem; color:var(--gold); flex-shrink:0; }
+
+.alch-recipe {
+  background:var(--bg-surface); border:1px solid var(--gold-dim);
+  border-radius:var(--radius); padding:11px 12px; margin-bottom:8px;
+}
+.alch-can { border-color:var(--gold-line); }
+.alch-r-header { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.alch-icon { font-size:1rem; color:var(--gold); }
+.alch-r-name { font-size:0.9rem; color:var(--text); flex:1; }
+.alch-r-tag { font-size:0.65rem; color:var(--text-dim); letter-spacing:1px; }
+.alch-can-badge {
+  font-size:0.65rem; padding:2px 6px;
+  background:rgba(201,168,76,.2); color:var(--gold);
+  border:1px solid var(--gold-line); border-radius:4px;
+}
+.alch-r-desc { font-size:0.78rem; color:var(--text-muted); margin-bottom:6px; line-height:1.5; }
+.alch-r-ing  { font-size:0.72rem; line-height:1.8; }
+.req-ok   { color:#8fbc8f; margin-right:6px; }
+.req-miss { color:var(--red-bright); margin-right:6px; }
+
+.alch-brew-row {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px 0; border-bottom:1px solid var(--gold-dim);
+}
+.btn-brew {
+  padding:8px 14px; font-size:0.82rem;
+  background:var(--gold); color:#1a1000;
+  border-radius:var(--radius); font-weight:600;
+  flex-shrink:0; transition:opacity 0.18s;
+}
+.btn-brew:hover { opacity:0.85; }
+
+/* ── 炼制结果提示 ─────────────────────────────────────── */
+.brew-toast {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+  z-index:250; padding:10px 20px; border-radius:999px;
+  font-size:0.85rem; white-space:nowrap;
+  border:1px solid; pointer-events:none;
+}
+.qt-perfect { background:rgba(201,168,76,.2); border-color:var(--gold);     color:var(--gold); }
+.qt-normal  { background:rgba(143,188,143,.15);border-color:#8fbc8f;        color:#8fbc8f; }
+.qt-poor    { background:rgba(120,100,80,.2);  border-color:var(--text-muted);color:var(--text-muted); }
+.qt-fail    { background:rgba(201,48,48,.2);   border-color:var(--red-bright);color:var(--red-bright); }
+
+/* ══════════════════════════════════════════════════════
+   黑市系统
+══════════════════════════════════════════════════════ */
+.market-gold-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 14px; margin-bottom:10px;
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius); font-size:0.85rem;
+}
+.market-gold-num { color:var(--gold); font-weight:600; font-size:1rem; }
+
+.market-cat-title {
+  font-size:0.72rem; color:var(--gold); letter-spacing:2px;
+  padding:8px 0 4px; border-bottom:1px solid var(--gold-dim);
+  margin-bottom:6px;
+}
+
+.market-item {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--gold-dim);
+}
+.market-item-info { flex:1; min-width:0; }
+.market-item-name { font-size:0.88rem; color:var(--text); margin-bottom:3px; }
+.market-item-desc { font-size:0.74rem; color:var(--text-muted); line-height:1.5; }
+.market-item-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
+.market-item-price { font-size:0.82rem; color:var(--gold); }
+.btn-buy {
+  padding:6px 12px; font-size:0.78rem;
+  background:var(--bg-card); color:var(--gold);
+  border:1px solid var(--gold-line); border-radius:var(--radius);
+  transition:all 0.18s; white-space:nowrap;
+}
+.btn-buy:hover { background:var(--gold-dim); border-color:var(--gold); }
+.btn-buy.insufficient { opacity:0.35; cursor:not-allowed; }
+.market-msg {
+  padding:8px 16px; font-size:0.82rem; text-align:center;
+  border-top:1px solid var(--gold-dim);
+}
+.market-msg-ok  { color:var(--gold); }
+.market-msg-err { color:var(--red-bright); }

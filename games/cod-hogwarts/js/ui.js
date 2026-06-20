@@ -149,40 +149,71 @@ function renderCharactersPanel() {
 
 // ─ 背包面板渲染 ─
 function renderInventoryPanel() {
-  const list = document.getElementById('inventory-list');
   const goldEl = document.getElementById('gold-amount');
   if (goldEl) goldEl.textContent = G.player.gold;
+
+  const list = document.getElementById('inventory-list');
   if (!list) return;
 
-  if (!G.player.inventory.length) {
-    list.innerHTML = '<div class="empty-hint">背包空空如也</div>';
-    return;
-  }
+  // 分类显示：特殊/药剂 vs 材料
+  const potions = G.player.inventory.filter(i => i.type === 'potion' || i.type === 'special');
+  const materials = G.player.inventory.filter(i => i.type === 'ingredient');
+  const others = G.player.inventory.filter(i => !i.type || i.type === 'item');
 
-  list.innerHTML = G.player.inventory.map(item =>
-    `<div class="inventory-item" data-item-id="${item.id}">
-      <div class="item-name">${item.name}</div>
-      <div class="item-qty">×${item.quantity || 1}</div>
-    </div>`
-  ).join('');
+  const allDisplay = [...others, ...potions];
+
+  if (!allDisplay.length && !materials.length) {
+    list.innerHTML = '<div class="empty-hint">背包空空如也</div>';
+  } else {
+    let html = '';
+    if (allDisplay.length) {
+      html += allDisplay.map(item => {
+        const qualTag = item.quality === 'perfect' ? '<span class="qual-tag qt-perfect">极品</span>'
+                      : item.quality === 'poor'    ? '<span class="qual-tag qt-poor">劣品</span>' : '';
+        return `<div class="inventory-item" data-item-id="${item.id}">
+          <div class="item-name">${item.name}${qualTag}</div>
+          <div class="item-qty">×${item.quantity || 1}</div>
+        </div>`;
+      }).join('');
+    }
+    if (materials.length) {
+      html += `<div class="inv-section-label">炼药材料 (${materials.length}种)</div>`;
+      html += materials.map(item =>
+        `<div class="inventory-item inv-material" data-item-id="${item.id}">
+          <div class="item-name">${item.name}</div>
+          <div class="item-qty">×${item.quantity || 1}</div>
+        </div>`
+      ).join('');
+    }
+    list.innerHTML = html;
+  }
 
   list.querySelectorAll('.inventory-item').forEach(el => {
     el.addEventListener('click', () => openItemModal(el.dataset.itemId));
   });
+
+  // 黑市按钮可见性
+  const marketBtn = document.getElementById('btn-open-market');
+  if (marketBtn) marketBtn.style.display = G.flags?.marketUnlocked ? 'block' : 'none';
 }
 
 // ─ 道具弹窗 ─
+let _openItemId = null;
 function openItemModal(itemId) {
   const item = G.player.inventory.find(i => i.id === itemId);
   if (!item) return;
+  _openItemId = itemId;
 
   document.getElementById('modal-item-name').textContent = item.name;
   document.getElementById('modal-item-desc').textContent = item.desc || '无描述';
-  document.getElementById('modal-item-source').textContent = item.source || '未知途径';
+  document.getElementById('modal-item-source').textContent = item.source || (item.type === 'ingredient' ? '探索/黑市获取' : '炼制/购买');
   document.getElementById('modal-item').style.display = 'flex';
 
   const useBtn = document.getElementById('btn-use-item');
-  if (useBtn) useBtn.style.display = item.usable ? 'block' : 'none';
+  if (useBtn) {
+    useBtn.style.display = item.usable ? 'block' : 'none';
+    useBtn.dataset.itemId = itemId;
+  }
 }
 
 function closeItemModal() {

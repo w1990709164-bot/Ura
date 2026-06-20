@@ -172,6 +172,10 @@
         <div id="inventory-list">
           <div class="empty-hint">背包空空如也</div>
         </div>
+        <div class="inv-tools">
+          <button id="btn-open-alchemy" class="inv-tool-btn">✦ 炼药工坊</button>
+          <button id="btn-open-market" class="inv-tool-btn inv-tool-market" style="display:none">🏪 黑市</button>
+        </div>
       </div>
     </div>
 
@@ -279,10 +283,51 @@
   </div>
 </div>
 
+<!-- ═══ 战斗模态框（全屏）════ -->
+<div id="modal-combat" class="combat-fullscreen" style="display:none">
+  <div class="combat-header">
+    <span class="combat-title">⚔ 战斗</span>
+  </div>
+  <div id="combat-body" class="combat-body"></div>
+</div>
+
+<!-- ═══ 炼药工坊模态框 ════ -->
+<div id="modal-alchemy" class="modal" style="display:none">
+  <div class="modal-backdrop" id="modal-alchemy-backdrop"></div>
+  <div class="modal-content modal-tall">
+    <div class="modal-header">
+      <h3>✦ 炼药工坊</h3>
+      <button class="modal-close" id="modal-alchemy-close">×</button>
+    </div>
+    <div class="modal-body" style="padding:0;overflow:hidden">
+      <div id="alchemy-container" data-tab="materials"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 黑市模态框 ════ -->
+<div id="modal-market" class="modal" style="display:none">
+  <div class="modal-backdrop" id="modal-market-backdrop"></div>
+  <div class="modal-content modal-tall">
+    <div class="modal-header">
+      <h3>地下走廊·黑市</h3>
+      <button class="modal-close" id="modal-market-close">×</button>
+    </div>
+    <div class="modal-body" id="market-modal-body" style="overflow-y:auto;max-height:60vh"></div>
+    <div id="market-msg" class="market-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- 炼药结果提示 -->
+<div id="brew-toast" class="brew-toast" style="display:none"></div>
+
 <script src="js/characters.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/state.js"></script>
 <script src="js/api.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/alchemy.js"></script>
+<script src="js/market.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/game.js"></script>
 

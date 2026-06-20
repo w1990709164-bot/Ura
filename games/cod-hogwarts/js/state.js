@@ -1,5 +1,7 @@
 // ── 游戏状态 ──────────────────────────────────────────────
 const SAVE_KEY = 'cod_hogwarts_v1';
+
+function rollD20() { return Math.floor(Math.random() * 20) + 1; }
 const STAT_STAGE_CAPS = { 1:40, 2:60, 3:80, 4:100 };
 
 const TIME_LABELS = {
@@ -68,6 +70,7 @@ function createFreshState() {
     sortingScores: { gryffindor:0, slytherin:0, ravenclaw:0, hufflepuff:0 },
     sortingAnswerIndex: 0,
     blackMarketVisits: 0,
+    combat: null,
     flags: {}  // general purpose story flags
   };
 }
@@ -263,6 +266,10 @@ function applyStateUpdate(update) {
   if (update.blackMarketVisit) {
     G.blackMarketVisits++;
     if (G.blackMarketVisits >= 5) unlockAchievement('black_market');
+  }
+
+  if (update.ingredientDrop) {
+    update.ingredientDrop.forEach(item => addItem({ ...item, type: item.type || 'ingredient' }));
   }
 
   persistAll();

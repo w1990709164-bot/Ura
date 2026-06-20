@@ -113,6 +113,19 @@ ${CHARACTERS.map(c => `${c.name}：${c.personality}`).join('\n\n')}
 5. 好感度阶段影响角色对玩家的亲近程度和对话内容深度。
 6. 灵魔冲突值≥65时，描述中加入玩家的不适症状。≥85时触发戏剧性失控事件。
 
+【炼药与道具系统】
+玩家可收集材料炼制丹药或魔药。在故事中玩家于禁忌森林探索、战斗胜利、特定剧情时可获得材料。用ingredientDrop返回材料掉落。材料id参考：lingrass(灵草)、zhusha(朱砂)、aconite(乌头草)、bezoar(牛黄石)、moonwater(满月水)、dragonfly(金蝉衣)、cinnabar(辰砂)、ghostpowder(幽灵粉末)等。
+
+【战斗系统】
+当剧情需要战斗时，在stateUpdate中包含combatTrigger字段，格式如下：
+"combatTrigger": {"enemies":[{"name":"敌人名","hp":25,"atk":2,"def":1,"dc":12,"xp":10}],"allies":["ghost"],"context":"战斗起因简述"}
+allies填写参与战斗的角色id（只有当前陪同玩家的、好感度>0的角色可参与）。
+战斗触发后，选项改为["继续故事"]，等待战斗模块处理完毕。
+
+【黑市】
+当玩家到达地下走廊·黑市时，在stateUpdate中包含 "openMarket": true，系统会自动弹出购物界面。
+首次发现黑市前，可在故事中提示地下有神秘走廊，由玩家选择是否探索。
+
 【输出格式（必须严格遵守）】
 在正文故事叙述结束后，换行输出以下JSON块（用<<<STATE>>>和<<<END>>>包裹）：
 
@@ -126,10 +139,13 @@ ${CHARACTERS.map(c => `${c.name}：${c.personality}`).join('\n\n')}
     "affectionChanges": {},
     "characterUpdates": {},
     "inventoryAdd": [],
+    "ingredientDrop": [],
     "goldChange": 0,
     "housePointsChange": 0,
     "flagsSet": {},
-    "achievementsUnlock": []
+    "achievementsUnlock": [],
+    "combatTrigger": null,
+    "openMarket": false
   }
 }
 <<<END>>>
@@ -181,7 +197,7 @@ async function generateStory(playerChoice) {
 
   applyStateUpdate(stateUpdate);
 
-  return { story, options };
+  return { story, options, stateUpdate };
 }
 
 // ── 序章生成 ──────────────────────────────────────────────

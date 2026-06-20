@@ -157,21 +157,24 @@ async function handlePlayerChoice(choiceText) {
   if (!choiceText?.trim()) return;
   setLoading(true);
 
-  // 清空自定义输入框
   const customInput = document.getElementById('custom-input');
   if (customInput) customInput.value = '';
 
   try {
-    const { story, options } = await generateStory(choiceText);
+    const { story, options, stateUpdate } = await generateStory(choiceText);
     renderStory(story);
     renderOptions(options);
     updateTopBar();
-
-    // 检查新解锁的成就并弹出通知
-    G.unlockedAchievements.forEach(id => {
-      // 只弹最近新解锁的（简单做法：存一个已弹过的集合）
-    });
     persistAll();
+
+    // 战斗触发
+    if (stateUpdate?.combatTrigger) {
+      setTimeout(() => startCombat(stateUpdate.combatTrigger), 400);
+    }
+    // 黑市触发
+    if (stateUpdate?.openMarket) {
+      setTimeout(() => openMarketModal(), 400);
+    }
   } catch(e) {
     renderStory(`（生成失败：${e.message}）`);
     showRegenButton();
@@ -221,9 +224,31 @@ function initGameScreen() {
   // 选项折叠按钮
   document.getElementById('options-toggle')?.addEventListener('click', toggleOptions);
 
-  // 道具弹窗关闭
+  // 道具弹窗
   document.getElementById('modal-item-close')?.addEventListener('click', closeItemModal);
   document.getElementById('modal-item-backdrop')?.addEventListener('click', closeItemModal);
+  document.getElementById('btn-use-item')?.addEventListener('click', (e) => {
+    const itemId = e.currentTarget.dataset.itemId || _openItemId;
+    const item = G.player.inventory.find(i => i.id === itemId);
+    if (!item) return;
+    const eff = usePotion(itemId);
+    closeItemModal();
+    renderInventoryPanel();
+    updateTopBar();
+    if (eff) {
+      handlePlayerChoice(`[使用了「${item.name}」。请在故事中描述使用效果，然后继续剧情。]`);
+    }
+  });
+
+  // 炼药工坊
+  document.getElementById('btn-open-alchemy')?.addEventListener('click', openAlchemyModal);
+  document.getElementById('modal-alchemy-close')?.addEventListener('click', closeAlchemyModal);
+  document.getElementById('modal-alchemy-backdrop')?.addEventListener('click', closeAlchemyModal);
+
+  // 黑市
+  document.getElementById('btn-open-market')?.addEventListener('click', openMarketModal);
+  document.getElementById('modal-market-close')?.addEventListener('click', closeMarketModal);
+  document.getElementById('modal-market-backdrop')?.addEventListener('click', closeMarketModal);
 
   // 修改API按钮
   document.getElementById('btn-change-api')?.addEventListener('click', () => {
