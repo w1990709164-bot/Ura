@@ -30,6 +30,10 @@ function saveGame() {
       turnCount: G.turnCount,
       weeklyTaskDone: G.weeklyTaskDone,
       weeklyMarketOpen: G.weeklyMarketOpen,
+      apUsedThisYear: G.apUsedThisYear,
+      apPending: G.apPending || null,
+      _freeToBond: G._freeToBond || 0,
+      _freeToGrow: G._freeToGrow || 0,
     };
     localStorage.setItem('grey_ridge_save', JSON.stringify(save));
   } catch(e){ console.warn('Save failed:', e); }
@@ -47,6 +51,9 @@ function loadGame() {
     });
     if (!G.inventory) G.inventory = [];
     if (!G.stats) G.stats = {tq:0,mj:0,jz:0,js:0,zs:0,qs:0,yl:0};
+    if (!Array.isArray(G.apUsedThisYear)) G.apUsedThisYear = [];
+    if (!Number.isFinite(G._freeToBond)) G._freeToBond = 0;
+    if (!Number.isFinite(G._freeToGrow)) G._freeToGrow = 0;
     return true;
   } catch(e){ return false; }
 }

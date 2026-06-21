@@ -32,6 +32,11 @@ function startNewGame() {
   G.gameYear = 1;
   G.gameWeek = 1;
   G.gameDay = 1;
+  G.phase = 'cub';
+  G.apUsedThisYear = [];
+  G.apPending = null;
+  G._freeToBond = 0;
+  G._freeToGrow = 0;
 
   saveGame();
   launchApp();
