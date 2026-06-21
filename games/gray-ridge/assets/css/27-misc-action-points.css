@@ -116,6 +116,17 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  max-height: min(46vh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.ap-char-list::-webkit-scrollbar { width: 4px; }
+.ap-char-list::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 4px;
 }
 .ap-char-btn {
   display: flex;
