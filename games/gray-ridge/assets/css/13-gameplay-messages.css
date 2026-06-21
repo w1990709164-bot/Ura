@@ -175,3 +175,22 @@
 .dots span:nth-child(2){animation-delay:0.2s;}
 .dots span:nth-child(3){animation-delay:0.4s;}
 @keyframes dot-blink{0%,80%,100%{opacity:0.2;}40%{opacity:1;}}
+
+
+/* ── 进入下一周按钮（成人期 week_end 触发） ── */
+.week-advance-bar {
+  display:block;
+  width:100%;
+  margin:12px 0 4px;
+  padding:10px 0;
+  background:var(--gold-dim);
+  border:1px solid var(--gold-line);
+  border-radius:8px;
+  color:var(--gold);
+  font-size:0.85rem;
+  letter-spacing:2px;
+  cursor:pointer;
+  text-align:center;
+  transition:background 0.2s;
+}
+.week-advance-bar:hover { background:rgba(201,168,76,0.28); }

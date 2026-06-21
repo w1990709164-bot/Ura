@@ -5,15 +5,18 @@ function updateTopBar() {
   const months = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
   document.getElementById('tb-date-main').textContent =
     `${G.absoluteYear}年${months[G.absoluteMonth-1]}月${G.absoluteDay}日`;
-  document.getElementById('tb-date-sub').textContent =
-    `第${G.gameYear}年 第${G.gameWeek}周`;
+  // 幼崽期按月计（行动点数=已过月数），成人期按周计
+  const timeLabel = G.phase === 'cub'
+    ? `第${G.gameYear}年 第${(G.apUsedThisYear||[]).length}月`
+    : `第${G.gameYear}年 第${G.gameWeek}周`;
+  document.getElementById('tb-date-sub').textContent = timeLabel;
   document.getElementById('tb-location').textContent =
     '灰脊 · ' + (LOCATIONS.find(l=>l.id===G.currentLocation)?.name||'');
   document.getElementById('tb-mood').textContent = G.mood;
   document.getElementById('tb-wallet').textContent = G.wallet.toLocaleString();
   document.getElementById('sh-tag').textContent = G.phase==='cub'?'幼崽期':'成人期';
   document.getElementById('sh-title').textContent = '灰脊 · ' + (LOCATIONS.find(l=>l.id===G.currentLocation)?.name||'');
-  document.getElementById('sh-sub').textContent = `第${G.gameYear}年 · 第${G.gameWeek}周`;
+  document.getElementById('sh-sub').textContent = `第${G.gameYear}年 · ${timeLabel}`;
   updateActionBar();
 }
 

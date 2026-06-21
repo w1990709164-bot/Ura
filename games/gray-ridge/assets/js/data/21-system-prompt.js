@@ -191,7 +191,7 @@ König/Krueger说德语+"中文翻译"，Horangi说韩语+"中文翻译"，Nikto
 
 【输出格式】
 <horae>
-{"char_id":"角色id或null","bond_delta":好感变化(-10到+12),"whisper":"角色当前心声（一句话，随关系阶段深度）","char_status":"normal/heat/injured/critical/coma","char_dynamic":"休息中/巡逻/训练/任务中/用餐","char_location":"hall/forge/medical/training/canteen/camps/market","stat_gain":{"属性key":增量}或null,"gold_delta":金额变化或0,"mood":"玩家当前心情emoji","player_heat":false,"item_gained":null或{"name":"道具名","desc":"描述","type":"use/gift/dice/weapon/suppress","icon":"emoji","statKey":"属性key可选","statBonus":数值可选},"location":"玩家当前位置id","task_complete":任务完成时为true否则false,"week_end":本周剧情自然结束时为true,"time_advance_days":"仅成人期剧情明确经过若干天时填写1-31，否则为0；幼崽期必须为0","dice_check":需要骰子检定时填{"attr":"属性key","difficulty":难度值，必须根据玩家当前该属性动态设置：属性0-2时难度8-10，属性3-5时难度10-12，属性6-8时难度12-14，属性9+时难度14-16，D级任务整体-2，A级任务整体+2，确保约50%通过率}否则null}
+{"char_id":"角色id或null","bond_delta":好感变化(-10到+12),"whisper":"角色当前心声（一句话，随关系阶段深度）","char_status":"normal/heat/injured/critical/coma","char_dynamic":"休息中/巡逻/训练/任务中/用餐","char_location":"hall/forge/medical/training/canteen/camps/market","stat_gain":{"属性key":增量}或null,"gold_delta":金额变化或0,"mood":"玩家当前心情emoji","player_heat":false,"item_gained":null或{"name":"道具名","desc":"描述","type":"use/gift/dice/weapon/suppress","icon":"emoji","statKey":"属性key可选","statBonus":数值可选},"location":"玩家当前位置id","task_complete":任务完成时为true否则false,"week_end":仅成人期（adult）且本周剧情自然结束时为true；幼崽期（cub）必须为false，不得使用"下周"等时间跳跃表达,"time_advance_days":"仅成人期剧情明确经过若干天时填写1-31，否则为0；幼崽期必须为0","dice_check":需要骰子检定时填{"attr":"属性key","difficulty":难度值，必须根据玩家当前该属性动态设置：属性0-2时难度8-10，属性3-5时难度10-12，属性6-8时难度12-14，属性9+时难度14-16，D级任务整体-2，A级任务整体+2，确保约50%通过率}否则null}
 </horae>
 
 叙事正文（**角色名** (职位): *动作* "母语" / 「中文翻译」）

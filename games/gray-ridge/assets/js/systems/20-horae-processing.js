@@ -64,9 +64,20 @@ function processHorae(h) {
     collectTaskReward(G.currentTask);
     addSysMsg('任务完成', G.currentTask.name + ' · 报酬已发放');
   }
-  // Weekly advance signal
-  if (h.week_end) {
-    setTimeout(()=>{ if(confirm('本周结束，进入下一周？')) advanceWeek(); }, 500);
+  // Weekly advance signal — 仅成人期生效；幼崽期由行动点按月推进，忽略此字段
+  if (h.week_end && G.phase === 'adult') {
+    addSysMsg('本周结束', '剧情已告一段落。点击"进入下一周"继续。');
+    const bar = document.getElementById('week-advance-bar');
+    if (bar) { bar.style.display = 'block'; }
+    else {
+      // 动态创建进入下一周按钮
+      const btn = document.createElement('button');
+      btn.id = 'week-advance-bar';
+      btn.className = 'week-advance-bar';
+      btn.textContent = '▶ 进入下一周';
+      btn.onclick = () => { btn.remove(); advanceWeek(); };
+      document.getElementById('message-container')?.appendChild(btn);
+    }
   }
   // 成人期可由剧情明确推进少量自然时间；幼崽期由行动点按月推进，避免重复计时。
   if (G.phase === 'adult' && h.time_advance_days) {
