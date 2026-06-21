@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>霍格沃兹 · 诊断</title>
+<style>
+  body{background:#0b0916;color:#e8e3d8;font-family:-apple-system,system-ui,sans-serif;margin:0;padding:16px;line-height:1.55}
+  h1{font-size:1.1rem;color:#d6b77b;margin:0 0 12px}
+  h2{font-size:.95rem;color:#c9a84c;margin:18px 0 6px;border-bottom:1px solid #2a2438;padding-bottom:4px}
+  pre{background:#15101f;border:1px solid #2a2438;border-radius:8px;padding:10px;white-space:pre-wrap;word-break:break-all;font-size:.8rem}
+  .ok{color:#8fbc8f}.bad{color:#e08f8f}.warn{color:#e0c98f}
+  button{display:block;width:100%;margin:8px 0;padding:12px;border:0;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer}
+  .b1{background:#c9a84c;color:#1a1410}.b2{background:#8b1a1a;color:#fff}.b3{background:#2a2438;color:#e8e3d8}
+  .row{font-size:.82rem;margin:2px 0}
+  code{color:#b8c4e8}
+</style>
+</head>
+<body>
+<h1>魔法学院 · 异乡仙途 — 诊断工具</h1>
+<p style="font-size:.82rem;color:#9a93a8">这个页面会检查游戏当前的真实运行状态。请把下面的结果截图发回。</p>
+
+<h2>1. 存档与 API 配置</h2>
+<pre id="storage">读取中…</pre>
+
+<h2>2. 脚本文件是否加载成功</h2>
+<pre id="scripts">检测中…</pre>
+
+<h2>3. 加载后游戏状态</h2>
+<pre id="state">等待脚本加载…</pre>
+
+<h2>4. 运行错误</h2>
+<pre id="errors">（无）</pre>
+
+<h2>一键修复</h2>
+<button class="b1" id="fix1">① 清除霍格沃兹存档并进入游戏（最常用）</button>
+<button class="b2" id="fix2">② 清除本站全部数据（API配置也会清掉，需重新设置）</button>
+<button class="b3" id="fix3">③ 直接进入游戏 index.html</button>
+
+<script>
+// 先装错误捕获，再加载游戏脚本
+var errs = [];
+window.onerror = function(msg, src, line, col, error){
+  errs.push((error && error.stack) ? error.stack : (msg + ' @ ' + (src||'') + ':' + line));
+  render();
+  return false;
+};
+window.addEventListener('unhandledrejection', function(e){
+  errs.push('Promise: ' + ((e.reason && e.reason.stack) || e.reason));
+  render();
+});
+
+function safe(fn, dflt){ try{ return fn(); }catch(e){ return dflt!==undefined?dflt:('<读取出错: '+e.message+'>'); } }
+
+function showStorage(){
+  var out = [];
+  ['LW_API_URL','LW_API_KEY','LW_API_MODEL','LW_API_VERIFIED'].forEach(function(k){
+    var v = localStorage.getItem(k);
+    if(k==='LW_API_KEY' && v) v = v.slice(0,6)+'…(已隐藏)';
+    out.push(k+': ' + (v===null?'<未设置>':v));
+  });
+  var save = localStorage.getItem('cod_hogwarts_v1');
+  if(save===null){ out.push('\ncod_hogwarts_v1: <无存档>（全新状态，应进入“角色创建”）'); }
+  else {
+    out.push('\ncod_hogwarts_v1: 长度 '+save.length+' 字符');
+    try{
+      var g = JSON.parse(save);
+      out.push('  phase(阶段): ' + g.phase);
+      out.push('  player.name: ' + (g.player&&g.player.name));
+      out.push('  player.house: ' + (g.player&&g.player.house) + '  ←必须是 gryffindor/slytherin/ravenclaw/hufflepuff 之一');
+      out.push('  currentStory 长度: ' + ((g.currentStory||'').length));
+    }catch(e){ out.push('  <存档无法解析: '+e.message+'>'); }
+  }
+  document.getElementById('storage').textContent = out.join('\n');
+}
+
+function render(){
+  document.getElementById('errors').innerHTML = errs.length
+    ? errs.map(function(e){return '<span class="bad">'+e.replace(/</g,'&lt;')+'</span>';}).join('\n\n')
+    : '（无）';
+}
+
+// 逐个加载游戏脚本，记录是否成功
+var files = ['characters.js','achievements.js','state.js','api.js','combat.js','alchemy.js','market.js','ui.js','game.js'];
+var loadLog = [];
+function loadNext(i){
+  if(i>=files.length){ afterLoad(); return; }
+  var s = document.createElement('script');
+  s.src = 'js/' + files[i] + '?diag=' + Date.now(); // 防缓存
+  s.onload = function(){ loadLog.push('<span class="ok">[OK] '+files[i]+' 加载成功</span>'); showScripts(); loadNext(i+1); };
+  s.onerror = function(){ loadLog.push('<span class="bad">✗ '+files[i]+' 加载失败（404或路径错误）</span>'); showScripts(); loadNext(i+1); };
+  document.head.appendChild(s);
+}
+function showScripts(){ document.getElementById('scripts').innerHTML = loadLog.join('\n'); }
+
+function afterLoad(){
+  var out = [];
+  out.push('typeof HOUSES: ' + typeof window.HOUSES + (typeof window.HOUSES==='undefined'?'  <span class="bad">←未定义！characters.js 没生效</span>':'  <span class="ok">OK</span>'));
+  out.push('typeof CHARACTERS: ' + typeof window.CHARACTERS);
+  out.push('typeof enterGame: ' + typeof window.enterGame);
+  // 检测修复版是否到位：sanitizeState 只在新版 state.js 里存在
+  var hasFix = false; try{ hasFix = (typeof (0,eval)('sanitizeState')) === 'function'; }catch(e){}
+  out.push('修复版 sanitizeState: ' + (hasFix?'<span class="ok">存在（已是修复版）</span>':'<span class="bad">不存在（仍是旧版 state.js！）</span>'));
+  // 真正执行一次 loadAll()，看看实际进入游戏时会得到什么状态
+  var phase='<未读到>', house='<未读到>';
+  try {
+    (0,eval)('loadAll()');
+    phase = (0,eval)('G.phase');
+    house = (0,eval)('G.player.house');
+  } catch(e){ phase = '执行 loadAll 出错: ' + e.message; }
+  out.push('\n执行 loadAll() 后：');
+  out.push('  G.phase: ' + phase + (phase==='game'?'  <span class="warn">←会直接进游戏页（若house非法/为空且为旧版则卡住）</span>':''));
+  out.push('  G.player.house: ' + house);
+  document.getElementById('state').innerHTML = out.join('\n');
+  render();
+}
+
+showStorage();
+loadNext(0);
+
+document.getElementById('fix1').onclick = function(){
+  localStorage.removeItem('cod_hogwarts_v1');
+  alert('已清除霍格兹存档，现在进入游戏，应当从“角色创建”开始。');
+  location.href = 'index.html';
+};
+document.getElementById('fix2').onclick = function(){
+  if(confirm('将清除本站全部数据（含 API 配置），确定？')){ localStorage.clear(); alert('已清空。请先回里世界主页重新设置 API。'); location.href='../../index.html'; }
+};
+document.getElementById('fix3').onclick = function(){ location.href='index.html'; };
+</script>
+</body>
+</html>
