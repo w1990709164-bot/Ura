@@ -1,0 +1,3509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0916">
+  <title>魔法学院·异乡仙途</title>
+  <style>
+/* ── 基础重置 ─────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:          #0b0916;
+  --bg-panel:    #130f22;
+  --bg-surface:  #1c1630;
+  --bg-card:     #221c38;
+  --gold:        #c9a84c;
+  --gold-dim:    rgba(201,168,76,0.18);
+  --gold-line:   rgba(201,168,76,0.35);
+  --red:         #8b1a1a;
+  --red-bright:  #c93030;
+  --text:        #f0e6d0;
+  --text-muted:  #7a6a58;
+  --text-dim:    #4a3a2a;
+  --serif:       'Noto Serif SC', 'STKaiti', 'KaiTi', Georgia, serif;
+  --radius:      8px;
+  --radius-lg:   14px;
+  --safe-b:      env(safe-area-inset-bottom, 0px);
+  --topbar-h:    48px;
+  --nav-h:       56px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--serif);
+  font-size:15px;
+  line-height:1.75;
+  -webkit-tap-highlight-color:transparent;
+}
+
+button { font-family:var(--serif); cursor:pointer; border:none; background:none; color:inherit; }
+input, textarea, select { font-family:var(--serif); color:var(--text); background:var(--bg-surface); border:1px solid var(--gold-line); border-radius:var(--radius); padding:10px 12px; width:100%; outline:none; font-size:15px; }
+input:focus, textarea:focus, select:focus { border-color:var(--gold); }
+select option { background:var(--bg-panel); }
+textarea { resize:vertical; min-height:72px; }
+
+/* ── 屏幕系统 ─────────────────────────────────────────── */
+.screen {
+  position:fixed; inset:0;
+  display:none; flex-direction:column;
+  background:var(--bg);
+  z-index:10;
+}
+.screen.active { display:flex; }
+
+/* ── 东方纹样背景 ─────────────────────────────────────── */
+.screen::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(139,26,26,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(26,21,48,0.6) 0%, transparent 50%);
+  pointer-events:none; z-index:0;
+}
+.screen > * { position:relative; z-index:1; }
+
+/* ── Setup Screen ─────────────────────────────────────── */
+.setup-container {
+  flex:1; overflow-y:auto;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:32px 24px calc(32px + var(--safe-b));
+  gap:20px;
+}
+
+.setup-logo {
+  display:flex; align-items:center; gap:12px;
+  font-size:2rem; margin-bottom:4px;
+}
+.logo-east { color:var(--gold); font-size:2.4rem; }
+.logo-west { color:var(--text-muted); }
+.logo-divider { color:var(--gold-line); }
+
+.setup-title {
+  text-align:center; font-size:1.6rem;
+  color:var(--text); letter-spacing:3px; line-height:1.4;
+}
+.setup-title span { color:var(--gold); font-size:1rem; letter-spacing:5px; }
+
+.form-section { width:100%; max-width:400px; display:flex; flex-direction:column; gap:14px; }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group label { font-size:0.82rem; color:var(--gold); letter-spacing:1px; }
+.form-row { display:flex; gap:10px; }
+.form-group.half { flex:1; }
+.form-divider { text-align:center; color:var(--gold-line); font-size:0.85rem; padding:4px 0; }
+
+.model-select-row { display:flex; gap:8px; }
+.model-select-row select { flex:1; }
+
+.btn-primary {
+  width:100%; max-width:400px;
+  padding:13px; background:var(--gold); color:#1a1000;
+  border-radius:var(--radius); font-size:1rem; font-weight:600;
+  letter-spacing:2px; transition:opacity 0.2s;
+}
+.btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
+.btn-primary:not(:disabled):hover { opacity:0.88; }
+
+.btn-secondary {
+  padding:10px 16px;
+  border:1px solid var(--gold-line); color:var(--gold);
+  border-radius:var(--radius); font-size:0.9rem;
+  transition:all 0.2s;
+}
+.btn-secondary:hover { background:var(--gold-dim); }
+
+.error-msg { color:var(--red-bright); font-size:0.85rem; text-align:center; }
+
+/* ── Creation Screen ──────────────────────────────────── */
+.screen-scrollable {
+  flex:1; overflow-y:auto;
+  padding:24px 20px calc(24px + var(--safe-b));
+  display:flex; flex-direction:column; gap:20px;
+}
+.screen-header { text-align:center; }
+.screen-header h2 { font-size:1.5rem; color:var(--gold); letter-spacing:2px; }
+.subtitle { color:var(--text-muted); font-size:0.85rem; margin-top:4px; }
+
+/* ── Sorting Screen ───────────────────────────────────── */
+.sorting-hat-container { text-align:center; padding:16px 0; }
+.sorting-hat-icon { font-size:3rem; color:var(--gold); margin-bottom:8px; }
+.sorting-hat-container h2 { color:var(--gold); font-size:1.4rem; letter-spacing:2px; }
+.sorting-subtitle { color:var(--text-muted); font-size:0.85rem; margin-top:6px; }
+
+.sorting-question { display:flex; flex-direction:column; gap:12px; }
+.q-text { font-size:1rem; color:var(--text); line-height:1.6; padding:4px 0; }
+.q-options { display:flex; flex-direction:column; gap:8px; }
+.q-opt-btn {
+  padding:12px 14px; text-align:left;
+  border:1px solid var(--gold-line); border-radius:var(--radius);
+  background:var(--bg-surface); color:var(--text);
+  font-size:0.9rem; line-height:1.5; transition:all 0.2s;
+}
+.q-opt-btn:hover { background:var(--gold-dim); border-color:var(--gold); }
+
+.sorting-result { text-align:center; padding:20px 0; display:flex; flex-direction:column; gap:14px; align-items:center; }
+.result-house-icon { font-size:3.5rem; }
+.sorting-result h2 { font-size:1.8rem; letter-spacing:3px; }
+.sorting-result p { color:var(--text-muted); line-height:1.7; max-width:280px; }
+
+/* ── Main Game Layout ─────────────────────────────────── */
+#screen-game {
+  display:flex; flex-direction:column;
+}
+
+/* 顶栏 */
+#top-bar {
+  height:var(--topbar-h);
+  display:grid; grid-template-columns:34px minmax(0,1fr) 34px;
+  align-items:center;
+  padding:0 10px;
+  background:var(--bg-panel);
+  border-bottom:1px solid var(--gold-line);
+  flex-shrink:0;
+}
+#game-datetime { min-width:0; text-align:center; font-size:0.82rem; color:var(--gold); letter-spacing:.6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.time-dot { margin:0 4px; opacity:0.4; }
+#house-badge { font-size:1.2rem; }
+.topbar-back {
+  width:28px; height:28px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1rem; color:var(--text-muted); text-decoration:none;
+  padding:0; border:1px solid var(--gold-line);
+  border-radius:50%; white-space:nowrap;
+  transition:color 0.2s, border-color 0.2s;
+}
+.topbar-back:hover { color:var(--gold); border-color:var(--gold); }
+
+/* Tab 内容区 */
+#tab-content {
+  flex:1; overflow:hidden; position:relative;
+}
+.panel {
+  position:absolute; inset:0;
+  display:none; flex-direction:column;
+}
+.panel.active { display:flex; }
+
+/* 底部导航 */
+#bottom-nav {
+  height:calc(var(--nav-h) + var(--safe-b));
+  padding-bottom:var(--safe-b);
+  display:flex;
+  background:var(--bg-panel);
+  border-top:1px solid var(--gold-line);
+  flex-shrink:0;
+}
+.nav-btn {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:3px; padding:6px 0;
+  color:var(--text-muted); transition:color 0.2s;
+}
+.nav-btn.active { color:var(--gold); }
+.nav-icon {
+  font-size:1rem; line-height:1;
+  font-family:var(--serif);
+}
+.nav-label { font-size:0.68rem; letter-spacing:1px; }
+
+/* ── Story Panel ──────────────────────────────────────── */
+#panel-story { display:flex; flex-direction:column; }
+
+#story-scroll-area {
+  flex:1; overflow-y:auto;
+  padding:20px 18px 16px;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 故事文本样式 */
+#story-text {
+  min-height:100%;
+  display:flex; flex-direction:column; gap:14px;
+}
+.story-para {
+  color:var(--text); font-size:0.97rem; line-height:1.9;
+  text-indent:2em;
+}
+.story-dialogue {
+  color:var(--text); font-size:0.97rem; line-height:1.85;
+  padding-left:1em; border-left:2px solid var(--gold-line);
+}
+.native-text {
+  color:#b8a070; font-style:italic;
+}
+.cn-trans {
+  color:var(--gold);
+}
+.story-placeholder { color:var(--text-dim); text-align:center; padding:40px 0; }
+
+/* 加载动画 */
+#story-loading {
+  display:flex; justify-content:center; padding:24px 0;
+}
+.loading-wave {
+  display:flex; align-items:center; gap:5px;
+}
+.loading-wave span {
+  display:block; width:5px; height:20px;
+  background:var(--gold); border-radius:3px;
+  animation:wave 1s ease-in-out infinite;
+}
+.loading-wave span:nth-child(2){ animation-delay:0.1s; }
+.loading-wave span:nth-child(3){ animation-delay:0.2s; }
+.loading-wave span:nth-child(4){ animation-delay:0.3s; }
+.loading-wave span:nth-child(5){ animation-delay:0.4s; }
+@keyframes wave {
+  0%,100%{ transform:scaleY(0.4); opacity:0.4; }
+  50%    { transform:scaleY(1);   opacity:1; }
+}
+
+.btn-regenerate {
+  margin:12px auto; display:block;
+  padding:8px 20px;
+  border:1px solid var(--red); color:var(--red);
+  border-radius:var(--radius); font-size:0.85rem;
+  transition:all 0.2s;
+}
+.btn-regenerate:hover { background:var(--red); color:var(--text); }
+
+/* 选项区 */
+#options-area {
+  flex-shrink:0;
+  background:var(--bg-panel);
+  border-top:1px solid var(--gold-line);
+}
+
+#options-drag-handle {
+  display:flex; justify-content:center;
+  padding:6px 0 4px;
+  cursor:pointer;
+}
+.handle-bar {
+  width:36px; height:3px;
+  background:var(--gold-line); border-radius:2px;
+}
+
+#options-list {
+  display:flex; flex-direction:column; gap:7px;
+  padding:6px 14px 10px;
+  max-height:200px; overflow-y:auto;
+}
+.option-btn {
+  padding:11px 14px; text-align:left;
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius); color:var(--text);
+  font-size:0.88rem; line-height:1.5;
+  transition:all 0.18s;
+}
+.option-btn:hover  { background:var(--gold-dim); border-color:var(--gold); }
+.option-btn:active { background:var(--gold-dim); }
+.option-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+#custom-input-row {
+  display:flex; gap:8px;
+  padding:0 14px 12px;
+}
+#custom-input {
+  flex:1; padding:9px 12px; font-size:0.88rem;
+  border-radius:var(--radius);
+}
+#btn-send {
+  padding:9px 16px;
+  background:var(--gold); color:#1a1000;
+  border-radius:var(--radius); font-size:0.88rem;
+  font-weight:600; white-space:nowrap;
+  transition:opacity 0.2s;
+}
+#btn-send:hover  { opacity:0.88; }
+#btn-send:disabled { opacity:0.4; cursor:not-allowed; }
+
+/* ── Characters Panel ─────────────────────────────────── */
+.panel-scroll {
+  flex:1; overflow-y:auto; padding:16px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.house-section { margin-bottom:10px; }
+.house-header {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 14px;
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius); cursor:pointer;
+  user-select:none; transition:background 0.2s;
+}
+.house-header:hover { background:var(--gold-dim); }
+.house-symbol { font-size:1.1rem; }
+.house-name { flex:1; font-size:0.95rem; font-weight:500; }
+.house-chevron { font-size:0.7rem; color:var(--text-muted); }
+
+.house-body {
+  display:none; flex-direction:column; gap:8px;
+  padding:8px 0 0 10px;
+}
+.house-body.open { display:flex; }
+
+.char-card {
+  background:var(--bg-surface); border:1px solid var(--gold-line);
+  border-radius:var(--radius); padding:12px 14px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.char-card-name { font-size:1rem; font-weight:500; }
+.char-card-lang { font-size:0.72rem; color:var(--text-muted); }
+.char-affection-row { display:flex; align-items:center; gap:8px; }
+.aff-stage { font-size:0.75rem; color:var(--gold); min-width:40px; }
+.aff-bar { flex:1; height:4px; background:var(--bg-panel); border-radius:2px; overflow:hidden; }
+.aff-fill { height:100%; border-radius:2px; transition:width 0.4s; }
+.aff-val { font-size:0.72rem; color:var(--text-muted); min-width:22px; text-align:right; }
+.char-meta-row { display:flex; gap:8px; font-size:0.78rem; }
+.meta-label { color:var(--text-muted); }
+.meta-val { color:var(--text); }
+.char-psychology {
+  font-size:0.8rem; color:var(--text-muted);
+  line-height:1.55; padding-top:4px;
+  border-top:1px solid var(--gold-dim);
+}
+
+/* ── Inventory Panel ──────────────────────────────────── */
+.panel-title { font-size:1rem; color:var(--gold); letter-spacing:2px; margin-bottom:12px; }
+.gold-display {
+  display:flex; justify-content:space-between;
+  padding:10px 14px; background:var(--bg-card);
+  border:1px solid var(--gold-line); border-radius:var(--radius);
+  font-size:0.9rem; margin-bottom:12px;
+}
+.gold-display span:last-child { color:var(--gold); font-weight:600; }
+
+.inventory-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:11px 14px; background:var(--bg-card);
+  border:1px solid var(--gold-line); border-radius:var(--radius);
+  margin-bottom:7px; cursor:pointer; transition:background 0.18s;
+}
+.inventory-item:hover { background:var(--gold-dim); }
+.item-name { font-size:0.92rem; }
+.item-qty { font-size:0.8rem; color:var(--gold); }
+.empty-hint { text-align:center; color:var(--text-dim); padding:40px 0; font-size:0.9rem; }
+
+/* ── Records Panel ────────────────────────────────────── */
+.records-section { margin-bottom:20px; }
+.records-section-title {
+  font-size:0.8rem; color:var(--gold); letter-spacing:2px;
+  margin-bottom:10px; padding-bottom:6px;
+  border-bottom:1px solid var(--gold-line);
+}
+
+.achievement-summary {
+  font-size:0.85rem; color:var(--text-muted);
+  margin-bottom:10px;
+}
+#achievement-count { color:var(--gold); font-weight:600; }
+
+.ach-category { margin-bottom:14px; }
+.ach-cat-title { font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; }
+.ach-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+.ach-cell {
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius); padding:8px 6px;
+  text-align:center;
+}
+.ach-cell.unlocked { border-color:var(--gold); }
+.ach-icon { font-size:1.1rem; font-family:var(--serif); }
+.ach-name { font-size:0.65rem; color:var(--text-muted); margin-top:3px; line-height:1.3; }
+.ach-cell.unlocked .ach-name { color:var(--gold); }
+
+.save-slot {
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius); padding:11px 14px;
+  margin-bottom:7px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.save-info { font-size:0.82rem; color:var(--text-muted); }
+.save-actions { display:flex; gap:7px; }
+.btn-save-write, .btn-save-read {
+  padding:6px 12px; font-size:0.78rem; border-radius:var(--radius);
+}
+.btn-save-write {
+  border:1px solid var(--gold); color:var(--gold);
+  transition:all 0.18s;
+}
+.btn-save-write:hover { background:var(--gold); color:#1a1000; }
+.btn-save-read {
+  border:1px solid var(--gold-line); color:var(--text-muted);
+  transition:all 0.18s;
+}
+.btn-save-read:hover { background:var(--bg-surface); }
+
+.api-info-display { margin-bottom:10px; }
+.api-info-row {
+  display:flex; justify-content:space-between;
+  padding:7px 0; font-size:0.82rem;
+  border-bottom:1px solid var(--gold-dim);
+}
+.api-info-row span:first-child { color:var(--text-muted); }
+.api-info-row span:last-child { color:var(--text); max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ── Modals ───────────────────────────────────────────── */
+.modal {
+  position:fixed; inset:0;
+  display:flex; align-items:flex-end; justify-content:center;
+  z-index:100;
+}
+.modal-backdrop {
+  position:absolute; inset:0; background:rgba(0,0,0,0.55);
+}
+.modal-content {
+  position:relative; z-index:1;
+  background:var(--bg-panel); width:100%; max-width:480px;
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  border-top:1px solid var(--gold-line);
+  padding-bottom:var(--safe-b);
+}
+.modal-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:16px 18px;
+  border-bottom:1px solid var(--gold-dim);
+}
+.modal-header h3 { font-size:1rem; color:var(--gold); }
+.modal-close {
+  color:var(--text-muted); font-size:1.3rem;
+  line-height:1; padding:0 4px;
+}
+.modal-body { padding:16px 18px; }
+.modal-body p { font-size:0.9rem; line-height:1.7; }
+.modal-item-source { color:var(--text-muted); font-size:0.82rem; margin-top:8px; }
+.modal-footer {
+  padding:12px 18px;
+  display:flex; gap:10px; justify-content:flex-end;
+}
+
+/* ── 成就弹出通知 ─────────────────────────────────────── */
+.achievement-popup {
+  position:fixed; top:60px; left:50%;
+  transform:translateX(-50%);
+  display:none; align-items:center; justify-content:center;
+  z-index:200;
+  pointer-events:none;
+}
+.achievement-popup-content {
+  background:var(--bg-card);
+  border:1px solid var(--gold);
+  border-radius:var(--radius-lg);
+  padding:14px 24px;
+  text-align:center;
+  animation:slideDown 0.35s ease, fadeOut 0.4s ease 2.4s forwards;
+}
+.achievement-popup-icon { font-size:1.4rem; color:var(--gold); }
+.achievement-popup-title { font-size:0.72rem; color:var(--text-muted); letter-spacing:2px; margin-top:3px; }
+.achievement-popup-name { font-size:0.95rem; color:var(--gold); margin-top:4px; }
+@keyframes slideDown {
+  from { opacity:0; transform:translateY(-12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeOut {
+  to { opacity:0; }
+}
+
+/* ── 返回里世界悬浮按钮（游戏主界面时隐藏，改用顶栏内按钮） */
+.liworld-back {
+  position:fixed; left:max(10px,env(safe-area-inset-left)); top:max(8px,env(safe-area-inset-top)); z-index:80;
+  background:rgba(20,17,15,.78);
+  border:1px solid var(--gold-line);
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:0.68rem; color:var(--text-muted);
+  text-decoration:none; letter-spacing:1px;
+  backdrop-filter:blur(4px);
+  transition:color 0.2s, border-color 0.2s;
+}
+.screen-scrollable { padding-top:38px; }
+.liworld-back:hover { color:var(--gold); border-color:var(--gold); }
+/* 游戏主界面激活时通过CSS隐藏悬浮按钮 */
+body:has(#screen-game.active) .liworld-back { display:none !important; }
+
+/* ── No-API 提示框 ────────────────────────────────────── */
+.no-api-box {
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius-lg); padding:20px;
+  max-width:340px; text-align:center;
+  font-size:0.9rem; line-height:1.7; color:var(--text-muted);
+}
+.no-api-box strong { color:var(--gold); }
+
+/* ── API统一说明 ──────────────────────────────────────── */
+.api-unified-note {
+  font-size:0.85rem; color:var(--text-muted);
+  line-height:1.6; padding:10px 0;
+}
+
+/* ── 滚动条样式 ───────────────────────────────────────── */
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--gold-line); border-radius:2px; }
+
+/* ── 装饰性金色分割线 ─────────────────────────────────── */
+.gold-separator {
+  border:none; height:1px;
+  background:linear-gradient(to right, transparent, var(--gold-line), transparent);
+  margin:16px 0;
+}
+
+/* ── 背包工具栏 ───────────────────────────────────────── */
+.inv-tools {
+  display:flex; gap:8px; margin-top:14px;
+}
+.inv-tool-btn {
+  flex:1; padding:11px 8px; font-size:0.82rem; letter-spacing:1px;
+  border:1px solid var(--gold-line); color:var(--gold);
+  border-radius:var(--radius); background:var(--bg-surface);
+  transition:all 0.18s; text-align:center;
+}
+.inv-tool-btn:hover { background:var(--gold-dim); border-color:var(--gold); }
+.inv-tool-market { color:#8fbc8f; border-color:rgba(143,188,143,0.4); }
+.inv-tool-market:hover { background:rgba(143,188,143,0.1); border-color:#8fbc8f; }
+
+.inv-section-label {
+  font-size:0.72rem; color:var(--gold); letter-spacing:1px;
+  padding:10px 0 6px; border-bottom:1px solid var(--gold-dim);
+  margin-bottom:6px;
+}
+.inv-material { opacity:0.85; }
+.qual-tag {
+  display:inline-block; font-size:0.65rem; padding:1px 5px;
+  border-radius:4px; margin-left:5px; vertical-align:middle;
+}
+.qt-perfect { background:rgba(201,168,76,.2); color:var(--gold); border:1px solid var(--gold-line); }
+.qt-poor    { background:rgba(100,100,100,.2); color:var(--text-muted); border:1px solid rgba(100,100,100,.3); }
+
+/* ── 扩展底部弹窗高度 ─────────────────────────────────── */
+.modal-tall { max-height:82vh; display:flex; flex-direction:column; }
+.modal-tall .modal-body { flex:1; overflow-y:auto; }
+
+/* ══════════════════════════════════════════════════════
+   战斗系统
+══════════════════════════════════════════════════════ */
+.combat-fullscreen {
+  position:fixed; inset:0;
+  background:rgba(7,5,14,0.97);
+  z-index:300;
+  display:flex; flex-direction:column;
+}
+.combat-header {
+  padding:14px 16px;
+  border-bottom:1px solid var(--gold-line);
+  background:var(--bg-panel);
+  flex-shrink:0;
+}
+.combat-title { color:var(--gold); font-size:1rem; letter-spacing:3px; }
+
+.combat-body {
+  flex:1; overflow-y:auto;
+  padding:14px 16px;
+  display:flex; flex-direction:column; gap:12px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.combat-round-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:6px 10px;
+  background:var(--bg-panel); border:1px solid var(--gold-line);
+  border-radius:var(--radius); font-size:0.8rem;
+}
+.combat-round-bar span:first-child { color:var(--gold); }
+.conflict-badge { color:var(--text-muted); font-size:0.75rem; }
+
+.combat-section { display:flex; flex-direction:column; gap:7px; }
+.cs-label { font-size:0.7rem; color:var(--text-muted); letter-spacing:1px; margin-bottom:2px; }
+
+.cu {
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius); padding:10px 12px;
+  transition:opacity 0.3s;
+}
+.cu-dead { opacity:0.35; }
+.cu-top { display:flex; justify-content:space-between; margin-bottom:6px; }
+.cu-name { font-size:0.88rem; color:var(--text); }
+.cu-name em { font-style:normal; font-size:0.72rem; color:var(--red-bright); }
+.cu-hp-num { font-size:0.78rem; color:var(--text-muted); }
+
+.chp-wrap { height:5px; background:var(--bg-panel); border-radius:3px; overflow:hidden; }
+.chp-fill { height:100%; border-radius:3px; transition:width 0.4s; }
+.chp-enemy  { background:var(--red-bright); }
+.chp-ally   { background:var(--gold); }
+.chp-player { background:#5aa85a; }
+.chp-warn   { background:#d4a017; }
+.chp-danger { background:var(--red-bright); animation:pulseHP 0.8s ease infinite; }
+@keyframes pulseHP { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.combat-log {
+  background:var(--bg-panel); border:1px solid var(--gold-dim);
+  border-radius:var(--radius); padding:10px 12px;
+  max-height:120px; overflow-y:auto;
+  display:flex; flex-direction:column; gap:4px;
+}
+.cl-line { font-size:0.78rem; color:var(--text-muted); line-height:1.5; }
+.cl-dim  { color:var(--text-dim); font-style:italic; }
+
+.combat-actions {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px; flex-shrink:0;
+}
+.combat-actions.single { grid-template-columns:1fr; }
+.cbtn {
+  padding:12px 8px; border-radius:var(--radius);
+  font-size:0.82rem; text-align:center; line-height:1.4;
+  border:1px solid; transition:all 0.18s;
+}
+.cbtn small { font-size:0.68rem; color:inherit; opacity:0.7; }
+.cbtn-atk  { background:rgba(139,26,26,.25); border-color:var(--red);      color:var(--text); }
+.cbtn-def  { background:rgba(26,74,90,.25);  border-color:#2a6a8a;          color:var(--text); }
+.cbtn-spc  { background:rgba(201,168,76,.15);border-color:var(--gold-line); color:var(--gold); }
+.cbtn-flee { background:var(--bg-surface);   border-color:var(--gold-line); color:var(--text-muted); }
+.cbtn-end  { background:var(--gold);         border-color:var(--gold);      color:#1a1000; font-size:0.9rem; font-weight:600; }
+.cbtn:hover:not(:disabled) { filter:brightness(1.2); }
+.cbtn:disabled { opacity:0.35; cursor:not-allowed; }
+.combat-rolling {
+  display:flex; justify-content:center; align-items:center;
+  padding:16px; color:var(--text-muted); font-size:0.85rem;
+}
+
+/* ══════════════════════════════════════════════════════
+   炼药系统
+══════════════════════════════════════════════════════ */
+.alch-tabs {
+  display:flex; border-bottom:1px solid var(--gold-line);
+}
+.alch-tab {
+  flex:1; padding:11px 0; font-size:0.82rem; color:var(--text-muted);
+  border-bottom:2px solid transparent; transition:all 0.18s;
+  text-align:center; letter-spacing:1px;
+}
+.alch-tab.on { color:var(--gold); border-bottom-color:var(--gold); }
+.alch-tab:hover { color:var(--text); }
+
+#alch-body {
+  overflow-y:auto; padding:12px 14px;
+  max-height:calc(80vh - 120px);
+}
+
+.alch-mat {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 0; border-bottom:1px solid var(--gold-dim);
+}
+.alch-origin {
+  width:22px; height:22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.7rem; font-weight:600; flex-shrink:0;
+}
+.origin-east    { background:rgba(139,26,26,.4);  color:#e8a0a0; }
+.origin-west    { background:rgba(26,44,90,.4);   color:#a0b8e8; }
+.origin-special { background:rgba(74,40,100,.4);  color:#c8a0e8; }
+.alch-mat-info  { flex:1; min-width:0; }
+.alch-mat-name  { font-size:0.88rem; color:var(--text); }
+.alch-mat-desc  { font-size:0.72rem; color:var(--text-muted); margin-top:1px; }
+.alch-mat-qty   { font-size:0.82rem; color:var(--gold); flex-shrink:0; }
+
+.alch-recipe {
+  background:var(--bg-surface); border:1px solid var(--gold-dim);
+  border-radius:var(--radius); padding:11px 12px; margin-bottom:8px;
+}
+.alch-can { border-color:var(--gold-line); }
+.alch-r-header { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.alch-icon { font-size:1rem; color:var(--gold); }
+.alch-r-name { font-size:0.9rem; color:var(--text); flex:1; }
+.alch-r-tag { font-size:0.65rem; color:var(--text-dim); letter-spacing:1px; }
+.alch-can-badge {
+  font-size:0.65rem; padding:2px 6px;
+  background:rgba(201,168,76,.2); color:var(--gold);
+  border:1px solid var(--gold-line); border-radius:4px;
+}
+.alch-r-desc { font-size:0.78rem; color:var(--text-muted); margin-bottom:6px; line-height:1.5; }
+.alch-r-ing  { font-size:0.72rem; line-height:1.8; }
+.req-ok   { color:#8fbc8f; margin-right:6px; }
+.req-miss { color:var(--red-bright); margin-right:6px; }
+
+.alch-brew-row {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px 0; border-bottom:1px solid var(--gold-dim);
+}
+.btn-brew {
+  padding:8px 14px; font-size:0.82rem;
+  background:var(--gold); color:#1a1000;
+  border-radius:var(--radius); font-weight:600;
+  flex-shrink:0; transition:opacity 0.18s;
+}
+.btn-brew:hover { opacity:0.85; }
+
+/* ── 炼制结果提示 ─────────────────────────────────────── */
+.brew-toast {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+  z-index:250; padding:10px 20px; border-radius:999px;
+  font-size:0.85rem; white-space:nowrap;
+  border:1px solid; pointer-events:none;
+}
+.qt-perfect { background:rgba(201,168,76,.2); border-color:var(--gold);     color:var(--gold); }
+.qt-normal  { background:rgba(143,188,143,.15);border-color:#8fbc8f;        color:#8fbc8f; }
+.qt-poor    { background:rgba(120,100,80,.2);  border-color:var(--text-muted);color:var(--text-muted); }
+.qt-fail    { background:rgba(201,48,48,.2);   border-color:var(--red-bright);color:var(--red-bright); }
+
+/* ══════════════════════════════════════════════════════
+   黑市系统
+══════════════════════════════════════════════════════ */
+.market-gold-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 14px; margin-bottom:10px;
+  background:var(--bg-card); border:1px solid var(--gold-line);
+  border-radius:var(--radius); font-size:0.85rem;
+}
+.market-gold-num { color:var(--gold); font-weight:600; font-size:1rem; }
+
+.market-cat-title {
+  font-size:0.72rem; color:var(--gold); letter-spacing:2px;
+  padding:8px 0 4px; border-bottom:1px solid var(--gold-dim);
+  margin-bottom:6px;
+}
+
+.market-item {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--gold-dim);
+}
+.market-item-info { flex:1; min-width:0; }
+.market-item-name { font-size:0.88rem; color:var(--text); margin-bottom:3px; }
+.market-item-desc { font-size:0.74rem; color:var(--text-muted); line-height:1.5; }
+.market-item-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; }
+.market-item-price { font-size:0.82rem; color:var(--gold); }
+.btn-buy {
+  padding:6px 12px; font-size:0.78rem;
+  background:var(--bg-card); color:var(--gold);
+  border:1px solid var(--gold-line); border-radius:var(--radius);
+  transition:all 0.18s; white-space:nowrap;
+}
+.btn-buy:hover { background:var(--gold-dim); border-color:var(--gold); }
+.btn-buy.insufficient { opacity:0.35; cursor:not-allowed; }
+.market-msg {
+  padding:8px 16px; font-size:0.82rem; text-align:center;
+  border-top:1px solid var(--gold-dim);
+}
+.market-msg-ok  { color:var(--gold); }
+.market-msg-err { color:var(--red-bright); }
+
+</style>
+</head>
+<body>
+
+<!-- 返回里世界（仅在非游戏界面显示悬浮按钮） -->
+<a class="liworld-back" href="../../index.html">← 返回里世界</a>
+
+<!-- ═══════════════════════════════════════════════
+     API未配置提示界面
+═══════════════════════════════════════════════ -->
+<div id="screen-no-api" class="screen">
+  <div class="setup-container">
+    <div class="setup-logo">
+      <span class="logo-east">仙</span>
+      <span class="logo-divider">·</span>
+      <span class="logo-west">✦</span>
+    </div>
+    <h1 class="setup-title">魔法学院<br><span>异乡仙途</span></h1>
+    <div class="no-api-box">
+      <p>未读取到<strong>全局 API 配置</strong>。</p>
+      <p>本游戏与「里世界」及其它游戏共用同一套全局 API 设置（localStorage 键 LW_API_URL / KEY / MODEL）。请到里世界首页设置一次，所有游戏即可共用。</p>
+      <a href="../../index.html" class="btn-primary" style="display:block;text-align:center;text-decoration:none;margin-top:16px;">前往里世界设置全局 API →</a>
+      <p style="font-size:.8rem;color:#9a93a8;margin-top:14px;">提示：把本文件放在项目里的 <code>games/cod-hogwarts/index.html</code> 位置（与里世界主页同源），即可自动读取上面那条全局配置，无需在此重复填写。</p>
+
+      <details style="margin-top:16px;text-align:left;border-top:1px solid #2a2438;padding-top:12px;">
+        <summary style="cursor:pointer;color:#c9a84c;font-size:.9rem;">▸ 备用：在此直接填写（将写入全局 API 设置）</summary>
+        <p style="font-size:.8rem;color:#9a93a8;margin:8px 0;">若因同源隔离读不到主页配置，可在此填写。保存后写入的就是全局键，与里世界共用。</p>
+        <label style="display:block;font-size:.85rem;margin:6px 0 2px;">API 地址（base url，到 /v1）</label>
+        <input id="lw-cfg-url" placeholder="https://api.openai.com/v1" style="width:100%;box-sizing:border-box;padding:9px;border-radius:7px;border:1px solid #3a3450;background:#15101f;color:#e8e3d8;">
+        <label style="display:block;font-size:.85rem;margin:8px 0 2px;">API Key</label>
+        <input id="lw-cfg-key" type="password" placeholder="sk-..." style="width:100%;box-sizing:border-box;padding:9px;border-radius:7px;border:1px solid #3a3450;background:#15101f;color:#e8e3d8;">
+        <label style="display:block;font-size:.85rem;margin:8px 0 2px;">模型名</label>
+        <input id="lw-cfg-model" placeholder="gpt-4o-mini" style="width:100%;box-sizing:border-box;padding:9px;border-radius:7px;border:1px solid #3a3450;background:#15101f;color:#e8e3d8;">
+        <button id="lw-cfg-save" class="btn-primary" style="margin-top:12px;width:100%;">保存到全局并进入游戏</button>
+        <div id="lw-cfg-msg" style="font-size:.82rem;margin-top:8px;color:#9a93a8;"></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     Creation Screen — 角色创建
+═══════════════════════════════════════════════ -->
+<div id="screen-creation" class="screen">
+  <div class="screen-scrollable">
+    <div class="screen-header">
+      <h2>创建角色</h2>
+      <p class="subtitle">来自东方的交换生，修炼仙术</p>
+    </div>
+
+    <div class="form-section" style="max-width:100%">
+      <div class="form-row">
+        <div class="form-group half">
+          <label>姓名</label>
+          <input id="char-name" type="text" placeholder="你的名字" maxlength="16">
+        </div>
+        <div class="form-group half">
+          <label>年龄</label>
+          <input id="char-age" type="number" placeholder="17" min="15" max="20">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>外貌特征</label>
+        <textarea id="char-appearance" placeholder="描述发色、眼色、外貌风格..." rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>性格特点</label>
+        <textarea id="char-personality" placeholder="描述性格、特质、习惯..." rows="3"></textarea>
+      </div>
+
+      <div class="form-divider">— 魔杖（伪装融入，实际不依赖）—</div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>木材</label>
+          <input id="wand-wood" type="text" placeholder="青竹">
+        </div>
+        <div class="form-group half">
+          <label>内核</label>
+          <input id="wand-core" type="text" placeholder="白虎须">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>长度</label>
+        <input id="wand-length" type="text" placeholder="10英寸">
+      </div>
+    </div>
+
+    <button id="btn-creation-next" class="btn-primary">前往分院仪式 →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     Sorting Screen — 分院仪式
+═══════════════════════════════════════════════ -->
+<div id="screen-sorting" class="screen">
+  <div class="screen-scrollable">
+    <div class="sorting-hat-container">
+      <div class="sorting-hat-icon">⌂</div>
+      <h2>分院帽</h2>
+      <p class="sorting-subtitle" id="sorting-subtitle">分院帽正在审视你的内心...</p>
+    </div>
+
+    <div id="sorting-questions"></div>
+
+    <div id="sorting-result" style="display:none">
+      <div class="sorting-result">
+        <div class="result-house-icon" id="result-house-icon"></div>
+        <h2 id="result-house-name"></h2>
+        <p id="result-house-desc"></p>
+        <button id="btn-enter-game" class="btn-primary">踏入霍格沃茨</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     Main Game Screen
+═══════════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+
+  <!-- 顶栏：返回 + 日期时间 + 学院标志 -->
+  <div id="top-bar">
+    <a class="topbar-back" href="../../index.html" title="返回里世界" aria-label="返回里世界">←</a>
+    <div id="game-datetime">
+      <span id="display-date">九月一日</span>
+      <span class="time-dot">·</span>
+      <span id="display-time">清晨</span>
+    </div>
+    <div id="house-badge" class="house-badge"></div>
+  </div>
+
+  <!-- Tab 内容区 -->
+  <div id="tab-content">
+
+    <!-- ── 剧情面板 ── -->
+    <div id="panel-story" class="panel active">
+      <div id="story-scroll-area">
+        <div id="story-text">
+          <div class="story-placeholder">故事即将开始...</div>
+        </div>
+        <div id="story-loading" style="display:none">
+          <div class="loading-wave">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <button id="btn-regenerate" class="btn-regenerate" style="display:none">↺ 重新生成</button>
+      </div>
+
+      <div id="options-area">
+        <div id="options-drag-handle">
+          <div class="handle-bar"></div>
+        </div>
+        <div id="options-list"></div>
+        <div id="custom-input-row">
+          <input id="custom-input" type="text" placeholder="自定义行动...">
+          <button id="btn-send">发</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 角色面板 ── -->
+    <div id="panel-characters" class="panel">
+      <div class="panel-scroll">
+        <div id="house-accordion"></div>
+      </div>
+    </div>
+
+    <!-- ── 背包面板 ── -->
+    <div id="panel-inventory" class="panel">
+      <div class="panel-scroll">
+        <div class="panel-title">背包</div>
+        <div id="gold-display" class="gold-display">
+          <span>金加隆</span>
+          <span id="gold-amount">50</span>
+        </div>
+        <div id="inventory-list">
+          <div class="empty-hint">背包空空如也</div>
+        </div>
+        <div class="inv-tools">
+          <button id="btn-open-alchemy" class="inv-tool-btn">✦ 炼药工坊</button>
+          <button id="btn-open-market" class="inv-tool-btn inv-tool-market" style="display:none">🏪 黑市</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 记录面板 ── -->
+    <div id="panel-records" class="panel">
+      <div class="panel-scroll">
+
+        <!-- 成就（最上方） -->
+        <div class="records-section">
+          <div class="records-section-title">成就</div>
+          <div class="achievement-summary">
+            已解锁 <span id="achievement-count">0</span> / <span id="achievement-total">64</span>
+          </div>
+          <div id="achievements-grid"></div>
+        </div>
+
+        <!-- 存档 -->
+        <div class="records-section">
+          <div class="records-section-title">存档</div>
+          <div id="save-slots">
+            <div class="save-slot" data-slot="0">
+              <div class="save-info">存档位 1 · 空</div>
+              <div class="save-actions">
+                <button class="btn-save-write" data-slot="0">保存</button>
+                <button class="btn-save-read" data-slot="0">读取</button>
+              </div>
+            </div>
+            <div class="save-slot" data-slot="1">
+              <div class="save-info">存档位 2 · 空</div>
+              <div class="save-actions">
+                <button class="btn-save-write" data-slot="1">保存</button>
+                <button class="btn-save-read" data-slot="1">读取</button>
+              </div>
+            </div>
+            <div class="save-slot" data-slot="2">
+              <div class="save-info">存档位 3 · 空</div>
+              <div class="save-actions">
+                <button class="btn-save-write" data-slot="2">保存</button>
+                <button class="btn-save-read" data-slot="2">读取</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- API说明 -->
+        <div class="records-section">
+          <div class="records-section-title">API 设定</div>
+          <div class="api-unified-note">
+            API 由里世界主页统一管理。当前使用：<br>
+            <span id="api-display-model" style="color:var(--gold)">—</span>
+          </div>
+          <a href="../../index.html" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;margin-top:10px;">前往里世界修改设置</a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 底部导航 -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-panel="story">
+      <div class="nav-icon">卷</div>
+      <div class="nav-label">剧情</div>
+    </button>
+    <button class="nav-btn" data-panel="characters">
+      <div class="nav-icon">人</div>
+      <div class="nav-label">角色</div>
+    </button>
+    <button class="nav-btn" data-panel="inventory">
+      <div class="nav-icon">囊</div>
+      <div class="nav-label">背包</div>
+    </button>
+    <button class="nav-btn" data-panel="records">
+      <div class="nav-icon">册</div>
+      <div class="nav-label">记录</div>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ═══ Modals ════ -->
+<div id="modal-item" class="modal" style="display:none">
+  <div class="modal-backdrop" id="modal-item-backdrop"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modal-item-name"></h3>
+      <button class="modal-close" id="modal-item-close">×</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-item-desc"></p>
+      <p class="modal-item-source">获取方式：<span id="modal-item-source"></span></p>
+    </div>
+    <div class="modal-footer">
+      <button id="btn-use-item" class="btn-primary" style="display:none">使用</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-achievement" class="achievement-popup" style="display:none">
+  <div class="achievement-popup-content">
+    <div class="achievement-popup-icon">✦</div>
+    <div class="achievement-popup-title">成就解锁</div>
+    <div id="achievement-popup-name" class="achievement-popup-name"></div>
+  </div>
+</div>
+
+<!-- ═══ 战斗模态框（全屏）════ -->
+<div id="modal-combat" class="combat-fullscreen" style="display:none">
+  <div class="combat-header">
+    <span class="combat-title">⚔ 战斗</span>
+  </div>
+  <div id="combat-body" class="combat-body"></div>
+</div>
+
+<!-- ═══ 炼药工坊模态框 ════ -->
+<div id="modal-alchemy" class="modal" style="display:none">
+  <div class="modal-backdrop" id="modal-alchemy-backdrop"></div>
+  <div class="modal-content modal-tall">
+    <div class="modal-header">
+      <h3>✦ 炼药工坊</h3>
+      <button class="modal-close" id="modal-alchemy-close">×</button>
+    </div>
+    <div class="modal-body" style="padding:0;overflow:hidden">
+      <div id="alchemy-container" data-tab="materials"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 黑市模态框 ════ -->
+<div id="modal-market" class="modal" style="display:none">
+  <div class="modal-backdrop" id="modal-market-backdrop"></div>
+  <div class="modal-content modal-tall">
+    <div class="modal-header">
+      <h3>地下走廊·黑市</h3>
+      <button class="modal-close" id="modal-market-close">×</button>
+    </div>
+    <div class="modal-body" id="market-modal-body" style="overflow-y:auto;max-height:60vh"></div>
+    <div id="market-msg" class="market-msg" style="display:none"></div>
+  </div>
+</div>
+
+<!-- 炼药结果提示 -->
+<div id="brew-toast" class="brew-toast" style="display:none"></div>
+
+<script>
+/* localStorage safety shim: if storage is blocked (opaque origin / privacy mode),
+   fall back to in-memory so the game still boots instead of showing a blank page. */
+(function(){
+  var ok=false;
+  try{ window.localStorage.setItem('__lwtest__','1'); window.localStorage.removeItem('__lwtest__'); ok=true; }catch(e){}
+  if(ok) return;
+  var mem={};
+  var shim={
+    getItem:function(k){return Object.prototype.hasOwnProperty.call(mem,k)?mem[k]:null;},
+    setItem:function(k,v){mem[k]=String(v);},
+    removeItem:function(k){delete mem[k];},
+    clear:function(){mem={};},
+    key:function(i){return Object.keys(mem)[i]||null;}
+  };
+  Object.defineProperty(shim,'length',{get:function(){return Object.keys(mem).length;}});
+  try{ Object.defineProperty(window,'localStorage',{value:shim,configurable:true}); }
+  catch(e){ try{ window.localStorage=shim; }catch(e2){} }
+})();
+</script>
+<script>
+/* ===== characters.js ===== */
+// ── 角色数据 ──────────────────────────────────────────────
+const HOUSES = {
+  gryffindor: { id:'gryffindor', name:'格兰芬多', en:'GRYFFINDOR', color:'#8b1a1a', accent:'#c9a84c', symbol:'🦁' },
+  slytherin:  { id:'slytherin',  name:'斯莱特林', en:'SLYTHERIN',  color:'#1a4a2a', accent:'#8fbc8f', symbol:'🐍' },
+  ravenclaw:  { id:'ravenclaw',  name:'拉文克劳', en:'RAVENCLAW',  color:'#1a2a5c', accent:'#b8c4e8', symbol:'🦅' },
+  hufflepuff: { id:'hufflepuff', name:'赫奇帕奇', en:'HUFFLEPUFF', color:'#4a3a00', accent:'#f0c040', symbol:'🦡' }
+};
+
+const LOCATIONS = {
+  hall:            { id:'hall',            name:'大厅',       zh:'大厅' },
+  library:         { id:'library',         name:'图书馆',     zh:'图书馆' },
+  blackLake:       { id:'blackLake',       name:'黑湖边',     zh:'黑湖边' },
+  trainingGround:  { id:'trainingGround',  name:'训练场',     zh:'训练场' },
+  observatory:     { id:'observatory',     name:'天文台',     zh:'天文台' },
+  forbiddenForest: { id:'forbiddenForest', name:'禁忌森林边', zh:'禁忌森林边' },
+  commonRoom:      { id:'commonRoom',      name:'公共休息室', zh:'公共休息室' },
+  dormitory:       { id:'dormitory',       name:'寝室',       zh:'寝室' },
+  classroom:       { id:'classroom',       name:'课堂',       zh:'课堂' },
+  blackMarket:     { id:'blackMarket',     name:'地下走廊',   zh:'地下走廊' },
+  unknown:         { id:'unknown',         name:'未知',       zh:'未知' }
+};
+
+// 好感度阶段
+const AFFECTION_STAGES = [
+  { id:0, name:'陌生人', range:[0,20] },
+  { id:1, name:'相识',   range:[21,40] },
+  { id:2, name:'信任',   range:[41,60] },
+  { id:3, name:'亲密',   range:[61,80] },
+  { id:4, name:'心动',   range:[81,100] }
+];
+
+function getAffectionStage(value) {
+  return AFFECTION_STAGES.findLast(s => value >= s.range[0]) || AFFECTION_STAGES[0];
+}
+
+// 数值阶段上限
+const CHARACTERS = [
+  {
+    id: 'ghost',
+    name: 'Ghost',
+    fullName: 'Simon "Ghost" Riley',
+    house: 'gryffindor',
+    language: 'en', langLabel: '英语',
+    color: '#4a5568',
+    combatStats: { atk:3, def:2, special:'单体暗杀：首轮攻击DC-2' },
+    locationWeights: { hall:1, library:2, blackLake:4, trainingGround:3, observatory:3, forbiddenForest:4 },
+    personality: `Ghost（Simon Riley）：极度沉默，冷峻，话极少但每句有分量。永远戴着骷髅图案的面罩/围巾，没人见过他完整的脸。经历过背叛与丧失，不轻易信任任何人。一旦把人纳入保护圈，不问对错先护短，事后私下告诉对方哪里做错了，但外人无权置喙。对玩家初始态度：漠视。说话：英式英语，极简，偶有冷刺，从不解释自己。`,
+    heartGuard: true,
+    initialLocation: 'unknown',
+    initialPsychology: '用惯常的冷漠扫了一眼这个新来的东方学生，没有多余的反应。'
+  },
+  {
+    id: 'price',
+    name: 'Price',
+    fullName: 'John Price',
+    house: 'gryffindor',
+    language: 'en', langLabel: '英语',
+    color: '#6b5a3e',
+    combatStats: { atk:2, def:3, special:'策略加成：全队修正+1' },
+    locationWeights: { hall:3, library:3, blackLake:2, trainingGround:4, observatory:2, forbiddenForest:2 },
+    personality: `Price（John Price）：沉稳老练，有大局观。戴旧式圆顶礼帽，手边常有一杯茶。走到哪里都有人自然向他靠拢，像一个不显山露水的指挥官。背负着许多人的性命，习惯了把责任一个人扛。对玩家：中立审视，不排斥但暗中观察你够不够格。说话：英式英语，平稳，偶有冷幽默。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '观察着这个东方交换生，判断她在这里会扮演什么角色。'
+  },
+  {
+    id: 'zimo',
+    name: 'Zimo',
+    fullName: '王志强 "Zimo"',
+    house: 'gryffindor',
+    language: 'zh', langLabel: '中文',
+    color: '#8b1a1a',
+    combatStats: { atk:3, def:2, special:'协同：与玩家同行时互相+1' },
+    locationWeights: { hall:4, library:2, blackLake:3, trainingGround:5, observatory:2, forbiddenForest:3 },
+    personality: `Zimo（王志强）：白切黑。对谁都笑，对谁都热情，嘘寒问暖、仗义帮忙，是全学院最好打交道的人——但他真正在乎的人极少，那个圈子是铁板一块。圈外的热情是处事方式，不是真心。衣领上别着红星徽章。独自在西方世界里，见到玩家这个东方人时有一种只有他自己知道的触动。说话：中文，干练，有军人气质。笑容没有任何破绽——这才是最大的破绽。`,
+    heartGuard: true,
+    initialLocation: 'unknown',
+    initialPsychology: '注意到了这个东方交换生。表面上和对所有人一样热情地打量着她，内心有些不一样的东西在活动，但他不会表露。'
+  },
+  {
+    id: 'nikto',
+    name: 'Nikto',
+    fullName: 'Nikto',
+    house: 'slytherin',
+    language: 'ru', langLabel: '俄语',
+    color: '#2d3748',
+    combatStats: { atk:3, def:2, special:'隐匿：首轮攻击DC-3' },
+    locationWeights: { hall:1, library:3, blackLake:5, trainingGround:2, observatory:4, forbiddenForest:5 },
+    personality: `Nikto：冰冷、计算、沉默得令人不安。永远站在房间最暗的角落观察所有人。有自己严苛的原则，绝不伤无辜。黑暗的过去让他选择彻底隔绝情感。对玩家：无视——但在玩家施法不用魔杖的那一刻，眼神停了一秒。说话：俄语，字极少，密度极高。`,
+    heartGuard: true,
+    initialLocation: 'unknown',
+    initialPsychology: '从暗处注意到了那个不依赖魔杖施法的东方学生。数据已经记录在脑中，暂时不需要行动。'
+  },
+  {
+    id: 'krueger',
+    name: 'Krueger',
+    fullName: 'Sebastian Krueger',
+    house: 'slytherin',
+    language: 'de', langLabel: '德语',
+    color: '#5a4a3a',
+    combatStats: { atk:3, def:2, special:'强攻：DC≥20时攻击+2' },
+    locationWeights: { hall:3, library:1, blackLake:2, trainingGround:5, observatory:1, forbiddenForest:3 },
+    personality: `Krueger：冷静，尊重人，嘴毒但幽默，看起来有点冷淡像花花公子——但与实际不符。曾被人污蔑了某些罪行，真相从未完全洗清，他对此不辩解，懒得对不值得的人证明自己。这让他对所有人都有一道看不见的门。实际上极度专情，重义气，能力远超他平时表现出来的。对玩家：不冷落不热情，尊重是基本礼貌，但不主动靠近，观察你够不够格让他开口多说一句。说话：德语，平稳有力，没有客套，一句话能戳到点上。`,
+    heartGuard: true,
+    initialLocation: 'unknown',
+    initialPsychology: '用那种习惯性的冷静目光扫了一眼新来的交换生。暂时没有特别的判断。'
+  },
+  {
+    id: 'graves',
+    name: 'Graves',
+    fullName: 'Philip Graves',
+    house: 'slytherin',
+    language: 'en', langLabel: '英语（南方口音）',
+    color: '#5a3a1a',
+    combatStats: { atk:2, def:2, special:'再roll：每场战斗可使用一次重投' },
+    locationWeights: { hall:5, library:2, blackLake:3, trainingGround:2, observatory:3, forbiddenForest:1 },
+    personality: `Graves（Philip Graves）：魅力四射，能言善道，永远是房间里最轻松的那个人——但每句话都有目的。立刻热情，立刻"关照"，让你感觉被重视——这本身就应该让你警惕。不是纯粹的坏人，有自己扭曲但完整的逻辑，在某些关键时刻会出乎意料地真实。对玩家：立刻展现魅力，想知道这个会飞又不用魔杖的东方学生能被他如何利用，或者能给他带来什么。说话：美式英语，南方口音，慢条斯理如蜜糖。永远西装笔挺，笑容永远合适。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '已经对这个东方交换生的特殊能力产生了兴趣。正在思考如何以最自然的方式接近。'
+  },
+  {
+    id: 'keegan',
+    name: 'Keegan',
+    fullName: 'Keegan P. Russ',
+    house: 'ravenclaw',
+    language: 'en', langLabel: '英语',
+    color: '#2a4a6a',
+    combatStats: { atk:3, def:1, special:'远程压制：特定场景+2' },
+    locationWeights: { hall:2, library:4, blackLake:2, trainingGround:3, observatory:4, forbiddenForest:3 },
+    personality: `Keegan：表面体贴周到、观察入微，总在你需要之前就把事情安排好了——但仔细想想，他每一次"恰好"都踩在点上。以退为进是他的本能：从不强迫，永远给你空间，但那个空间是他量好的。像一只安静的狐狸，笑着看你，让你觉得被照顾，又说不清楚被算计了没有。真正动心时，他自己可能也没意识到那次的"体贴"已经不一样了。随身带着密密麻麻写满分析的笔记本。说话：美式英语，语速慢，措辞精准。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '在脑子里建立了关于这个东方交换生的初步档案。她的灵力让他的分析模型出现了几个无法解释的变量。'
+  },
+  {
+    id: 'horangi',
+    name: 'Horangi',
+    fullName: 'Horangi',
+    house: 'ravenclaw',
+    language: 'ko', langLabel: '韩语',
+    color: '#3a4a2a',
+    combatStats: { atk:2, def:3, special:'反击：防御成功后自动反击+1' },
+    locationWeights: { hall:3, library:2, blackLake:3, trainingGround:4, observatory:2, forbiddenForest:4 },
+    personality: `Horangi：不羁，散漫，规则对他来说是参考不是约束。说话随意，站没站相，但眼睛很亮——是那种经历过很多事之后把人看透了的亮。以前赌博成瘾，后来又沾上别的，在某个他不太愿意细说的时间点，自己爬出来了。没有人帮他，他也不觉得这是什么值得拿出来说的事。对玩家：不正经地打量，说了句让人没法接话的评价，但不是恶意的。能力其实极强，只是不爱表现。说话：韩语，随口，带点江湖气。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '懒洋洋地瞟了眼那个东方来的新生。挺有意思。坐下来继续闭眼，但没睡着。'
+  },
+  {
+    id: 'kick',
+    name: 'Kick',
+    fullName: 'Kick',
+    house: 'ravenclaw',
+    language: 'en', langLabel: '英语',
+    color: '#2a5a4a',
+    combatStats: { atk:1, def:1, special:'干扰：使敌人DC-2（黑魔法/机关类）' },
+    locationWeights: { hall:2, library:5, blackLake:1, trainingGround:1, observatory:5, forbiddenForest:1 },
+    personality: `Kick：话痨型天才，脑子转得极快，社交上有些跟不上自己的思维。对所有"异常数据"极度兴奋。当他发现玩家的灵力在他的魔法探测仪器上显示成完全读不懂的波形时，他当场想拉住玩家研究。脖子上挂着各种自制魔法小设备。用技术把自己武装起来，其实非常渴望真正的朋友。说话：美式英语，语速极快，夹杂大量技术词汇和自创缩写。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '正在反复重启手腕上的探测器——读数根本不对。那个东方学生的能量波形让他的数据库出现了前所未有的错误代码。'
+  },
+  {
+    id: 'soap',
+    name: 'Soap',
+    fullName: 'John "Soap" MacTavish',
+    house: 'hufflepuff',
+    language: 'en', langLabel: '英语（苏格兰口音）',
+    color: '#6a3a1a',
+    combatStats: { atk:3, def:1, special:'爆发：单轮+2但次轮-1' },
+    locationWeights: { hall:5, library:1, blackLake:3, trainingGround:5, observatory:1, forbiddenForest:4 },
+    personality: `Soap（John MacTavish）：精力充沛、自来熟、大大咧咧，但实际上心思很细。标志性莫霍克头。嬉皮外表下有极强的责任感，对朋友的事上心程度超出任何人的预期。对玩家：第一天就打招呼，第三天就当老朋友。说话：苏格兰英语，口音重，语速快，爱用俚语。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '那个不用扫帚就能飞的东方学生！他得去搭话，得去！'
+  },
+  {
+    id: 'gaz',
+    name: 'Gaz',
+    fullName: 'Kyle "Gaz" Garrick',
+    house: 'hufflepuff',
+    language: 'en', langLabel: '英语',
+    color: '#3a5a3a',
+    combatStats: { atk:2, def:2, special:'机动：可切换攻防角色' },
+    locationWeights: { hall:5, library:2, blackLake:3, trainingGround:4, observatory:2, forbiddenForest:3 },
+    personality: `Gaz（Kyle Garrick）：开朗、有亲和力、反应快，走进哪里都能让气氛变轻松。总是笑，真假很难分辨，但对真正的朋友那个笑不一样。观察力极强，很少有事情逃过他的眼睛。对玩家：笑着问你要不要一起去大厅吃饭，没有任何防备。说话：英式英语，轻快随意，偶尔说笑话。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '注意到了新来的交换生，打算找个合适的时机去打个招呼，就像他对所有新人做的那样。'
+  },
+  {
+    id: 'logan',
+    name: 'Logan',
+    fullName: 'Logan Walker',
+    house: 'hufflepuff',
+    language: 'en', langLabel: '英语',
+    color: '#4a4a5a',
+    combatStats: { atk:2, def:2, special:'沉默：隐藏行动成功率提升' },
+    locationWeights: { hall:3, library:4, blackLake:4, trainingGround:3, observatory:3, forbiddenForest:3 },
+    personality: `Logan Walker：安静，内敛，话不多，但总在认真听，而且记得住。比外表坚韧得多，关键时刻从来不退缩。总跟在Hesh附近，但不是依赖——是彼此。对玩家：不主动，但你说话他一定在听。说话：美式英语，轻声，简洁。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '在角落里安静地观察着那个东方来的新生，没有要靠近的意思，但已经在记住她的样子。'
+  },
+  {
+    id: 'hesh',
+    name: 'Hesh',
+    fullName: 'David "Hesh" Walker',
+    house: 'hufflepuff',
+    language: 'en', langLabel: '英语',
+    color: '#5a4a2a',
+    combatStats: { atk:2, def:2, special:'掩护：可替队友承受一次失败' },
+    locationWeights: { hall:4, library:2, blackLake:3, trainingGround:4, observatory:2, forbiddenForest:3 },
+    personality: `Hesh（David Walker）：话比Logan多，有保护欲，情感上比较外放，想法很实际。承担着比他年龄该有的责任，偶尔会累，但不说。跟Logan形影不离，但各有各的独立性格。对玩家友善，但会观察你对Logan是否真诚。说话：美式英语，语气直接，有时候急。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '那个东方学生看起来不像麻烦，但他还是要多留意一下，以防万一。'
+  },
+  {
+    id: 'konig',
+    name: 'König',
+    fullName: 'König',
+    house: 'hufflepuff',
+    language: 'de', langLabel: '德语（奥地利口音）',
+    color: '#3a4a5a',
+    combatStats: { atk:2, def:4, special:'护盾：可将防御分给队友' },
+    locationWeights: { hall:1, library:4, blackLake:4, trainingGround:3, observatory:4, forbiddenForest:3 },
+    personality: `König：极度内向，高大的体型和轻柔的说话声形成反差。会因为被关注而局促不安，帽子永远压得很低，习惯性挡脸。在练习攻击性魔法时与日常形成巨大反差——魔杖一举起来动作精准，没有犹豫，表情冷静到陌生，结束之后又缩回去。一旦真正放开，是那种会记住你说过的每一件小事、然后悄悄为你做到的人。对玩家：回避眼神，但会在走廊转角悄悄让路给你。说话：德语，声音很轻，有时候一句话说到一半就停下来。`,
+    heartGuard: false,
+    initialLocation: 'unknown',
+    initialPsychology: '把帽子压了压，往人少的地方挪了两步。但眼角还是瞟了一眼那个新来的东方学生。'
+  }
+];
+
+// 用id快速查找角色
+const CHAR_MAP = Object.fromEntries(CHARACTERS.map(c => [c.id, c]));
+
+// 分院帽测验题目
+const SORTING_QUESTIONS = [
+  {
+    id: 0,
+    text: '你来到这个陌生的地方，第一件事是——',
+    options: [
+      { text:'找到最危险的地方，看看自己能不能应对', house:'gryffindor' },
+      { text:'观察所有人，记住对你有用的面孔', house:'slytherin' },
+      { text:'找到图书馆，搞清楚这里的规则', house:'ravenclaw' },
+      { text:'找人搭话，先让自己不那么孤单', house:'hufflepuff' }
+    ]
+  },
+  {
+    id: 1,
+    text: '你的灵力和这里的魔法起了冲突，你会——',
+    options: [
+      { text:'硬撑，绝对不在人前倒下', house:'gryffindor' },
+      { text:'悄悄利用这个"异常"当作底牌', house:'slytherin' },
+      { text:'系统研究两种体系，找到规律', house:'ravenclaw' },
+      { text:'向信任的人坦白，寻求帮助', house:'hufflepuff' }
+    ]
+  },
+  {
+    id: 2,
+    text: '队友的失误导致任务失败，你会——',
+    options: [
+      { text:'站出来，替他挡住外界的指责', house:'gryffindor' },
+      { text:'不说什么，但在心里记了一笔', house:'slytherin' },
+      { text:'复盘整个过程，找出根本原因', house:'ravenclaw' },
+      { text:'私下安慰他，帮他把后续收拾好', house:'hufflepuff' }
+    ]
+  },
+  {
+    id: 3,
+    text: '你最无法接受的事是——',
+    options: [
+      { text:'明明可以做点什么，却袖手旁观', house:'gryffindor' },
+      { text:'被人当成棋子，却浑然不知', house:'slytherin' },
+      { text:'用错误的信息做了决定', house:'ravenclaw' },
+      { text:'因为自己让在乎的人受伤', house:'hufflepuff' }
+    ]
+  },
+  {
+    id: 4,
+    text: '力量对你来说意味着——',
+    options: [
+      { text:'保护弱小、对抗不公的能力', house:'gryffindor' },
+      { text:'让自己永远立于不败之地', house:'slytherin' },
+      { text:'比任何人都更清楚地看见真相', house:'ravenclaw' },
+      { text:'让身边的人都能依靠你', house:'hufflepuff' }
+    ]
+  },
+  {
+    id: 5,
+    text: '如果只能留下一样东西，你选——',
+    options: [
+      { text:'勇气', house:'gryffindor' },
+      { text:'决心', house:'slytherin' },
+      { text:'智慧', house:'ravenclaw' },
+      { text:'羁绊', house:'hufflepuff' }
+    ]
+  }
+];
+
+</script>
+<script>
+/* ===== achievements.js ===== */
+// ── 成就数据 ──────────────────────────────────────────────
+const ACHIEVEMENTS = [
+  // 剧情类
+  { id:'arrival',       cat:'story',   icon:'仙', name:'东方来客',    desc:'完成角色创建，踏入霍格沃茨。', hidden:false },
+  { id:'sorted',        cat:'story',   icon:'帽', name:'分院落定',    desc:'经由分院帽测验，被分入学院。', hidden:false },
+  { id:'first_flight',  cat:'story',   icon:'云', name:'第一次离地',  desc:'在众人面前首次御风飞行，不借助任何魔杖或扫帚。', hidden:false },
+  { id:'hotpot_night',  cat:'story',   icon:'锅', name:'火锅之夜',    desc:'与Zimo共用魔药课大锅煮了一顿火锅。', hidden:false },
+  { id:'night_wander',  cat:'story',   icon:'影', name:'夜半游魂',    desc:'使用隐形药水在深夜潜入他人寝室。', hidden:false },
+  { id:'conflict_burst',cat:'story',   icon:'乱', name:'灵魔失控',    desc:'灵魔冲突值达到85，触发灵力暴走事件。', hidden:false },
+  { id:'black_market',  cat:'story',   icon:'廊', name:'黑市常客',    desc:'累计访问地下走廊黑市5次。', hidden:false },
+  { id:'deep_forest',   cat:'story',   icon:'林', name:'禁忌之地',    desc:'进入禁忌森林的深处区域。', hidden:false },
+  { id:'fusion_recipe', cat:'story',   icon:'炉', name:'隐藏处方',    desc:'发现并成功炼制第一个东西混合配方。', hidden:false },
+  { id:'herbal_care',   cat:'story',   icon:'药', name:'中药煎煮',    desc:'为生病的角色熬制东方草药，并亲手送去。', hidden:false },
+  { id:'hat_secret',    cat:'story',   icon:'密', name:'分院帽的话',  desc:'（隐藏）分院帽犹豫了很久才开口。', hidden:true },
+  { id:'midnight_lake', cat:'story',   icon:'湖', name:'深夜黑湖',    desc:'（隐藏）在午夜独自来到黑湖，遇见了某人。', hidden:true },
+
+  // 关系类
+  { id:'first_known',   cat:'relation',icon:'识', name:'被记住了',    desc:'与任意角色达到相识阶段（好感≥21）。', hidden:false },
+  { id:'heart_break',   cat:'relation',icon:'裂', name:'打开一道门',  desc:'首次突破某角色的心防，进入更深的好感阶段。', hidden:false },
+  { id:'ghost_guard',   cat:'relation',icon:'护', name:'保护圈',      desc:'被Ghost纳入他的保护范围。', hidden:false },
+  { id:'konig_look',    cat:'relation',icon:'眼', name:'他抬起了头',  desc:'König第一次主动与你对视，没有回避。', hidden:false },
+  { id:'zimo_mask',     cat:'relation',icon:'白', name:'那不是真心',  desc:'识破Zimo的白切黑面具，看见了他真正在意的东西。', hidden:false },
+  { id:'krueger_truth', cat:'relation',icon:'冤', name:'旧伤',        desc:'听到了Krueger被污蔑的真相。', hidden:false },
+  { id:'horangi_past',  cat:'relation',icon:'牌', name:'过去的味道',  desc:'Horangi提到了他从前赌博的那段日子。', hidden:false },
+  { id:'anon_gift',     cat:'relation',icon:'礼', name:'无名礼物',    desc:'收到一件没有署名的礼物。', hidden:false },
+  { id:'all_known',     cat:'relation',icon:'众', name:'全员相识',    desc:'与14名角色全部达到相识阶段。', hidden:false },
+  { id:'four_houses',   cat:'relation',icon:'四', name:'四院通吃',    desc:'每个学院至少有一名角色达到亲密阶段。', hidden:false },
+  { id:'first_crush',   cat:'relation',icon:'心', name:'第一个心动',  desc:'任意角色达到心动阶段（好感≥81）。', hidden:false },
+  { id:'keegan_web',    cat:'relation',icon:'网', name:'他的网',      desc:'（隐藏）发现Keegan的所有"恰好"都是算计好的。', hidden:true },
+  { id:'ghost_face',    cat:'relation',icon:'颜', name:'面罩之下',    desc:'（隐藏）Ghost在你面前摘下了围巾的下半部分。', hidden:true },
+  { id:'graves_real',   cat:'relation',icon:'真', name:'一次真实',    desc:'（隐藏）Graves在某个关键时刻说了一句没有目的的真话。', hidden:true },
+  { id:'nikto_near',    cat:'relation',icon:'近', name:'他一直在',    desc:'（隐藏）你意识到Nikto出现在你练习场合旁边不是偶然。', hidden:true },
+  { id:'konig_whisper', cat:'relation',icon:'低', name:'那句德语',    desc:'（隐藏）König用德语说了一句话，你听不懂，但语气很轻柔。', hidden:true },
+
+  // 战斗类
+  { id:'first_win',     cat:'combat',  icon:'战', name:'初战告捷',    desc:'赢得第一场战斗。', hidden:false },
+  { id:'nat20',         cat:'combat',  icon:'廿', name:'天然二十',    desc:'在战斗中骰出天然20。', hidden:false },
+  { id:'nat1',          cat:'combat',  icon:'壹', name:'天然一',      desc:'在战斗中骰出天然1，并承受了后果。', hidden:false },
+  { id:'outnumbered',   cat:'combat',  icon:'众', name:'以一敌众',    desc:'单人对抗3名以上敌人并存活。', hidden:false },
+  { id:'defeated',      cat:'combat',  icon:'落', name:'落败',        desc:'第一次HP归零，被某人所救。', hidden:false },
+  { id:'squad_battle',  cat:'combat',  icon:'队', name:'全员出战',    desc:'一场战斗中同时有5名以上角色参与。', hidden:false },
+  { id:'friendly_fire', cat:'combat',  icon:'殃', name:'池鱼之殃',    desc:'冲突值过高导致灵术失控，打到了队友。', hidden:false },
+  { id:'quidditch_fly', cat:'combat',  icon:'飞', name:'御风得分',    desc:'在魁地奇比赛中以御风飞行方式得分。', hidden:false },
+  { id:'perfect_run',   cat:'combat',  icon:'满', name:'无伤通关',    desc:'（隐藏）在一场困难级战斗中未受到任何伤害。', hidden:true },
+  { id:'duo_ghost',     cat:'combat',  icon:'影', name:'双人幽灵',    desc:'（隐藏）与Ghost配合完成一场完美的暗杀战斗。', hidden:true },
+  { id:'surge_control', cat:'combat',  icon:'定', name:'灵力制御',    desc:'（隐藏）在灵力暴走的边缘强行压制成功。', hidden:true },
+  { id:'quidditch_win', cat:'combat',  icon:'杯', name:'学院荣光',    desc:'（隐藏）在魁地奇比赛中帮助学院赢得胜利。', hidden:true },
+
+  // 炼药·探索类
+  { id:'first_brew',    cat:'craft',   icon:'炼', name:'第一炉',      desc:'成功炼制第一个药剂或丹药。', hidden:false },
+  { id:'perfect_brew',  cat:'craft',   icon:'品', name:'极品出炉',    desc:'炼制出极品品质的道具。', hidden:false },
+  { id:'fusion_fail',   cat:'craft',   icon:'炸', name:'灾难配方',    desc:'东西混合配方炼制失败并触发副作用。', hidden:false },
+  { id:'collector',     cat:'craft',   icon:'藏', name:'收藏家',      desc:'收集10种不同的炼药材料。', hidden:false },
+  { id:'all_locations', cat:'craft',   icon:'图', name:'地图探索者',  desc:'解锁游戏中全部地点。', hidden:false },
+  { id:'market_found',  cat:'craft',   icon:'秘', name:'隐藏走廊',    desc:'发现地下黑市的入口。', hidden:false },
+  { id:'lingqi_heal',   cat:'craft',   icon:'愈', name:'灵气疗愈',    desc:'（隐藏）用灵力直接治愈了他人的伤势，而非药剂。', hidden:true },
+  { id:'hotpot_all',    cat:'craft',   icon:'宴', name:'人人皆来',    desc:'（隐藏）火锅夜最终聚集了超过5名角色。', hidden:true },
+  { id:'invis_caught',  cat:'craft',   icon:'见', name:'被发现了',    desc:'（隐藏）使用隐形药水探索时，角色感知到了你的存在。', hidden:true },
+  { id:'dorm_secret',   cat:'craft',   icon:'密', name:'寝室秘密',    desc:'（隐藏）在某人寝室发现了让你改变对他认知的东西。', hidden:true },
+
+  // 数值类
+  { id:'first_break',   cat:'stat',    icon:'破', name:'初窥门径',    desc:'任意数值首次突破阶段上限，进入下一阶段。', hidden:false },
+  { id:'conflict_edge', cat:'stat',    icon:'危', name:'两界之间',    desc:'灵魔冲突值达到85但成功压制，未完全暴走。', hidden:false },
+  { id:'calm_mind',     cat:'stat',    icon:'静', name:'根基稳固',    desc:'心境达到80。', hidden:false },
+  { id:'popular',       cat:'stat',    icon:'众', name:'人见人爱',    desc:'人缘达到80。', hidden:false },
+  { id:'dual_path',     cat:'stat',    icon:'双', name:'学贯中西',    desc:'灵力与魔法学识同时达到60以上。', hidden:false },
+  { id:'max_lingqi',    cat:'stat',    icon:'仙', name:'大乘境',      desc:'（隐藏）灵力突破至满值100。', hidden:true },
+  { id:'zero_conflict', cat:'stat',    icon:'和', name:'两仪归一',    desc:'（隐藏）将灵魔冲突值降至0。', hidden:true },
+
+  // 学院类
+  { id:'house_win',     cat:'house',   icon:'冠', name:'学院荣耀',    desc:'在学期末积分结算中，你的学院排名第一。', hidden:false },
+  { id:'house_last',    cat:'house',   icon:'末', name:'并不重要',    desc:'（隐藏）在学期末积分结算中，你的学院排名最后——但某人说了句让你意外的话。', hidden:true },
+  { id:'house_points',  cat:'house',   icon:'分', name:'积分贡献者',  desc:'单学期内为学院贡献超过100积分。', hidden:false },
+  { id:'quidditch_mvp', cat:'house',   icon:'星', name:'赛场之星',    desc:'在一场魁地奇比赛中获得最高评分。', hidden:false },
+];
+
+const ACH_MAP = Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, a]));
+
+</script>
+<script>
+/* ===== state.js ===== */
+// ── 游戏状态 ──────────────────────────────────────────────
+const SAVE_KEY = 'cod_hogwarts_v1';
+
+function rollD20() { return Math.floor(Math.random() * 20) + 1; }
+const STAT_STAGE_CAPS = { 1:40, 2:60, 3:80, 4:100 };
+
+const TIME_LABELS = {
+  dawn:'黎明', morning:'清晨', forenoon:'上午',
+  noon:'午间', afternoon:'下午', dusk:'傍晚',
+  evening:'夜晚', midnight:'深夜'
+};
+
+const TIME_ORDER = ['dawn','morning','forenoon','noon','afternoon','dusk','evening','midnight'];
+
+const MONTH_NAMES = ['','一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+const DAY_SUFFIX = ['','一','二','三','四','五','六','七','八','九','十',
+  '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+  '二十一','二十二','二十三','二十四','二十五','二十六','二十七','二十八','二十九','三十','三十一'];
+
+function buildInitialCharacterState() {
+  const result = {};
+  CHARACTERS.forEach(c => {
+    result[c.id] = {
+      affection: 0,
+      stage: 0,
+      location: c.initialLocation,
+      psychology: c.initialPsychology,
+      heartGuardBroken: !c.heartGuard,
+      metPlayer: false
+    };
+  });
+  return result;
+}
+
+function createFreshState() {
+  return {
+    phase: 'creation',     // creation | sorting | game
+    player: {
+      name: '',
+      age: '',
+      appearance: '',
+      personality: '',
+      wand: { wood:'', core:'', length:'' },
+      house: '',
+      stats: {
+        lingLi:         { cur:40,  stage:1 },
+        magicKnowledge: { cur:15,  stage:1 },
+        xinJing:        { cur:60,  stage:1 },
+        tiPo:           { cur:50,  stage:1 },
+        renYuan:        { cur:20,  stage:1 }
+      },
+      conflictValue: 10,
+      gold: 50,
+      housePoints: 0,
+      inventory: []
+    },
+    gameDate: {
+      month: 9, day: 1, year: 1,
+      timeOfDay: 'morning'
+    },
+    week: 1,
+    semester: 1,
+    semesterPoints: { gryffindor:0, slytherin:0, ravenclaw:0, hufflepuff:0 },
+    characters: buildInitialCharacterState(),
+    storyHistory: [],
+    currentStory: '',
+    currentOptions: [],
+    unlockedAchievements: [],
+    saves: [null, null, null],
+    sortingScores: { gryffindor:0, slytherin:0, ravenclaw:0, hufflepuff:0 },
+    sortingAnswerIndex: 0,
+    blackMarketVisits: 0,
+    combat: null,
+    flags: {}  // general purpose story flags
+  };
+}
+
+let G = createFreshState();
+
+// ── 日期时间工具 ─────────────────────────────────────────
+function formatDate() {
+  return `${MONTH_NAMES[G.gameDate.month]}${DAY_SUFFIX[G.gameDate.day]}日`;
+}
+
+function formatTime() {
+  return TIME_LABELS[G.gameDate.timeOfDay] || G.gameDate.timeOfDay;
+}
+
+function advanceTime(opts = {}) {
+  if (opts.timeOfDay) {
+    G.gameDate.timeOfDay = opts.timeOfDay;
+  }
+  const daysToAdd = opts.days || 0;
+  if (daysToAdd > 0) {
+    G.gameDate.day += daysToAdd;
+    const daysInMonth = [0,31,28,31,30,31,30,31,31,30,31,30,31];
+    while (G.gameDate.day > daysInMonth[G.gameDate.month]) {
+      G.gameDate.day -= daysInMonth[G.gameDate.month];
+      G.gameDate.month++;
+      if (G.gameDate.month > 12) { G.gameDate.month = 1; G.gameDate.year++; }
+    }
+    G.gameDate.week = Math.floor((G.gameDate.day - 1) / 7) + 1;
+  }
+}
+
+// ── 数值工具 ──────────────────────────────────────────────
+function getStatMax(statKey) {
+  const stage = G.player.stats[statKey]?.stage || 1;
+  return STAT_STAGE_CAPS[stage] || 40;
+}
+
+function changeStat(statKey, delta) {
+  const stat = G.player.stats[statKey];
+  if (!stat) return;
+  const max = getStatMax(statKey);
+  stat.cur = Math.max(0, Math.min(max, stat.cur + delta));
+}
+
+function changeConflict(delta) {
+  G.player.conflictValue = Math.max(0, Math.min(100, G.player.conflictValue + delta));
+}
+
+function getConflictLevel() {
+  const v = G.player.conflictValue;
+  if (v >= 85) return 'critical';
+  if (v >= 65) return 'high';
+  if (v >= 40) return 'medium';
+  return 'normal';
+}
+
+// ── 好感度工具 ────────────────────────────────────────────
+function changeAffection(charId, delta) {
+  const cs = G.characters[charId];
+  if (!cs) return;
+  cs.affection = Math.max(0, Math.min(100, cs.affection + delta));
+  let newStage = 0;
+  AFFECTION_STAGES.forEach((stage, index) => {
+    if (cs.affection >= stage.range[0]) newStage = index;
+  });
+  if (newStage > cs.stage) {
+    cs.stage = newStage;
+    return 'stage_up';
+  }
+  return null;
+}
+
+function getAffectionLabel(charId) {
+  const cs = G.characters[charId];
+  if (!cs) return '';
+  return AFFECTION_STAGES[cs.stage]?.name || '陌生人';
+}
+
+// ── 背包工具 ──────────────────────────────────────────────
+function addItem(item) {
+  const existing = G.player.inventory.find(i => i.id === item.id);
+  if (existing) {
+    existing.quantity = (existing.quantity || 1) + (item.quantity || 1);
+  } else {
+    G.player.inventory.push({ ...item, quantity: item.quantity || 1 });
+  }
+}
+
+function removeItem(itemId, qty = 1) {
+  const idx = G.player.inventory.findIndex(i => i.id === itemId);
+  if (idx === -1) return false;
+  G.player.inventory[idx].quantity -= qty;
+  if (G.player.inventory[idx].quantity <= 0) G.player.inventory.splice(idx, 1);
+  return true;
+}
+
+// ── 成就工具 ──────────────────────────────────────────────
+function unlockAchievement(id) {
+  if (G.unlockedAchievements.includes(id)) return false;
+  G.unlockedAchievements.push(id);
+  return true;
+}
+
+function isAchievementUnlocked(id) {
+  return G.unlockedAchievements.includes(id);
+}
+
+// ── 存档工具 ──────────────────────────────────────────────
+function saveToSlot(slot) {
+  G.saves[slot] = {
+    data: JSON.parse(JSON.stringify(G)),
+    timestamp: Date.now(),
+    dateLabel: formatDate(),
+    timeLabel: formatTime()
+  };
+  persistAll();
+}
+
+function loadFromSlot(slot) {
+  const save = G.saves[slot];
+  if (!save) return false;
+  const savedSaves = G.saves;
+  Object.assign(G, JSON.parse(JSON.stringify(save.data)));
+  G.saves = savedSaves;
+  return true;
+}
+
+function persistAll() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(G));
+  } catch(e) {
+    console.warn('Save failed:', e);
+  }
+}
+
+// 修复旧版本/损坏存档的结构漂移，确保任何异常存档都不会让玩家卡死。
+function sanitizeState() {
+  if (!G || typeof G !== 'object') { G = createFreshState(); return; }
+  const fresh = createFreshState();
+
+  // 核心容器缺失时补齐
+  if (!G.player || typeof G.player !== 'object') G.player = fresh.player;
+  if (!G.player.stats) G.player.stats = fresh.player.stats;
+  if (!G.player.wand)  G.player.wand  = fresh.player.wand;
+  if (!Array.isArray(G.player.inventory)) G.player.inventory = [];
+  if (!G.gameDate) G.gameDate = fresh.gameDate;
+  if (!Array.isArray(G.currentOptions))      G.currentOptions = [];
+  if (!Array.isArray(G.storyHistory))        G.storyHistory = [];
+  if (!Array.isArray(G.unlockedAchievements))G.unlockedAchievements = [];
+  if (!Array.isArray(G.saves))               G.saves = [null, null, null];
+  if (!G.flags)         G.flags = {};
+  if (!G.sortingScores) G.sortingScores = fresh.sortingScores;
+  if (typeof G.sortingAnswerIndex !== 'number') G.sortingAnswerIndex = 0;
+
+  // 角色状态缺失/不完整时补齐
+  if (!G.characters || typeof G.characters !== 'object' || !Object.keys(G.characters).length) {
+    G.characters = buildInitialCharacterState();
+  } else {
+    const init = buildInitialCharacterState();
+    Object.keys(init).forEach(id => { if (!G.characters[id]) G.characters[id] = init[id]; });
+  }
+
+  // 学院字段归一化：非法/旧版取值一律清空
+  if (G.player.house && !HOUSES[G.player.house]) G.player.house = '';
+
+  // 可恢复性校验：phase=game 却没有有效学院，说明该存档从未真正完成
+  // 角色创建+分院（旧版本或损坏数据）。直接重置为全新存档，让玩家正常走
+  // 角色创建 → 分院 → 序章流程，而不是卡在占位文字上。
+  if (G.phase === 'game' && !HOUSES[G.player.house]) {
+    G = createFreshState();
+  }
+}
+
+function loadAll() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    Object.assign(G, parsed);
+    sanitizeState();
+    return true;
+  } catch(e) {
+    // 存档解析失败 → 用全新状态兜底，绝不让损坏数据阻塞游戏启动。
+    G = createFreshState();
+    return false;
+  }
+}
+
+// ── AI状态更新应用 ────────────────────────────────────────
+function applyStateUpdate(update) {
+  if (!update) return;
+
+  if (update.dateChange) advanceTime(update.dateChange);
+
+  if (update.statChanges) {
+    Object.entries(update.statChanges).forEach(([k, v]) => changeStat(k, v));
+  }
+  if (update.conflictChange) changeConflict(update.conflictChange);
+
+  if (update.affectionChanges) {
+    Object.entries(update.affectionChanges).forEach(([k, v]) => changeAffection(k, v));
+  }
+
+  if (update.characterUpdates) {
+    Object.entries(update.characterUpdates).forEach(([id, data]) => {
+      if (G.characters[id]) {
+        if (data.location)   G.characters[id].location   = data.location;
+        if (data.psychology) G.characters[id].psychology = data.psychology;
+        if (data.metPlayer !== undefined) G.characters[id].metPlayer = data.metPlayer;
+      }
+    });
+  }
+
+  if (update.inventoryAdd) {
+    update.inventoryAdd.forEach(item => addItem(item));
+  }
+
+  if (update.goldChange) {
+    G.player.gold = Math.max(0, G.player.gold + update.goldChange);
+  }
+
+  if (update.housePointsChange) {
+    G.player.housePoints = Math.max(0, G.player.housePoints + update.housePointsChange);
+    const h = G.player.house;
+    if (h) G.semesterPoints[h] = Math.max(0, (G.semesterPoints[h]||0) + update.housePointsChange);
+  }
+
+  if (update.flagsSet) {
+    Object.assign(G.flags, update.flagsSet);
+  }
+
+  if (update.achievementsUnlock) {
+    update.achievementsUnlock.forEach(id => unlockAchievement(id));
+  }
+
+  if (update.blackMarketVisit) {
+    G.blackMarketVisits++;
+    if (G.blackMarketVisits >= 5) unlockAchievement('black_market');
+  }
+
+  if (update.ingredientDrop) {
+    update.ingredientDrop.forEach(item => addItem({ ...item, type: item.type || 'ingredient' }));
+  }
+
+  persistAll();
+}
+
+</script>
+<script>
+/* ===== api.js ===== */
+// ── API 工具 ──────────────────────────────────────────────
+function getApiConfig() {
+  return {
+    url:   localStorage.getItem('LW_API_URL') || '',
+    key:   localStorage.getItem('LW_API_KEY') || '',
+    model: localStorage.getItem('LW_API_MODEL') || ''
+  };
+}
+
+function extractApiText(data) {
+  const clean = value => {
+    if (Array.isArray(value)) return value.map(clean).filter(Boolean).join('\n').trim();
+    if (value && typeof value === 'object') {
+      return clean(value.text ?? value.content ?? value.output_text ?? value.value ?? '');
+    }
+    return String(value ?? '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  };
+  const candidates = [
+    data?.choices?.[0]?.message?.content,
+    data?.choices?.[0]?.message?.reasoning_content,
+    data?.choices?.[0]?.message?.reasoning,
+    data?.choices?.[0]?.delta?.content,
+    data?.choices?.[0]?.text,
+    data?.output_text,
+    data?.output,
+    data?.response,
+    data?.text,
+    data?.content,
+    data?.candidates?.[0]?.content?.parts,
+    data?.candidates?.[0]?.content,
+    data?.result?.choices?.[0]?.message?.content,
+    data?.data?.choices?.[0]?.message?.content
+  ];
+  for (const value of candidates) {
+    const text = clean(value);
+    if (text) return text;
+  }
+  return '';
+}
+
+async function callAPI(messages, opts = {}) {
+  const cfg = getApiConfig();
+  if (!cfg.key) throw new Error('未设置 API Key，请返回首页设置。');
+  if (!cfg.model) throw new Error('未选择模型，请返回首页设置。');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 180000);
+
+  const payload = {
+    model: cfg.model,
+    messages,
+    max_tokens: opts.max_tokens || 2000,
+    temperature: opts.temperature ?? 0.9
+  };
+
+  try {
+    if (cfg.url) {
+      const base = cfg.url.replace(/\/+$/, '');
+      const endpoint = /\/chat\/completions$/i.test(base)
+        ? base
+        : (base.endsWith('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`);
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${cfg.key}` },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`);
+      }
+      const json = await res.json();
+      const text = extractApiText(json);
+      if (!text) throw new Error(`API返回空内容，请检查模型名称是否正确（status:${res.status}）`);
+      return text;
+    }
+
+    // Anthropic fallback
+    const sys = messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n');
+    const rest = messages.filter(m => m.role !== 'system');
+    if (!rest.length) rest.push({ role:'user', content:'继续' });
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json',
+        'x-api-key': cfg.key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model: cfg.model,
+        system: sys || undefined,
+        messages: rest,
+        max_tokens: opts.max_tokens || 2000,
+        temperature: opts.temperature ?? 0.9
+      }),
+      signal: controller.signal
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`API错误 ${res.status}: ${err.slice(0,200)}`);
+    }
+    const json = await res.json();
+    const text = extractApiText(json);
+    if (!text) throw new Error(`API返回空内容，请检查模型名称是否正确（status:${res.status}）`);
+    return text;
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('请求超时（180秒），请检查网络或API配置。');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ── 角色信息摘要（供AI使用）─────────────────────────────
+function buildCharacterContext() {
+  return CHARACTERS.map(c => {
+    const cs = G.characters[c.id];
+    const stage = AFFECTION_STAGES[cs.stage]?.name || '陌生人';
+    return `【${c.name}】学院:${HOUSES[c.house].name} | 语言:${c.langLabel} | 好感阶段:${stage}(${cs.affection}) | 当前位置:${cs.location} | 心防:${cs.heartGuardBroken?'已破':'未破'}`;
+  }).join('\n');
+}
+
+// ── 构建系统提示词 ────────────────────────────────────────
+function buildSystemPrompt() {
+  const p = G.player;
+  const stats = p.stats;
+  const house = p.house ? HOUSES[p.house] : null;
+
+  return `你是一个互动乙女向游戏的AI叙事引擎。用中文写作，风格如同高质量轻小说，沉浸感强，细节丰富。
+
+【世界设定】
+霍格沃茨魔法学校的平行世界。玩家是来自东方的交换生，修炼仙术（东方修仙体系），使用灵力而非魔力。玩家随身携带魔杖（伪装融入用途），实际上不依赖魔杖施法。玩家能御风飞行，无需扫帚。灵力与霍格沃茨的魔力场会产生冲突（灵魔冲突值），过高会出现走火入魔症状，极高时灵力暴走。
+
+【玩家角色】
+姓名：${p.name || '玩家'}
+年龄：${p.age || '未知'}
+外貌：${p.appearance || '未描述'}
+性格：${p.personality || '未描述'}
+魔杖：${p.wand.wood}木/${p.wand.core}/${p.wand.length}（伪装用，实际不依赖）
+学院：${house ? house.name : '待分院'}
+
+【当前数值】
+灵力: ${stats.lingLi.cur}/${getStatMax('lingLi')} | 魔法学识: ${stats.magicKnowledge.cur}/${getStatMax('magicKnowledge')} | 心境: ${stats.xinJing.cur}/${getStatMax('xinJing')} | 体魄: ${stats.tiPo.cur}/${getStatMax('tiPo')} | 人缘: ${stats.renYuan.cur}/${getStatMax('renYuan')} | 灵魔冲突值: ${p.conflictValue}/100
+
+【当前时间】
+${formatDate()} ${formatTime()} | 第${G.week}周 第${G.semester}学期
+
+【角色状态】
+${buildCharacterContext()}
+
+【角色性格档案】
+${CHARACTERS.map(c => `${c.name}：${c.personality}`).join('\n\n')}
+
+【叙事规则】
+1. 以小说风格连续叙述：环境描写、氛围渲染、人物动作、心理、对话一体呈现，不分开标注。
+2. 角色对话格式：先用其母语写出原文（用""括住），紧跟「中文翻译」。中文角色（Zimo）直接用中文对话，不需翻译。
+3. 选项要多样化：不要全是积极选项，要体现不同性格策略，有时包含有风险但有趣的选项。
+4. 严禁霸总/囚禁/控制性情节。角色可以有嫉妒情绪，但表达方式是退缩或沉默，而非控制玩家。
+5. 好感度阶段影响角色对玩家的亲近程度和对话内容深度。
+6. 灵魔冲突值≥65时，描述中加入玩家的不适症状。≥85时触发戏剧性失控事件。
+
+【炼药与道具系统】
+玩家可收集材料炼制丹药或魔药。在故事中玩家于禁忌森林探索、战斗胜利、特定剧情时可获得材料。用ingredientDrop返回材料掉落。材料id参考：lingrass(灵草)、zhusha(朱砂)、aconite(乌头草)、bezoar(牛黄石)、moonwater(满月水)、dragonfly(金蝉衣)、cinnabar(辰砂)、ghostpowder(幽灵粉末)等。
+
+【战斗系统】
+当剧情需要战斗时，在stateUpdate中包含combatTrigger字段，格式如下：
+"combatTrigger": {"enemies":[{"name":"敌人名","hp":25,"atk":2,"def":1,"dc":12,"xp":10}],"allies":["ghost"],"context":"战斗起因简述"}
+allies填写参与战斗的角色id（只有当前陪同玩家的、好感度>0的角色可参与）。
+战斗触发后，选项改为["继续故事"]，等待战斗模块处理完毕。
+
+【黑市】
+当玩家到达地下走廊·黑市时，在stateUpdate中包含 "openMarket": true，系统会自动弹出购物界面。
+首次发现黑市前，可在故事中提示地下有神秘走廊，由玩家选择是否探索。
+
+【输出格式（必须严格遵守）】
+在正文故事叙述结束后，换行输出以下JSON块（用<<<STATE>>>和<<<END>>>包裹）：
+
+<<<STATE>>>
+{
+  "options": ["选项A文字", "选项B文字", "选项C文字", "选项D文字"],
+  "stateUpdate": {
+    "dateChange": {"days": 0, "timeOfDay": "morning"},
+    "statChanges": {"lingLi": 0, "magicKnowledge": 0, "xinJing": 0, "tiPo": 0, "renYuan": 0},
+    "conflictChange": 0,
+    "affectionChanges": {},
+    "characterUpdates": {},
+    "inventoryAdd": [],
+    "ingredientDrop": [],
+    "goldChange": 0,
+    "housePointsChange": 0,
+    "flagsSet": {},
+    "achievementsUnlock": [],
+    "combatTrigger": null,
+    "openMarket": false
+  }
+}
+<<<END>>>
+
+数值变化必须合理克制，单次变化不超过±8，特殊事件不超过±15。timeOfDay取值：dawn/morning/forenoon/noon/afternoon/dusk/evening/midnight。`;
+}
+
+// ── 故事生成 ──────────────────────────────────────────────
+function parseAIResponse(raw) {
+  const stateMatch = raw.match(/<<<STATE>>>([\s\S]*?)<<<END>>>/);
+  const story = raw.replace(/<<<STATE>>>[\s\S]*?<<<END>>>/, '').trim();
+
+  let options = ['继续观察周围的情况', '找一个安静的地方思考', '主动和人打招呼', '先找到自己的学院公告栏'];
+  let stateUpdate = {};
+
+  if (stateMatch) {
+    try {
+      const parsed = JSON.parse(stateMatch[1].trim());
+      if (parsed.options) options = parsed.options;
+      if (parsed.stateUpdate) stateUpdate = parsed.stateUpdate;
+    } catch(e) {
+      console.warn('State parse error:', e);
+    }
+  }
+
+  return { story, options, stateUpdate };
+}
+
+async function generateStory(playerChoice) {
+  const systemPrompt = buildSystemPrompt();
+
+  // 构建消息历史（保留最近8轮）
+  const history = G.storyHistory.slice(-16);
+  const messages = [
+    { role:'system', content: systemPrompt },
+    ...history,
+    { role:'user', content: playerChoice || '开始游戏，描述我抵达霍格沃茨的场景。' }
+  ];
+
+  const raw = await callAPI(messages, { max_tokens:6000, temperature:0.9 });
+  const { story, options, stateUpdate } = parseAIResponse(raw);
+
+  // 保存到历史
+  G.storyHistory.push({ role:'user', content: playerChoice || '开始游戏' });
+  G.storyHistory.push({ role:'assistant', content: story });
+
+  G.currentStory = story;
+  G.currentOptions = options;
+
+  applyStateUpdate(stateUpdate);
+
+  return { story, options, stateUpdate };
+}
+
+// ── 序章生成 ──────────────────────────────────────────────
+async function generatePrologue() {
+  const p = G.player;
+  const house = HOUSES[p.house];
+  const prompt = `现在开始游戏。玩家${p.name}刚刚完成分院仪式，被分入${house.name}。描述她第一次踏入霍格沃茨大厅、经历分院仪式、然后来到${house.name}公共休息室的整个过程。这是故事的第一天，九月一日清晨。让她感受到这个西方魔法世界与她熟悉的东方仙境之间的巨大差异——灵力与魔力场开始轻微冲突，有一点隐约的不适感，但还不严重。结尾处让她选择接下来怎么做。`;
+  return generateStory(prompt);
+}
+
+</script>
+<script>
+/* ===== combat.js ===== */
+// ── 战斗系统 ──────────────────────────────────────────────
+let C = null; // 当前战斗上下文
+
+function startCombat(trigger) {
+  if (!trigger?.enemies?.length) return;
+
+  const enemies = trigger.enemies.map((e, i) => ({
+    id: i,
+    name: e.name || '神秘敌人',
+    hp: e.hp || 25, maxHp: e.hp || 25,
+    atk: e.atk ?? 2, def: e.def ?? 1, dc: e.dc ?? 12,
+    xp: e.xp ?? 10
+  }));
+
+  const allies = (trigger.allies || [])
+    .filter(id => CHAR_MAP[id] && (G.characters[id]?.affection || 0) > 0)
+    .map(id => {
+      const c = CHAR_MAP[id];
+      return {
+        id, name: c.name, atk: c.combatStats.atk, def: c.combatStats.def,
+        hp: 20 + c.combatStats.def * 5, maxHp: 20 + c.combatStats.def * 5
+      };
+    });
+
+  const pMaxHp = Math.max(15, G.player.stats.tiPo.cur);
+  C = {
+    enemies, allies,
+    playerHp: pMaxHp, playerMaxHp: pMaxHp,
+    playerAtk: 1 + Math.floor(G.player.stats.lingLi.cur / 20),
+    playerDef: Math.floor(G.player.stats.tiPo.cur / 25),
+    round: 1, log: [], phase: 'action', result: null, usedSpecial: false,
+    context: trigger.context || ''
+  };
+  if (C.context) C.log.push(`⚔ ${C.context}`);
+
+  G.combat = C;
+  document.getElementById('modal-combat').style.display = 'flex';
+  renderCombatModal();
+}
+
+// ─ HP 条 ─
+function hpBar(cur, max, cls) {
+  const pct = Math.max(0, Math.min(100, Math.round(cur / max * 100)));
+  return `<div class="chp-wrap"><div class="chp-fill ${cls}" style="width:${pct}%"></div></div>`;
+}
+
+function renderCombatModal() {
+  const body = document.getElementById('combat-body');
+  if (!body || !C) return;
+
+  const enemyHtml = C.enemies.map(e => `
+    <div class="cu ${e.hp<=0?'cu-dead':''}">
+      <div class="cu-top">
+        <span class="cu-name">${e.name}${e.hp<=0?' <em>（倒下）</em>':''}</span>
+        <span class="cu-hp-num">${Math.max(0,e.hp)}/${e.maxHp}</span>
+      </div>
+      ${hpBar(e.hp, e.maxHp, 'chp-enemy')}
+    </div>`).join('');
+
+  const allyHtml = C.allies.length ? `
+    <div class="combat-section">
+      <div class="cs-label">同行者</div>
+      ${C.allies.map(a => `
+        <div class="cu ${a.hp<=0?'cu-dead':''}">
+          <div class="cu-top">
+            <span class="cu-name">${a.name}</span>
+            <span class="cu-hp-num">${Math.max(0,a.hp)}/${a.maxHp}</span>
+          </div>
+          ${hpBar(a.hp, a.maxHp, 'chp-ally')}
+        </div>`).join('')}
+    </div>` : '';
+
+  const pHpPct = C.playerHp / C.playerMaxHp;
+  const pHpCls = pHpPct > 0.5 ? 'chp-player' : pHpPct > 0.25 ? 'chp-warn' : 'chp-danger';
+
+  const logHtml = C.log.slice(-6).map(l => `<div class="cl-line">${l}</div>`).join('');
+
+  let actHtml;
+  if (C.result) {
+    const isWin = C.result === 'win';
+    actHtml = `<div class="combat-actions single">
+      <button class="cbtn cbtn-end" onclick="endCombat()">
+        ${isWin ? '🏆 胜利，继续故事' : '💀 落败，继续...'}
+      </button>
+    </div>`;
+  } else if (C.phase === 'rolling') {
+    actHtml = `<div class="combat-actions single"><div class="combat-rolling">
+      <div class="loading-wave"><span></span><span></span><span></span></div>
+    </div></div>`;
+  } else {
+    const conflictWarn = G.player.conflictValue >= 65 ? '<br><small>⚠灵力不稳</small>' : '';
+    actHtml = `<div class="combat-actions">
+      <button class="cbtn cbtn-atk" onclick="playerAction('attack')">⚔ 攻击${conflictWarn}</button>
+      <button class="cbtn cbtn-def" onclick="playerAction('defend')">🛡 防御<br><small>防御+3</small></button>
+      <button class="cbtn cbtn-spc" onclick="playerAction('special')" ${C.usedSpecial?'disabled':''}>✦ 灵术<br><small>${C.usedSpecial?'已使用':'高伤+先手'}</small></button>
+      <button class="cbtn cbtn-flee" onclick="playerAction('flee')">⤷ 撤退<br><small>50%成功</small></button>
+    </div>`;
+  }
+
+  body.innerHTML = `
+    <div class="combat-round-bar">
+      <span>第 ${C.round} 回合</span>
+      <span class="conflict-badge">冲突值 ${G.player.conflictValue}</span>
+    </div>
+    <div class="combat-section">
+      <div class="cs-label">敌方</div>
+      ${enemyHtml}
+    </div>
+    ${allyHtml}
+    <div class="combat-section">
+      <div class="cs-label">你的状态</div>
+      <div class="cu">
+        <div class="cu-top"><span class="cu-name">HP</span><span class="cu-hp-num">${C.playerHp}/${C.playerMaxHp}</span></div>
+        ${hpBar(C.playerHp, C.playerMaxHp, pHpCls)}
+      </div>
+    </div>
+    <div class="combat-log">${logHtml || '<div class="cl-line cl-dim">战斗开始</div>'}</div>
+    ${actHtml}
+  `;
+}
+
+function playerAction(action) {
+  if (!C || C.phase !== 'action' || C.result) return;
+  C.phase = 'rolling';
+  renderCombatModal();
+
+  setTimeout(() => {
+    // 撤退
+    if (action === 'flee') {
+      const r = rollD20();
+      if (r >= 10) {
+        C.log.push(`🎲 ${r} — 撤退成功！`);
+        C.result = 'flee'; C.phase = 'done';
+      } else {
+        C.log.push(`🎲 ${r} — 撤退失败，遭到反击！`);
+        enemyAttackPhase(0);
+        C.round++; C.phase = 'action';
+      }
+      renderCombatModal(); return;
+    }
+
+    const liveEnemies = C.enemies.filter(e => e.hp > 0);
+
+    // 玩家攻击
+    if (liveEnemies.length) {
+      const target = liveEnemies[0];
+      const roll = rollD20();
+      const isNat20 = roll === 20, isNat1 = roll === 1;
+
+      if (isNat20) { unlockAchievement('nat20'); showAchievementToast('nat20'); }
+      if (isNat1) {
+        unlockAchievement('nat1');
+        C.log.push(`🎲 天然1！灵力失控，攻击无效！`);
+        changeConflict(3);
+        if (G.player.conflictValue >= 40 && C.allies.length && Math.random() < 0.3) {
+          const hit = C.allies[0];
+          hit.hp = Math.max(0, hit.hp - 3);
+          C.log.push(`💥 灵力混乱，误伤了${hit.name}！(-3HP)`);
+          unlockAchievement('friendly_fire');
+        }
+      } else {
+        let bonus = C.playerAtk + (action === 'special' ? 2 : 0);
+        if (G.player.conflictValue >= 65) {
+          const u = Math.random() < 0.5 ? 2 : -2;
+          bonus += u;
+          C.log.push(`（灵力不稳，修正${u>0?'+':''}${u}）`);
+        }
+        const total = roll + bonus;
+        if (total >= target.dc || isNat20) {
+          const dmg = Math.max(1, (isNat20 ? 8 : action === 'special' ? 6 : 4) - target.def);
+          target.hp = Math.max(0, target.hp - dmg);
+          C.log.push(`🎲 ${roll}${bonus>=0?'+':''}${bonus}=${total} vs DC${target.dc} — 命中！-${dmg}HP`);
+          if (action === 'special') { C.usedSpecial = true; changeConflict(4); }
+        } else {
+          C.log.push(`🎲 ${roll}+${bonus}=${total} vs DC${target.dc} — 未命中`);
+        }
+      }
+    }
+
+    // 同行者攻击
+    C.allies.forEach(ally => {
+      if (ally.hp <= 0) return;
+      const liveE = C.enemies.filter(e => e.hp > 0);
+      if (!liveE.length) return;
+      const tgt = liveE[0];
+      const r = rollD20(); const tot = r + ally.atk;
+      if (tot >= tgt.dc) {
+        const d = Math.max(1, ally.atk + (r >= 15 ? 1 : 0));
+        tgt.hp = Math.max(0, tgt.hp - d);
+        C.log.push(`${ally.name} 命中！-${d}HP`);
+      } else { C.log.push(`${ally.name} 未命中`); }
+    });
+
+    if (checkWin()) { renderCombatModal(); return; }
+
+    // 敌人反击
+    const defBonus = action === 'defend' ? 3 : 0;
+    enemyAttackPhase(defBonus);
+
+    if (C.playerHp <= 0) {
+      unlockAchievement('defeated');
+      C.log.push('💀 你倒下了...');
+      C.result = 'lose'; C.phase = 'done';
+    } else {
+      C.round++;
+      C.phase = 'action';
+    }
+    renderCombatModal();
+  }, 700);
+}
+
+function enemyAttackPhase(defBonus) {
+  C.enemies.filter(e => e.hp > 0).forEach(enemy => {
+    const r = rollD20();
+    const dc = 8 + C.playerDef + defBonus;
+    if (r + enemy.atk >= dc) {
+      const d = Math.max(1, enemy.atk - C.playerDef);
+      C.playerHp = Math.max(0, C.playerHp - d);
+      C.log.push(`${enemy.name} 命中！你 -${d}HP`);
+    } else { C.log.push(`${enemy.name} 攻击被化解`); }
+  });
+}
+
+function checkWin() {
+  if (!C.enemies.every(e => e.hp <= 0)) return false;
+  const xp = C.enemies.reduce((s, e) => s + (e.xp || 10), 0);
+  unlockAchievement('first_win');
+  if (C.allies.length >= 4) unlockAchievement('squad_battle');
+  if (C.enemies.length >= 3 && !C.allies.length) unlockAchievement('outnumbered');
+  changeStat('lingLi', Math.floor(xp / 3));
+  changeStat('tiPo', Math.floor(xp / 4));
+  C.log.push(`🏆 胜利！灵力+${Math.floor(xp/3)} 体魄+${Math.floor(xp/4)}`);
+  C.result = 'win'; C.phase = 'done';
+  persistAll();
+  return true;
+}
+
+async function endCombat() {
+  const result = C?.result || 'unknown';
+  const log = (C?.log || []).slice(-4).join(' | ');
+  G.combat = null; C = null;
+  document.getElementById('modal-combat').style.display = 'none';
+  persistAll();
+
+  setLoading(true);
+  try {
+    const { story, options } = await generateStory(
+      `[战斗结束。结果：${result==='win'?'玩家胜利':result==='flee'?'玩家撤退':'玩家落败'}。战斗摘要：${log}。请根据此战斗结果继续故事叙述。]`
+    );
+    renderStory(story); renderOptions(options); updateTopBar(); persistAll();
+  } catch (e) {
+    renderStory('战斗结束后，尘埃慢慢落定...');
+    showRegenButton();
+  } finally { setLoading(false); }
+}
+
+</script>
+<script>
+/* ===== alchemy.js ===== */
+// ── 炼药系统 ──────────────────────────────────────────────
+
+const INGREDIENTS = {
+  // 东方材料
+  lingrass:     { id:'lingrass',    name:'灵草',       type:'ingredient', origin:'east',    desc:'仙山灵气凝聚，炼丹基础材料。' },
+  zhusha:       { id:'zhusha',      name:'朱砂',       type:'ingredient', origin:'east',    desc:'稳定灵力的矿石精华。' },
+  tigerwhisker: { id:'tigerwhisker',name:'虎须',       type:'ingredient', origin:'east',    desc:'白虎精华，强化体魄之效。' },
+  snowlotus:    { id:'snowlotus',   name:'天山雪莲',   type:'ingredient', origin:'east',    desc:'清心安神，化解冲突圣品。' },
+  dragonfly:    { id:'dragonfly',   name:'金蝉衣',     type:'ingredient', origin:'east',    desc:'蝉蜕升华，增强灵觉。' },
+  cinnabar:     { id:'cinnabar',    name:'辰砂',       type:'ingredient', origin:'east',    desc:'常用于稳定炼丹。' },
+  hotpot_base:  { id:'hotpot_base', name:'火锅底料',   type:'ingredient', origin:'east',    desc:'从行囊深处找出的家乡香料包。' },
+  // 西方材料
+  aconite:      { id:'aconite',     name:'乌头草',     type:'ingredient', origin:'west',    desc:'西方常见草药，有毒，需处理。' },
+  bezoar:       { id:'bezoar',      name:'牛黄石',     type:'ingredient', origin:'west',    desc:'解毒圣品，西方炼药必备。' },
+  moonwater:    { id:'moonwater',   name:'满月水',     type:'ingredient', origin:'west',    desc:'满月之夜收集的露水，魔力传导好。' },
+  dragblood:    { id:'dragblood',   name:'龙血',       type:'ingredient', origin:'west',    desc:'极稀有，效果极强。' },
+  mandragora:   { id:'mandragora',  name:'曼德拉草根', type:'ingredient', origin:'west',    desc:'西方炼药重要材料。' },
+  unicornhair:  { id:'unicornhair', name:'独角兽毛',   type:'ingredient', origin:'west',    desc:'强大的魔力载体。' },
+  // 特殊材料
+  ghostpowder:  { id:'ghostpowder', name:'幽灵粉末',   type:'ingredient', origin:'special', desc:'成分不明的神秘粉末，隐形药水必需。' },
+};
+
+const RECIPES = [
+  // ── 东方丹药 ─────────────────────────────────────────
+  {
+    id: 'huiqi_dan', name: '回气丹', origin: 'east', icon: '丹', diff: 10,
+    ing: { lingrass:2, zhusha:1 },
+    desc: '恢复灵力，轻度压制灵魔冲突。',
+    norm: { id:'huiqi_dan', name:'回气丹', type:'potion', desc:'灵力+15，冲突值-5。', usable:true, effect:{ stat:'lingLi', val:15, conflict:-5 } },
+    perf: { effect:{ stat:'lingLi', val:25, conflict:-10 } }
+  },
+  {
+    id: 'jusing_wan', name: '聚神丸', origin: 'east', icon: '神', diff: 12,
+    ing: { snowlotus:1, cinnabar:1 },
+    desc: '凝神静心，增强心境。',
+    norm: { id:'jusing_wan', name:'聚神丸', type:'potion', desc:'心境+12。', usable:true, effect:{ stat:'xinJing', val:12 } },
+    perf: { effect:{ stat:'xinJing', val:20 } }
+  },
+  {
+    id: 'huashu_tang', name: '化冲汤', origin: 'east', icon: '化', diff: 15,
+    ing: { snowlotus:1, lingrass:2, moonwater:1 },
+    desc: '东方秘方，专门化解灵魔冲突。',
+    norm: { id:'huashu_tang', name:'化冲汤', type:'potion', desc:'冲突值-20。', usable:true, effect:{ conflict:-20 } },
+    perf: { effect:{ conflict:-35 } }
+  },
+  // ── 西方魔药 ─────────────────────────────────────────
+  {
+    id: 'healing_potion', name: '治愈药水', origin: 'west', icon: '愈', diff: 8,
+    ing: { aconite:1, bezoar:1 },
+    desc: '基础恢复药剂，战斗外可用。',
+    norm: { id:'healing_potion', name:'治愈药水', type:'potion', desc:'战斗中HP+8；非战斗时体魄+10。', usable:true, effect:{ hp:8, stat:'tiPo', val:10 } },
+    perf: { effect:{ hp:15, stat:'tiPo', val:18 } }
+  },
+  {
+    id: 'shield_potion', name: '护盾药水', origin: 'west', icon: '盾', diff: 13,
+    ing: { moonwater:2, mandragora:1 },
+    desc: '战斗中增强防御，持续2回合。',
+    norm: { id:'shield_potion', name:'护盾药水', type:'potion', desc:'战斗防御+3，持续2回合。', usable:true, effect:{ combatBuff:'def', val:3, rounds:2 } },
+    perf: { effect:{ combatBuff:'def', val:5, rounds:3 } }
+  },
+  {
+    id: 'invisible_potion', name: '隐形药水', origin: 'west', icon: '隐', diff: 16,
+    ing: { moonwater:1, unicornhair:1, ghostpowder:1 },
+    desc: '短暂隐形，深夜潜行不可缺。',
+    norm: { id:'invisible_potion', name:'隐形药水', type:'potion', desc:'使用后进入隐形状态，可触发深夜特殊剧情。', usable:true, effect:{ flag:'invisible', duration:1 } },
+    perf: { effect:{ flag:'invisible', duration:2 } }
+  },
+  // ── 东西融合配方 ──────────────────────────────────────
+  {
+    id: 'fusion_pill', name: '两仪融合丹', origin: 'fusion', icon: '融', diff: 18,
+    ing: { snowlotus:1, dragblood:1, moonwater:1, zhusha:1 },
+    desc: '高风险高收益。成功时大幅降低冲突并提升全属性；天然1触发灵力混乱。',
+    norm: { id:'fusion_pill', name:'两仪融合丹', type:'potion', desc:'冲突值-30，全属性+8。', usable:true, effect:{ conflict:-30, allStats:8 } },
+    perf: { effect:{ conflict:-50, allStats:15 } },
+    failEffect: { conflict:20, stat:'lingLi', val:-10 }
+  },
+  {
+    id: 'hotpot', name: '仙家火锅', origin: 'fusion', icon: '锅', diff: 6,
+    ing: { hotpot_base:1, lingrass:1 },
+    desc: '用魔药课的大锅煮出的特制火锅，和角色分享可增进好感。',
+    norm: { id:'hotpot', name:'仙家火锅（一份）', type:'special', desc:'和特定角色分享时触发火锅夜特殊剧情。', usable:true, effect:{ flag:'hotpot_ready' } },
+    perf: {}
+  },
+];
+
+const RECIPE_MAP = Object.fromEntries(RECIPES.map(r => [r.id, r]));
+
+// ─ 炼药工具 ─
+function getIngQty(id) {
+  const it = G.player.inventory.find(i => i.id === id && i.type === 'ingredient');
+  return it ? (it.quantity || 1) : 0;
+}
+
+function canBrew(recipe) {
+  return Object.entries(recipe.ing).every(([id, n]) => getIngQty(id) >= n);
+}
+
+function brewPotion(recipeId) {
+  const recipe = RECIPE_MAP[recipeId];
+  if (!recipe || !canBrew(recipe)) return null;
+
+  // 消耗材料
+  Object.entries(recipe.ing).forEach(([id, n]) => removeItem(id, n));
+
+  const roll = rollD20();
+  const bonus = Math.floor(G.player.stats.magicKnowledge.cur / 15)
+              + Math.floor(G.player.stats.xinJing.cur / 20);
+  const total = roll + bonus;
+
+  // 天然1 — 爆炉
+  if (roll === 1 && recipe.failEffect) {
+    changeConflict(recipe.failEffect.conflict || 0);
+    if (recipe.failEffect.stat) changeStat(recipe.failEffect.stat, recipe.failEffect.val || 0);
+    unlockAchievement('fusion_fail');
+    persistAll();
+    return { success:false, quality:'fail', roll, total, msg:'天然1！炼炉爆炸，材料全毁！' };
+  }
+
+  let quality, item;
+  if (total >= recipe.diff + 6) {
+    quality = 'perfect';
+    item = { ...recipe.norm, quality:'perfect', effect:{ ...recipe.norm.effect, ...(recipe.perf?.effect||{}) } };
+    unlockAchievement('perfect_brew');
+  } else if (total >= recipe.diff) {
+    quality = 'normal';
+    item = { ...recipe.norm, quality:'normal' };
+  } else {
+    quality = 'poor';
+    item = { ...recipe.norm, name: recipe.norm.name + '（劣品）', quality:'poor' };
+  }
+
+  addItem(item);
+  unlockAchievement('first_brew');
+  if (recipe.origin === 'fusion') unlockAchievement('fusion_recipe');
+  if (recipe.id === 'hotpot') unlockAchievement('hotpot_night');
+  persistAll();
+
+  return {
+    success: true, quality, roll, total,
+    msg: `${quality==='perfect'?'极品出炉！✦':quality==='poor'?'勉强炼成（劣品）':'炼制成功！'} (${roll}+${bonus}=${total})`
+  };
+}
+
+function usePotion(itemId) {
+  const item = G.player.inventory.find(i => i.id === itemId && i.usable);
+  if (!item) return null;
+  const eff = item.effect || {};
+  const mult = item.quality === 'perfect' ? 1.5 : item.quality === 'poor' ? 0.6 : 1;
+
+  if (eff.stat)      changeStat(eff.stat, Math.round((eff.val || 0) * mult));
+  if (eff.allStats)  ['lingLi','magicKnowledge','xinJing','tiPo','renYuan'].forEach(s => changeStat(s, Math.round(eff.allStats * mult)));
+  if (eff.conflict)  changeConflict(Math.round(eff.conflict * mult));
+  if (eff.flag)      { G.flags[eff.flag] = eff.duration || 1; }
+  if (eff.flag === 'invisible') unlockAchievement('night_wander');
+
+  removeItem(itemId, 1);
+  persistAll();
+  return eff;
+}
+
+// ── 炼药 UI ───────────────────────────────────────────────
+function openAlchemyModal() {
+  document.getElementById('modal-alchemy').style.display = 'flex';
+  renderAlchemyPanel();
+}
+
+function closeAlchemyModal() {
+  document.getElementById('modal-alchemy').style.display = 'none';
+}
+
+function renderAlchemyPanel() {
+  const cont = document.getElementById('alchemy-container');
+  if (!cont) return;
+  const activeTab = cont.dataset.tab || 'materials';
+
+  cont.innerHTML = `
+    <div class="alch-tabs">
+      <button class="alch-tab ${activeTab==='materials'?'on':''}" data-tab="materials">材料</button>
+      <button class="alch-tab ${activeTab==='recipes'?'on':''}" data-tab="recipes">配方</button>
+      <button class="alch-tab ${activeTab==='brew'?'on':''}" data-tab="brew">炼制</button>
+    </div>
+    <div id="alch-body"></div>
+  `;
+  cont.querySelectorAll('.alch-tab').forEach(b => {
+    b.addEventListener('click', () => { cont.dataset.tab = b.dataset.tab; renderAlchemyPanel(); });
+  });
+
+  const body = document.getElementById('alch-body');
+
+  if (activeTab === 'materials') {
+    const mats = G.player.inventory.filter(i => i.type === 'ingredient');
+    if (!mats.length) {
+      body.innerHTML = '<div class="empty-hint">尚无材料。探索禁忌森林或前往黑市购买。</div>';
+      return;
+    }
+    body.innerHTML = mats.map(i => {
+      const ing = INGREDIENTS[i.id] || {};
+      const originTag = ing.origin === 'west' ? '西' : ing.origin === 'special' ? '秘' : '东';
+      const originCls = ing.origin === 'west' ? 'origin-west' : ing.origin === 'special' ? 'origin-special' : 'origin-east';
+      return `<div class="alch-mat">
+        <span class="alch-origin ${originCls}">${originTag}</span>
+        <div class="alch-mat-info">
+          <span class="alch-mat-name">${i.name}</span>
+          <span class="alch-mat-desc">${ing.desc || ''}</span>
+        </div>
+        <span class="alch-mat-qty">×${i.quantity || 1}</span>
+      </div>`;
+    }).join('');
+  }
+
+  if (activeTab === 'recipes') {
+    body.innerHTML = RECIPES.map(r => {
+      const ok = canBrew(r);
+      const ingList = Object.entries(r.ing).map(([id, n]) => {
+        const have = getIngQty(id);
+        const nm = INGREDIENTS[id]?.name || id;
+        return `<span class="${have >= n ? 'req-ok' : 'req-miss'}">${nm}×${n}(有${have})</span>`;
+      }).join(' ');
+      const tagLabel = { east:'东方丹药', west:'西方魔药', fusion:'东西融合', special:'特殊' }[r.origin] || '';
+      return `<div class="alch-recipe ${ok ? 'alch-can' : ''}">
+        <div class="alch-r-header">
+          <span class="alch-icon">${r.icon}</span>
+          <span class="alch-r-name">${r.name}</span>
+          <span class="alch-r-tag">${tagLabel}</span>
+          ${ok ? '<span class="alch-can-badge">可炼制</span>' : ''}
+        </div>
+        <div class="alch-r-desc">${r.desc}</div>
+        <div class="alch-r-ing">${ingList}</div>
+      </div>`;
+    }).join('');
+  }
+
+  if (activeTab === 'brew') {
+    const brewable = RECIPES.filter(canBrew);
+    if (!brewable.length) {
+      body.innerHTML = '<div class="empty-hint">没有足够的材料可以炼制。收集材料后回来。</div>';
+      return;
+    }
+    body.innerHTML = brewable.map(r => `
+      <div class="alch-brew-row">
+        <div>
+          <div class="alch-r-name">${r.icon} ${r.name}</div>
+          <div class="alch-r-desc">${r.desc}</div>
+        </div>
+        <button class="btn-brew" data-recipe="${r.id}">炼制</button>
+      </div>`).join('');
+
+    body.querySelectorAll('.btn-brew').forEach(b => {
+      b.addEventListener('click', () => {
+        const res = brewPotion(b.dataset.recipe);
+        if (res) showBrewResult(res);
+        renderAlchemyPanel();
+      });
+    });
+  }
+}
+
+function showBrewResult(res) {
+  const toast = document.getElementById('brew-toast');
+  if (!toast) return;
+  const icon = { perfect:'✦', normal:'✓', poor:'⚠', fail:'💥' }[res.quality] || '•';
+  toast.textContent = `${icon} ${res.msg}`;
+  toast.className = `brew-toast qt-${res.quality}`;
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 3500);
+}
+
+</script>
+<script>
+/* ===== market.js ===== */
+// ── 黑市系统 ──────────────────────────────────────────────
+
+const MARKET_CATALOG = [
+  // ── 材料区 ────────────────────────────────────────────
+  {
+    id: 'mk_lingrass',    category: '炼药材料',
+    name: '灵草（束）',    price: 6,
+    desc: '东方炼丹基础，一束两株。',
+    give: [{ id:'lingrass', name:'灵草', type:'ingredient', quantity:2 }]
+  },
+  {
+    id: 'mk_moonwater',   category: '炼药材料',
+    name: '满月水（瓶）',  price: 10,
+    desc: '西方炼药常用，满月之夜收集。',
+    give: [{ id:'moonwater', name:'满月水', type:'ingredient', quantity:1 }]
+  },
+  {
+    id: 'mk_ghostpowder', category: '炼药材料',
+    name: '幽灵粉末',      price: 18,
+    desc: '成分不明，隐形药水必需材料。',
+    stock: 2,
+    give: [{ id:'ghostpowder', name:'幽灵粉末', type:'ingredient', quantity:1 }]
+  },
+  {
+    id: 'mk_snowlotus',   category: '炼药材料',
+    name: '天山雪莲',      price: 22,
+    desc: '东方秘材，化冲首选，货源极少。',
+    stock: 1,
+    give: [{ id:'snowlotus', name:'天山雪莲', type:'ingredient', quantity:1 }]
+  },
+  {
+    id: 'mk_dragblood',   category: '炼药材料',
+    name: '龙血（小瓶）',  price: 28,
+    desc: '融合丹必需，极难获取。',
+    stock: 1,
+    give: [{ id:'dragblood', name:'龙血', type:'ingredient', quantity:1 }]
+  },
+  {
+    id: 'mk_herbpack',    category: '炼药材料',
+    name: '综合草药包',    price: 14,
+    desc: '乌头草×2＋牛黄石×1＋辰砂×1，新手入门组合。',
+    give: [
+      { id:'aconite',  name:'乌头草', type:'ingredient', quantity:2 },
+      { id:'bezoar',   name:'牛黄石', type:'ingredient', quantity:1 },
+      { id:'cinnabar', name:'辰砂',   type:'ingredient', quantity:1 }
+    ]
+  },
+  // ── 成品药剂 ──────────────────────────────────────────
+  {
+    id: 'mk_healing',     category: '成品药剂',
+    name: '治愈药水（成品）', price: 15,
+    desc: '省去炼制工夫，品质普通。',
+    give: [{ id:'healing_potion', name:'治愈药水', type:'potion', quality:'normal', desc:'战斗中HP+8；非战斗时体魄+10。', usable:true, effect:{ hp:8, stat:'tiPo', val:10 } }]
+  },
+  {
+    id: 'mk_invisible',   category: '成品药剂',
+    name: '隐形药水（成品）', price: 35,
+    desc: '价格不菲，但省事。',
+    stock: 1,
+    give: [{ id:'invisible_potion', name:'隐形药水', type:'potion', quality:'normal', desc:'使用后进入隐形状态，可触发深夜特殊剧情。', usable:true, effect:{ flag:'invisible', duration:1 } }]
+  },
+  // ── 情报 & 特殊道具 ───────────────────────────────────
+  {
+    id: 'mk_map',         category: '情报',
+    name: '地下走廊手绘地图', price: 12,
+    desc: '潦草但管用，标注了所有暗道和守卫换班时间。',
+    give: [{ id:'market_map', name:'地下走廊地图', type:'special', desc:'记录着走廊各暗道的位置。', usable:false }]
+  },
+  {
+    id: 'mk_eastscroll',  category: '特殊道具',
+    name: '古旧仙法残卷',  price: 38,
+    desc: '记载着残缺的东方仙法，可能帮助突破数值阶段上限。',
+    stock: 1,
+    give: [{ id:'east_scroll', name:'古旧仙法残卷', type:'special', desc:'残缺的东方仙法记录，研习后可能突破数值阶段。', usable:true, effect:{ flag:'scroll_read' } }]
+  },
+  {
+    id: 'mk_mirrorbroken', category: '特殊道具',
+    name: '破损魔法照妖镜', price: 20,
+    desc: '只剩一次使用机会，但能揭示某人真实想法。',
+    stock: 1,
+    give: [{ id:'magic_mirror', name:'照妖镜（破损）', type:'special', desc:'单次使用，揭示当前互动角色的心理状态。', usable:true, effect:{ flag:'mirror_used' } }]
+  },
+  {
+    id: 'mk_info_ghost',  category: '情报',
+    name: '关于Ghost的情报', price: 25,
+    desc: '一份被人遗弃的旧档案，字迹潦草但内容让人心惊。',
+    minAffection: { char:'ghost', val:30 },
+    give: [{ id:'info_ghost', name:'Ghost旧档案', type:'special', desc:'关于Ghost真实经历的片段记录。', usable:false }]
+  },
+];
+
+// ── 市场状态（每次访问不重置库存，只在游戏存档里记录） ──
+function getMarketStock(itemId) {
+  if (!G.flags.marketStock) G.flags.marketStock = {};
+  const cat = MARKET_CATALOG.find(i => i.id === itemId);
+  if (!cat || !cat.stock) return 99; // 无限库存
+  const bought = G.flags.marketStock[itemId] || 0;
+  return Math.max(0, cat.stock - bought);
+}
+
+function getAvailableItems() {
+  return MARKET_CATALOG.filter(item => {
+    if (item.minAffection) {
+      const cs = G.characters[item.minAffection.char];
+      if (!cs || cs.affection < item.minAffection.val) return false;
+    }
+    if (getMarketStock(item.id) <= 0) return false;
+    return true;
+  });
+}
+
+function buyItem(marketItemId) {
+  const item = MARKET_CATALOG.find(i => i.id === marketItemId);
+  if (!item) return { ok:false, msg:'商品不存在' };
+  if (getMarketStock(marketItemId) <= 0) return { ok:false, msg:'此商品已售罄' };
+  if (G.player.gold < item.price) return { ok:false, msg:`金加隆不足（需要${item.price}G）` };
+
+  G.player.gold -= item.price;
+  item.give.forEach(g => addItem({ ...g, quantity: g.quantity || 1 }));
+
+  if (!G.flags.marketStock) G.flags.marketStock = {};
+  G.flags.marketStock[marketItemId] = (G.flags.marketStock[marketItemId] || 0) + 1;
+
+  G.blackMarketVisits = (G.blackMarketVisits || 0) + 1;
+  unlockAchievement('market_found');
+  if (G.blackMarketVisits >= 5) unlockAchievement('black_market');
+
+  persistAll();
+  return { ok:true, msg:`购买成功！剩余 ${G.player.gold} 金加隆。` };
+}
+
+// ── 黑市 UI ───────────────────────────────────────────────
+function openMarketModal() {
+  unlockAchievement('market_found');
+  G.flags.marketUnlocked = true;
+  persistAll();
+  document.getElementById('modal-market').style.display = 'flex';
+  renderMarketModal();
+}
+
+function closeMarketModal() {
+  document.getElementById('modal-market').style.display = 'none';
+}
+
+function renderMarketModal() {
+  const body = document.getElementById('market-modal-body');
+  if (!body) return;
+
+  const items = getAvailableItems();
+  const categories = [...new Set(items.map(i => i.category))];
+
+  body.innerHTML = `
+    <div class="market-gold-bar">
+      <span>持有金加隆</span>
+      <span class="market-gold-num">${G.player.gold} G</span>
+    </div>
+    ${categories.map(cat => `
+      <div class="market-cat-title">${cat}</div>
+      ${items.filter(i => i.category === cat).map(item => {
+        const stock = getMarketStock(item.id);
+        const canAfford = G.player.gold >= item.price;
+        const stockLabel = item.stock ? `（剩余${stock}件）` : '';
+        return `<div class="market-item">
+          <div class="market-item-info">
+            <div class="market-item-name">${item.name}${stockLabel}</div>
+            <div class="market-item-desc">${item.desc}</div>
+          </div>
+          <div class="market-item-right">
+            <div class="market-item-price">${item.price}G</div>
+            <button class="btn-buy${canAfford?'':' insufficient'}" data-id="${item.id}" ${canAfford?'':'disabled'}>购买</button>
+          </div>
+        </div>`;
+      }).join('')}
+    `).join('')}
+  `;
+
+  body.querySelectorAll('.btn-buy:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const result = buyItem(btn.dataset.id);
+      const msgEl = document.getElementById('market-msg');
+      if (msgEl) {
+        msgEl.textContent = result.msg;
+        msgEl.className = `market-msg ${result.ok ? 'market-msg-ok' : 'market-msg-err'}`;
+        msgEl.style.display = 'block';
+        setTimeout(() => msgEl.style.display = 'none', 2500);
+      }
+      if (result.ok) { renderMarketModal(); renderInventoryPanel(); }
+    });
+  });
+}
+
+</script>
+<script>
+/* ===== ui.js ===== */
+// ── UI 渲染 ───────────────────────────────────────────────
+
+// ─ 屏幕切换 ─
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(`screen-${id}`);
+  if (el) el.classList.add('active');
+  // 游戏主界面已有顶栏返回链接，隐藏全局悬浮按钮
+  const floatBack = document.querySelector('.liworld-back');
+  if (floatBack) floatBack.style.display = id === 'game' ? 'none' : '';
+}
+
+// ─ 顶栏更新 ─
+function updateTopBar() {
+  const dateEl = document.getElementById('display-date');
+  const timeEl = document.getElementById('display-time');
+  if (dateEl) dateEl.textContent = formatDate();
+  if (timeEl) timeEl.textContent = formatTime();
+
+  const badge = document.getElementById('house-badge');
+  if (badge && G.player.house) {
+    const h = HOUSES[G.player.house];
+    if (h) {
+      badge.textContent = h.symbol;
+      badge.style.color = h.accent;
+      badge.title = h.name;
+    }
+  }
+}
+
+// ─ 故事文本渲染 ─
+function renderStory(text) {
+  const el = document.getElementById('story-text');
+  if (!el) return;
+
+  // 将纯文本转为HTML
+  // 格式：角色名: "native" 「translation」→ 对话块
+  const paragraphs = text.split(/\n{2,}/).filter(p => p.trim());
+  el.innerHTML = paragraphs.map(p => {
+    const trimmed = p.trim();
+    // 检测对话行（包含"和「）
+    if ((trimmed.includes('"') || trimmed.includes('“') || trimmed.includes('"')) && trimmed.includes('「')) {
+      // 拆出母语原文和中文翻译
+      const formatted = trimmed
+        .replace(/"([^"]+)"/g, '<span class="native-text">"$1"</span>')
+        .replace(/“([^”]+)”/g, '<span class="native-text">“$1”</span>')
+        .replace(/「([^」]+)」/g, '<span class="cn-trans">「$1」</span>');
+      return `<p class="story-dialogue">${formatted}</p>`;
+    }
+    // 环境/氛围描写（以*开头或结尾，或纯景物描写）
+    return `<p class="story-para">${trimmed.replace(/\n/g, '<br>')}</p>`;
+  }).join('');
+
+  // 滚动到底部
+  const scrollArea = document.getElementById('story-scroll-area');
+  if (scrollArea) setTimeout(() => scrollArea.scrollTop = scrollArea.scrollHeight, 50);
+}
+
+// ─ 选项渲染 ─
+function renderOptions(options) {
+  const list = document.getElementById('options-list');
+  if (!list) return;
+  list.innerHTML = options.map((opt, i) =>
+    `<button class="option-btn" data-index="${i}">${opt}</button>`
+  ).join('');
+  list.querySelectorAll('.option-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.textContent;
+      handlePlayerChoice(text);
+    });
+  });
+}
+
+// ─ 加载状态 ─
+function setLoading(on) {
+  const loading = document.getElementById('story-loading');
+  const regen   = document.getElementById('btn-regenerate');
+  const optArea = document.getElementById('options-area');
+  if (loading) loading.style.display = on ? 'flex' : 'none';
+  if (regen)   regen.style.display   = 'none';
+  if (optArea) {
+    // 只禁用选项按钮，保留自定义输入发送功能
+    optArea.querySelectorAll('.option-btn').forEach(b => b.disabled = on);
+  }
+}
+
+function showRegenButton() {
+  const regen = document.getElementById('btn-regenerate');
+  if (regen) regen.style.display = 'block';
+}
+
+// ─ 角色面板渲染 ─
+function renderCharactersPanel() {
+  const container = document.getElementById('house-accordion');
+  if (!container) return;
+
+  const houseOrder = ['gryffindor','slytherin','ravenclaw','hufflepuff'];
+  container.innerHTML = houseOrder.map(houseId => {
+    const h = HOUSES[houseId];
+    const chars = CHARACTERS.filter(c => c.house === houseId);
+    const charCards = chars.map(c => {
+      const cs = G.characters[c.id] || { affection:0, stage:0, location:'未知', psychology:'', heartGuardBroken:false, metPlayer:false };
+      const stage = AFFECTION_STAGES[cs.stage]?.name || '陌生人';
+      const bar = Math.round((cs.affection / 100) * 100);
+
+      return `<div class="char-card" data-char="${c.id}">
+        <div class="char-card-name" style="color:${c.color};">${c.name}</div>
+        <div class="char-card-lang">${c.langLabel}</div>
+        <div class="char-affection-row">
+          <span class="aff-stage">${stage}</span>
+          <div class="aff-bar"><div class="aff-fill" style="width:${bar}%;background:${h.accent};"></div></div>
+          <span class="aff-val">${cs.affection}</span>
+        </div>
+        <div class="char-meta-row">
+          <span class="meta-label">位置</span>
+          <span class="meta-val">${cs.location || '未知'}</span>
+        </div>
+        <div class="char-psychology">${cs.psychology || '...'}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="house-section">
+      <div class="house-header" data-house="${houseId}">
+        <span class="house-symbol">${h.symbol}</span>
+        <span class="house-name" style="color:${h.accent};">${h.name}</span>
+        <span class="house-chevron">▶</span>
+      </div>
+      <div class="house-body" id="house-body-${houseId}">${charCards}</div>
+    </div>`;
+  }).join('');
+
+  // 折叠/展开
+  container.querySelectorAll('.house-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const houseId = header.dataset.house;
+      const body = document.getElementById(`house-body-${houseId}`);
+      const chevron = header.querySelector('.house-chevron');
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      if (chevron) chevron.textContent = isOpen ? '▶' : '▼';
+    });
+  });
+
+  // 玩家学院默认展开
+  if (G.player.house) {
+    const myBody = document.getElementById(`house-body-${G.player.house}`);
+    if (myBody) {
+      myBody.classList.add('open');
+      const myHeader = myBody.previousElementSibling;
+      const chevron = myHeader?.querySelector('.house-chevron');
+      if (chevron) chevron.textContent = '▼';
+    }
+  }
+}
+
+// ─ 背包面板渲染 ─
+function renderInventoryPanel() {
+  const goldEl = document.getElementById('gold-amount');
+  if (goldEl) goldEl.textContent = G.player.gold;
+
+  const list = document.getElementById('inventory-list');
+  if (!list) return;
+
+  // 分类显示：特殊/药剂 vs 材料
+  const potions = G.player.inventory.filter(i => i.type === 'potion' || i.type === 'special');
+  const materials = G.player.inventory.filter(i => i.type === 'ingredient');
+  const others = G.player.inventory.filter(i => !i.type || i.type === 'item');
+
+  const allDisplay = [...others, ...potions];
+
+  if (!allDisplay.length && !materials.length) {
+    list.innerHTML = '<div class="empty-hint">背包空空如也</div>';
+  } else {
+    let html = '';
+    if (allDisplay.length) {
+      html += allDisplay.map(item => {
+        const qualTag = item.quality === 'perfect' ? '<span class="qual-tag qt-perfect">极品</span>'
+                      : item.quality === 'poor'    ? '<span class="qual-tag qt-poor">劣品</span>' : '';
+        return `<div class="inventory-item" data-item-id="${item.id}">
+          <div class="item-name">${item.name}${qualTag}</div>
+          <div class="item-qty">×${item.quantity || 1}</div>
+        </div>`;
+      }).join('');
+    }
+    if (materials.length) {
+      html += `<div class="inv-section-label">炼药材料 (${materials.length}种)</div>`;
+      html += materials.map(item =>
+        `<div class="inventory-item inv-material" data-item-id="${item.id}">
+          <div class="item-name">${item.name}</div>
+          <div class="item-qty">×${item.quantity || 1}</div>
+        </div>`
+      ).join('');
+    }
+    list.innerHTML = html;
+  }
+
+  list.querySelectorAll('.inventory-item').forEach(el => {
+    el.addEventListener('click', () => openItemModal(el.dataset.itemId));
+  });
+
+  // 黑市按钮可见性
+  const marketBtn = document.getElementById('btn-open-market');
+  if (marketBtn) marketBtn.style.display = G.flags?.marketUnlocked ? 'block' : 'none';
+}
+
+// ─ 道具弹窗 ─
+let _openItemId = null;
+function openItemModal(itemId) {
+  const item = G.player.inventory.find(i => i.id === itemId);
+  if (!item) return;
+  _openItemId = itemId;
+
+  document.getElementById('modal-item-name').textContent = item.name;
+  document.getElementById('modal-item-desc').textContent = item.desc || '无描述';
+  document.getElementById('modal-item-source').textContent = item.source || (item.type === 'ingredient' ? '探索/黑市获取' : '炼制/购买');
+  document.getElementById('modal-item').style.display = 'flex';
+
+  const useBtn = document.getElementById('btn-use-item');
+  if (useBtn) {
+    useBtn.style.display = item.usable ? 'block' : 'none';
+    useBtn.dataset.itemId = itemId;
+  }
+}
+
+function closeItemModal() {
+  document.getElementById('modal-item').style.display = 'none';
+}
+
+// ─ 记录面板渲染 ─
+function renderRecordsPanel() {
+  renderAchievements();
+  renderSaveSlots();
+  renderApiDisplay();
+}
+
+function renderAchievements() {
+  const countEl = document.getElementById('achievement-count');
+  if (countEl) countEl.textContent = G.unlockedAchievements.length;
+
+  const grid = document.getElementById('achievements-grid');
+  if (!grid) return;
+
+  const catOrder = ['story','relation','combat','craft','stat','house'];
+  const catNames = { story:'剧情', relation:'关系', combat:'战斗', craft:'探索', stat:'数值', house:'学院' };
+
+  grid.innerHTML = catOrder.map(cat => {
+    const items = ACHIEVEMENTS.filter(a => a.cat === cat);
+    const cells = items.map(a => {
+      const unlocked = G.unlockedAchievements.includes(a.id);
+      if (a.hidden && !unlocked) return ''; // 隐藏成就未解锁不显示
+      return `<div class="ach-cell ${unlocked ? 'unlocked' : 'locked'}" title="${unlocked ? a.desc : '???'}">
+        <div class="ach-icon">${unlocked ? a.icon : '？'}</div>
+        <div class="ach-name">${unlocked ? a.name : '未知'}</div>
+      </div>`;
+    }).join('');
+    if (!cells.trim()) return '';
+    return `<div class="ach-category">
+      <div class="ach-cat-title">${catNames[cat]}</div>
+      <div class="ach-grid">${cells}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSaveSlots() {
+  document.querySelectorAll('.save-slot').forEach(slot => {
+    const idx = parseInt(slot.dataset.slot);
+    const save = G.saves[idx];
+    const info = slot.querySelector('.save-info');
+    if (info) {
+      info.textContent = save
+        ? `存档位 ${idx+1} · ${save.dateLabel} ${save.timeLabel}`
+        : `存档位 ${idx+1} · 空`;
+    }
+  });
+}
+
+function renderApiDisplay() {
+  const cfg = getApiConfig();
+  const epEl = document.getElementById('api-display-endpoint');
+  const mdEl = document.getElementById('api-display-model');
+  if (epEl) epEl.textContent = cfg.url || 'Anthropic官方';
+  if (mdEl) mdEl.textContent = cfg.model || '未设置';
+}
+
+// ─ 成就弹出通知 ─
+function showAchievementToast(id) {
+  const ach = ACH_MAP[id];
+  if (!ach) return;
+  const modal = document.getElementById('modal-achievement');
+  const nameEl = document.getElementById('achievement-popup-name');
+  if (!modal || !nameEl) return;
+  nameEl.textContent = `${ach.icon} ${ach.name}`;
+  modal.style.display = 'flex';
+  setTimeout(() => modal.style.display = 'none', 2800);
+}
+
+// ─ Tab切换 ─
+function switchTab(panelId) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById(`panel-${panelId}`);
+  if (panel) panel.classList.add('active');
+  const btn = document.querySelector(`.nav-btn[data-panel="${panelId}"]`);
+  if (btn) btn.classList.add('active');
+
+  // 切换到对应面板时刷新数据
+  try {
+    if (panelId === 'characters') renderCharactersPanel();
+    if (panelId === 'inventory')  renderInventoryPanel();
+    if (panelId === 'records')    renderRecordsPanel();
+  } catch(e) {
+    console.error('Tab render error:', e);
+  }
+}
+
+// ─ 选项区折叠/展开 ─
+let optionsExpanded = true;
+function toggleOptions() {
+  optionsExpanded = !optionsExpanded;
+  const list = document.getElementById('options-list');
+  const handle = document.getElementById('options-toggle');
+  if (list) list.style.display = optionsExpanded ? 'flex' : 'none';
+  if (handle) handle.textContent = optionsExpanded ? '▼' : '▲';
+}
+
+</script>
+<script>
+/* ===== game.js ===== */
+// ── 主游戏逻辑 ────────────────────────────────────────────
+
+// ── 初始化 ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadAll();
+  initCreationScreen();
+  initSortingScreen();
+  initGameScreen();
+
+  const cfg = getApiConfig();
+  if (!cfg.key || !cfg.model) {
+    showScreen('no-api');
+    return;
+  }
+
+  if (G.phase === 'game') {
+    showScreen('game');
+    try { updateTopBar(); } catch(e) { console.warn('updateTopBar:', e); }
+    const hasRealStory = G.currentStory
+      && !/故事即将开始|故事即將開始/.test(G.currentStory);
+    if (hasRealStory) {
+      renderStory(G.currentStory);
+      renderOptions(G.currentOptions || []);
+    } else {
+      // 首次进入游戏，或旧存档只保存了占位文字。
+      G.currentStory = '';
+      G.currentOptions = [];
+      enterGame();
+    }
+  } else if (G.phase === 'sorting') {
+    showScreen('sorting');
+    renderSortingQuestion();
+  } else {
+    showScreen('creation');
+  }
+});
+
+// ── Creation Screen ────────────────────────────────────────
+function initCreationScreen() {
+  const nextBtn = document.getElementById('btn-creation-next');
+  nextBtn?.addEventListener('click', () => {
+    const name        = document.getElementById('char-name')?.value.trim();
+    const age         = document.getElementById('char-age')?.value.trim();
+    const appearance  = document.getElementById('char-appearance')?.value.trim();
+    const personality = document.getElementById('char-personality')?.value.trim();
+    const wandWood    = document.getElementById('wand-wood')?.value.trim();
+    const wandCore    = document.getElementById('wand-core')?.value.trim();
+    const wandLength  = document.getElementById('wand-length')?.value.trim();
+
+    if (!name) { alert('请填写角色姓名'); return; }
+
+    G.player.name        = name;
+    G.player.age         = age || '17';
+    G.player.appearance  = appearance || '东方面孔，气质出尘';
+    G.player.personality = personality || '沉静，观察力强';
+    G.player.wand        = {
+      wood:   wandWood   || '青竹',
+      core:   wandCore   || '白虎须',
+      length: wandLength || '10英寸'
+    };
+    G.phase = 'sorting';
+    G.sortingAnswerIndex = 0;
+    G.sortingScores = { gryffindor:0, slytherin:0, ravenclaw:0, hufflepuff:0 };
+    persistAll();
+    showScreen('sorting');
+    renderSortingQuestion();
+  });
+}
+
+// ── Sorting Screen ─────────────────────────────────────────
+function initSortingScreen() {
+  document.getElementById('btn-enter-game')?.addEventListener('click', enterGame);
+}
+
+function renderSortingQuestion() {
+  const idx = G.sortingAnswerIndex;
+  const qContainer = document.getElementById('sorting-questions');
+  const resultEl   = document.getElementById('sorting-result');
+  const subtitle   = document.getElementById('sorting-subtitle');
+
+  if (idx >= SORTING_QUESTIONS.length) {
+    // 计算结果
+    const scores = G.sortingScores;
+    const topHouse = Object.entries(scores).sort((a,b) => b[1]-a[1])[0][0];
+    const h = HOUSES[topHouse];
+    G.player.house = topHouse;
+    G.phase = 'game';
+    persistAll();
+
+    if (qContainer) qContainer.style.display = 'none';
+    if (resultEl) {
+      resultEl.style.display = 'block';
+      document.getElementById('result-house-icon').textContent = h.symbol;
+      document.getElementById('result-house-icon').style.color = h.accent;
+      document.getElementById('result-house-name').textContent = h.name;
+      document.getElementById('result-house-name').style.color = h.accent;
+      document.getElementById('result-house-desc').textContent = getHouseDesc(topHouse);
+    }
+    if (subtitle) subtitle.textContent = '分院帽已做出决定。';
+    unlockAchievement('sorted');
+    return;
+  }
+
+  const q = SORTING_QUESTIONS[idx];
+  if (subtitle) subtitle.textContent = `第 ${idx+1} / ${SORTING_QUESTIONS.length} 题`;
+  if (resultEl) resultEl.style.display = 'none';
+  if (qContainer) {
+    qContainer.style.display = 'block';
+    qContainer.innerHTML = `
+      <div class="sorting-question">
+        <div class="q-text">${q.text}</div>
+        <div class="q-options">
+          ${q.options.map((opt,i) =>
+            `<button class="q-opt-btn" data-house="${opt.house}" data-idx="${i}">${opt.text}</button>`
+          ).join('')}
+        </div>
+      </div>`;
+    qContainer.querySelectorAll('.q-opt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const house = btn.dataset.house;
+        G.sortingScores[house] = (G.sortingScores[house]||0) + 1;
+        G.sortingAnswerIndex++;
+        persistAll();
+        renderSortingQuestion();
+      });
+    });
+  }
+}
+
+function getHouseDesc(house) {
+  const descs = {
+    gryffindor: '分院帽感受到了你内心的勇气与正义——你属于格兰芬多。',
+    slytherin:  '分院帽感受到了你内心的野心与智谋——你属于斯莱特林。',
+    ravenclaw:  '分院帽感受到了你对知识的渴望与独特的思维——你属于拉文克劳。',
+    hufflepuff: '分院帽感受到了你的忠诚与宽厚的心——你属于赫奇帕奇。'
+  };
+  return descs[house] || '';
+}
+
+// ── 进入游戏 ───────────────────────────────────────────────
+async function enterGame() {
+  showScreen('game');
+  updateTopBar();
+  unlockAchievement('arrival');
+
+  // 先立即提供可玩的本地序章，避免慢速/失败 API 让页面停在占位文字。
+  const houseId = HOUSES[G.player.house] ? G.player.house : 'gryffindor';
+  G.player.house = houseId;
+  const house = HOUSES[houseId];
+  const fallbackStory = `九月一日的晨光穿过霍格沃茨大厅高处的彩色玻璃，在石板地面上割出一片片陌生的颜色。
+
+分院帽刚刚喊出「${house.name}」时，长桌方向响起掌声。你从高脚凳上起身，袖口下的灵力却被城堡里无处不在的魔力轻轻推了一下——不像敌意，更像两种互不相识的潮水第一次碰面。
+
+你握着那根用于融入这里的魔杖，清楚自己真正依赖的仍是经脉中熟悉的灵息。远处有人正在打量这位来自东方的交换生；楼梯已经开始改变方向，通往${house.name}公共休息室的路并不打算安静等候。`;
+  const fallbackOptions = ['跟随学院级长前往公共休息室', '先观察大厅里正在注视自己的人', '尝试收敛灵力，适应城堡的魔力场', '向身边最近的学生询问移动楼梯'];
+  renderStory(fallbackStory);
+  renderOptions(fallbackOptions);
+  G.currentStory = fallbackStory;
+  G.currentOptions = fallbackOptions;
+  persistAll();
+
+  // AI 在本地序章已可玩的前提下继续生成正式版本。
+  setLoading(true);
+
+  try {
+    const { story, options } = await generatePrologue();
+    if (story?.trim()) {
+      renderStory(story);
+      renderOptions(options?.length ? options : fallbackOptions);
+      G.currentStory = story;
+      G.currentOptions = options?.length ? options : fallbackOptions;
+    }
+    persistAll();
+  } catch(e) {
+    const errMsg = e?.message || '未知错误';
+    renderStory(`${fallbackStory}\n\n（AI序章暂未生成：${errMsg}。你仍可使用下方选项继续游戏。）`);
+    renderOptions(fallbackOptions);
+    showRegenButton();
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ── 玩家做出选择 ───────────────────────────────────────────
+async function handlePlayerChoice(choiceText) {
+  if (!choiceText?.trim()) return;
+  setLoading(true);
+
+  const customInput = document.getElementById('custom-input');
+  if (customInput) customInput.value = '';
+
+  try {
+    const { story, options, stateUpdate } = await generateStory(choiceText);
+    renderStory(story);
+    renderOptions(options);
+    updateTopBar();
+    persistAll();
+
+    // 战斗触发
+    if (stateUpdate?.combatTrigger) {
+      setTimeout(() => startCombat(stateUpdate.combatTrigger), 400);
+    }
+    // 黑市触发
+    if (stateUpdate?.openMarket) {
+      setTimeout(() => openMarketModal(), 400);
+    }
+  } catch(e) {
+    renderStory(`（生成失败：${e.message}）`);
+    showRegenButton();
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ── 游戏主界面事件绑定 ────────────────────────────────────
+function initGameScreen() {
+  // Tab 导航
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.panel));
+  });
+
+  // 自定义输入发送
+  document.getElementById('btn-send')?.addEventListener('click', () => {
+    const val = document.getElementById('custom-input')?.value.trim();
+    if (val) handlePlayerChoice(val);
+  });
+  document.getElementById('custom-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const val = e.target.value.trim();
+      if (val) handlePlayerChoice(val);
+    }
+  });
+
+  // 重新生成
+  document.getElementById('btn-regenerate')?.addEventListener('click', async () => {
+    const lastUser = [...G.storyHistory].reverse().find(m => m.role === 'user');
+    if (lastUser) {
+      G.storyHistory = G.storyHistory.slice(0, -2); // 移除最后一轮
+      setLoading(true);
+      try {
+        const { story, options } = await generateStory(lastUser.content);
+        renderStory(story);
+        renderOptions(options);
+        updateTopBar();
+      } catch(e) {
+        showRegenButton();
+      } finally {
+        setLoading(false);
+      }
+    }
+  });
+
+  // 选项折叠按钮
+  document.getElementById('options-toggle')?.addEventListener('click', toggleOptions);
+
+  // 道具弹窗
+  document.getElementById('modal-item-close')?.addEventListener('click', closeItemModal);
+  document.getElementById('modal-item-backdrop')?.addEventListener('click', closeItemModal);
+  document.getElementById('btn-use-item')?.addEventListener('click', (e) => {
+    const itemId = e.currentTarget.dataset.itemId || _openItemId;
+    const item = G.player.inventory.find(i => i.id === itemId);
+    if (!item) return;
+    const eff = usePotion(itemId);
+    closeItemModal();
+    renderInventoryPanel();
+    updateTopBar();
+    if (eff) {
+      handlePlayerChoice(`[使用了「${item.name}」。请在故事中描述使用效果，然后继续剧情。]`);
+    }
+  });
+
+  // 炼药工坊
+  document.getElementById('btn-open-alchemy')?.addEventListener('click', openAlchemyModal);
+  document.getElementById('modal-alchemy-close')?.addEventListener('click', closeAlchemyModal);
+  document.getElementById('modal-alchemy-backdrop')?.addEventListener('click', closeAlchemyModal);
+
+  // 黑市
+  document.getElementById('btn-open-market')?.addEventListener('click', openMarketModal);
+  document.getElementById('modal-market-close')?.addEventListener('click', closeMarketModal);
+  document.getElementById('modal-market-backdrop')?.addEventListener('click', closeMarketModal);
+
+  // 修改API按钮
+  document.getElementById('btn-change-api')?.addEventListener('click', () => {
+    window.location.href = '../../index.html';
+  });
+
+  // 存读档
+  document.querySelectorAll('.btn-save-write').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const slot = parseInt(btn.dataset.slot);
+      saveToSlot(slot);
+      renderSaveSlots();
+      alert(`已保存到存档位 ${slot+1}`);
+    });
+  });
+  document.querySelectorAll('.btn-save-read').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const slot = parseInt(btn.dataset.slot);
+      if (!G.saves[slot]) { alert('该存档位为空'); return; }
+      if (!confirm('读取存档将覆盖当前进度，确认？')) return;
+      loadFromSlot(slot);
+      updateTopBar();
+      renderStory(G.currentStory || '');
+      renderOptions(G.currentOptions || []);
+      renderSaveSlots();
+    });
+  });
+}
+
+</script>
+
+
+<script>
+/* ===== inline API config wiring (single-file build) ===== */
+(function(){
+  function $(id){return document.getElementById(id);}
+  function init(){
+    var u=$('lw-cfg-url'), k=$('lw-cfg-key'), m=$('lw-cfg-model'), btn=$('lw-cfg-save'), msg=$('lw-cfg-msg');
+    if(!btn) return;
+    try{ u.value=localStorage.getItem('LW_API_URL')||''; k.value=localStorage.getItem('LW_API_KEY')||''; m.value=localStorage.getItem('LW_API_MODEL')||''; }catch(e){}
+    btn.addEventListener('click', function(){
+      var url=(u.value||'').trim().replace(/\/$/,''), key=(k.value||'').trim(), model=(m.value||'').trim();
+      if(!url||!key||!model){ msg.textContent='请把三项都填好。'; msg.style.color='#e0c98f'; return; }
+      try{
+        localStorage.setItem('LW_API_URL',url);
+        localStorage.setItem('LW_API_KEY',key);
+        localStorage.setItem('LW_API_MODEL',model);
+      }catch(e){ msg.textContent='无法写入本地存储：'+e.message; msg.style.color='#e08f8f'; return; }
+      msg.textContent='已保存，正在进入…'; msg.style.color='#8fbc8f';
+      location.reload();
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+
+</body>
+</html>
