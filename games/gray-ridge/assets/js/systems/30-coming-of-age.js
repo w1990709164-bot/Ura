@@ -34,7 +34,7 @@ function triggerComingOfAge() {
   G.jobGrade = grade;
   G.phase = 'adult';
   G.gameYear = 8;
-  G.absoluteYear++;
+  G.gameWeek = 1;
   G.apUsedThisYear = [];
   saveGame();
 

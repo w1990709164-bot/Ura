@@ -3,6 +3,10 @@
 // ══════════════════════════════
 async function advanceYear() {
   document.getElementById('ap-modal')?.remove();
+  if ((G.apUsedThisYear || []).length < AP_PER_YEAR) {
+    showToast(`还有 ${AP_PER_YEAR - (G.apUsedThisYear || []).length} 个月未完成`);
+    return;
+  }
   if (G.gameYear >= 7) {
     // Trigger coming of age
     triggerComingOfAge();
@@ -10,11 +14,11 @@ async function advanceYear() {
   }
 
   G.gameYear++;
-  G.absoluteYear++;
   G.apUsedThisYear = [];
   G._freeToBond = 0;
   G._freeToGrow = 0;
   G.gameWeek = 1;
+  G.apPending = null;
   G.weeklyTaskDone = false;
 
   // Random market open chance for new year

@@ -317,11 +317,18 @@ function _applyApReward(p, horae) {
     G.apUsedThisYear.push({ type: 'free', year: G.gameYear });
   }
 
+  // 每个幼崽期行动点代表一个月，剧情完成后同步推进日历与顶栏。
+  advanceGameDateByMonths(1);
+  G.gameDay = (Number(G.gameDay) || 1) + 30;
+  const completedMonths = G.apUsedThisYear.length;
+  G.gameWeek = Math.min(52, Math.max(1, Math.ceil(completedMonths * 52 / AP_PER_YEAR)));
+
   // 防翻倍：本回合的羁绊/属性增长已由行动点固定发放，清除 horae 中的同类增量
   if (horae) { delete horae.bond_delta; horae.stat_gain = null; }
 
   G.apPending = null;
   saveGame();
+  updateTopBar();
   updateStatsBar();
   renderBonds();
   renderStatus();
@@ -362,7 +369,7 @@ function advanceYear() {
   G._freeToBond = 0;
   G._freeToGrow = 0;
   G.apPending = null;
-  G.absoluteYear = (G.absoluteYear || 2060) + 1;
+  G.gameWeek = 1;
 
   // 7年后成年
   if (G.gameYear > 7) {

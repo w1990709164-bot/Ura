@@ -68,5 +68,14 @@ function processHorae(h) {
   if (h.week_end) {
     setTimeout(()=>{ if(confirm('本周结束，进入下一周？')) advanceWeek(); }, 500);
   }
+  // 成人期可由剧情明确推进少量自然时间；幼崽期由行动点按月推进，避免重复计时。
+  if (G.phase === 'adult' && h.time_advance_days) {
+    const days = Math.min(31, Math.max(0, Number(h.time_advance_days) || 0));
+    if (days) {
+      advanceGameDateByDays(days);
+      G.gameDay = (Number(G.gameDay) || 1) + days;
+      updateTopBar();
+    }
+  }
   updateActionBar();
 }

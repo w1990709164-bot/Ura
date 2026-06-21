@@ -29,7 +29,7 @@ function updateActionBar() {
 
   if (G.phase === 'cub') {
     const used = G.apUsedThisYear?.length || 0;
-    const remaining = 8 - used;
+    const remaining = Math.max(0, AP_PER_YEAR - used);
     weekBtn.innerHTML = remaining > 0
       ? '⭐ 行动点 <span style="color:var(--gold);font-weight:700">' + remaining + '</span>'
       : '⭐ 行动点 <span style="color:var(--text3)">已用完</span>';
