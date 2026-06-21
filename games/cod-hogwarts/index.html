@@ -194,6 +194,14 @@ textarea { resize:vertical; min-height:72px; }
 }
 .panel.active { display:flex; }
 
+/* 非剧情面板：深色半透明背景，确保文字可读 */
+#panel-characters,
+#panel-inventory,
+#panel-records {
+  background:rgba(10,8,18,0.88);
+  backdrop-filter:blur(4px);
+}
+
 /* 底部导航 */
 #bottom-nav {
   height:calc(var(--nav-h) + var(--safe-b));
@@ -1850,7 +1858,17 @@ function applyStateUpdate(update) {
   }
 
   if (update.ingredientDrop) {
-    update.ingredientDrop.forEach(item => addItem({ ...item, type: item.type || 'ingredient' }));
+    const INAMES = {
+      lingrass:'灵草', zhusha:'朱砂', aconite:'乌头草', bezoar:'牛黄石',
+      moonwater:'满月水', dragonfly:'金蝉衣', cinnabar:'辰砂', ghostpowder:'幽灵粉末',
+      snowlotus:'天山雪莲', dragblood:'龙血', mandrake:'曼德拉草', flobberworm:'面包虫黏液',
+      boomslang:'树蟒皮', lacewing:'蕾丝翅', bicornhorn:'双角兽角粉', knotgrass:'结草'
+    };
+    update.ingredientDrop.forEach(item => addItem({
+      ...item,
+      type: item.type || 'ingredient',
+      name: item.name || INAMES[item.id] || item.id
+    }));
   }
 
   persistAll();
@@ -1977,7 +1995,7 @@ async function callAPI(messages, opts = {}) {
 // ── 角色信息摘要（供AI使用）─────────────────────────────
 function buildCharacterContext() {
   return CHARACTERS.map(c => {
-    const cs = G.characters[c.id];
+    const cs = G.characters[c.id] || { affection:0, stage:0, location:'未知', heartGuardBroken:false };
     const stage = AFFECTION_STAGES[cs.stage]?.name || '陌生人';
     return `【${c.name}】学院:${HOUSES[c.house].name} | 语言:${c.langLabel} | 好感阶段:${stage}(${cs.affection}) | 当前位置:${cs.location} | 心防:${cs.heartGuardBroken?'已破':'未破'}`;
   }).join('\n');
@@ -3367,6 +3385,7 @@ async function handlePlayerChoice(choiceText) {
     renderStory(story);
     renderOptions(options);
     updateTopBar();
+    renderCharactersPanel();
     persistAll();
 
     // 战斗触发
