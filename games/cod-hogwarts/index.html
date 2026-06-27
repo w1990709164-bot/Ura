@@ -1741,6 +1741,8 @@ function loadFromSlot(slot) {
   const savedSaves = G.saves;
   Object.assign(G, JSON.parse(JSON.stringify(save.data)));
   G.saves = savedSaves;
+  sanitizeState();
+  persistAll();
   return true;
 }
 
@@ -2081,6 +2083,47 @@ allies填写参与战斗的角色id（只有当前陪同玩家的、好感度>0�
 }
 
 // ── 故事生成 ──────────────────────────────────────────────
+function stripJsonNoise(text) {
+  return String(text||'')
+    .replace(/```json|```/gi,'')
+    .replace(/,\s*([}\]])/g,'$1')
+    .trim();
+}
+
+function extractFallbackOptions(text) {
+  const lines = String(text||'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const labeled = lines
+    .filter(s=>/^[A-D][\.\)、:：\s]/i.test(s) || /^[-*]\s*/.test(s))
+    .map(s=>s.replace(/^[A-D][\.\)、:：\s]*/i,'').replace(/^[-*]\s*/,'').trim())
+    .filter(Boolean)
+    .slice(0,4);
+  return labeled.length ? labeled : null;
+}
+
+function inferTouchedCharacters(text) {
+  const hay = String(text||'').toLowerCase();
+  return CHARACTERS
+    .filter(c => hay.includes(String(c.id).toLowerCase()) || hay.includes(String(c.name||'').toLowerCase()) || (c.cnName && hay.includes(c.cnName)))
+    .map(c=>c.id)
+    .slice(0,3);
+}
+
+function fallbackProgressAfterChoice(playerChoice, story, stateUpdate) {
+  const hasDate = !!stateUpdate?.dateChange;
+  if (!hasDate) {
+    const idx = TIME_ORDER.indexOf(G.gameDate.timeOfDay);
+    if (idx >= 0 && idx < TIME_ORDER.length - 1) advanceTime({ timeOfDay: TIME_ORDER[idx+1] });
+    else advanceTime({ days:1, timeOfDay:'morning' });
+  }
+  const changed = stateUpdate?.affectionChanges && Object.values(stateUpdate.affectionChanges).some(v=>Number(v));
+  if (!changed) {
+    inferTouchedCharacters(`${playerChoice}\n${story}`).forEach(id => {
+      changeAffection(id, 2);
+      if (G.characters[id]) G.characters[id].metPlayer = true;
+    });
+  }
+}
+
 function parseAIResponse(raw) {
   const stateMatch = raw.match(/<<<STATE>>>([\s\S]*?)<<<END>>>/);
   const story = raw.replace(/<<<STATE>>>[\s\S]*?<<<END>>>/, '').trim();
@@ -2090,15 +2133,18 @@ function parseAIResponse(raw) {
 
   if (stateMatch) {
     try {
-      const parsed = JSON.parse(stateMatch[1].trim());
+      const parsed = JSON.parse(stripJsonNoise(stateMatch[1]));
       if (parsed.options) options = parsed.options;
       if (parsed.stateUpdate) stateUpdate = parsed.stateUpdate;
     } catch(e) {
       console.warn('State parse error:', e);
+      options = extractFallbackOptions(stateMatch[1]) || extractFallbackOptions(raw) || options;
     }
+  } else {
+    options = extractFallbackOptions(raw) || options;
   }
 
-  return { story, options, stateUpdate };
+  return { story: story || raw.trim(), options, stateUpdate };
 }
 
 async function generateStory(playerChoice) {
@@ -2123,6 +2169,7 @@ async function generateStory(playerChoice) {
   G.currentOptions = options;
 
   applyStateUpdate(stateUpdate);
+  fallbackProgressAfterChoice(playerChoice, story, stateUpdate);
 
   return { story, options, stateUpdate };
 }
@@ -3397,7 +3444,8 @@ async function handlePlayerChoice(choiceText) {
       setTimeout(() => openMarketModal(), 400);
     }
   } catch(e) {
-    renderStory(`（生成失败：${e.message}）`);
+    renderStory(`${G.currentStory || ''}\n\n（生成失败：${e.message}。当前进度已保留，请重试或选择其他行动。）`);
+    renderOptions(G.currentOptions || []);
     showRegenButton();
   } finally {
     setLoading(false);

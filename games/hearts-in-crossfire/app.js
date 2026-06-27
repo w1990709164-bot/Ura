@@ -345,6 +345,17 @@ function apiEndpoint(url){
   return /\/chat\/completions$/i.test(base) ? base : `${base}/chat/completions`;
 }
 
+function getApiConfig(){
+  let legacy={};
+  try{ legacy=JSON.parse(localStorage.getItem(API_STORE)||"{}"); }catch{}
+  return {
+    url: localStorage.getItem("LW_API_URL") || legacy.url || "http://127.0.0.1:7897/v1",
+    key: localStorage.getItem("LW_API_KEY") || legacy.key || "",
+    model: localStorage.getItem("LW_API_MODEL") || legacy.model || "gpt-4o-mini",
+    models: legacy.models || []
+  };
+}
+
 async function fetchWithTimeout(url, options={}, timeoutMs=60000){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
@@ -361,7 +372,7 @@ async function fetchWithTimeout(url, options={}, timeoutMs=60000){
 function readableApiError(error){
   const raw=String(error?.message||error||"未知错误");
   if(raw.includes("system_memory_overloaded")) return "模型服务内存过载，请稍后重试或更换模型";
-  if(raw.includes("Failed to fetch")) return "无法连接API，请检查地址、跨域设置或网络";
+  if(raw.includes("Failed to fetch") || raw.includes("NetworkError") || raw.includes("Load failed")) return "无法连接API，请检查主页全局 API 地址、跨域设置或网络";
   return raw;
 }
 
@@ -965,6 +976,23 @@ function parseTaggedSocial(raw){
   return posts;
 }
 
+function fallbackSignals(){
+  return cast.map(c=>({
+    sender:c.id,
+    text:`今晚的海风很安静。${c.code}留下的这句话像是克制过后的确认：他看见了你，也会记住今天。`
+  }));
+}
+
+function completeSocialPosts(posts){
+  const existing=new Map((posts||[]).filter(p=>p?.author).map(post=>[post.author,post]));
+  cast.forEach(c=>{
+    if(!existing.has(c.id)){
+      existing.set(c.id,{author:c.id,text:`${c.code} 发布了一张没有说明的夜色照片，画面边缘只露出别墅走廊的一点灯光。`});
+    }
+  });
+  return [...existing.values()];
+}
+
 function neglectedSignalers(){
   const previous=(state.signalHistory||[]).find(entry=>entry.day===state.day-1);
   if(!previous) return [];
@@ -1150,9 +1178,47 @@ function validateSceneDiversity(scene){
   return true;
 }
 
+function fallbackDirectorScene(reason,focus=[]){
+  const program=dayPrograms[state.day]||{theme:"节目日程",activity:"继续推进",twist:"关系发生变化"};
+  const beat=currentBeat();
+  const contract=slotContracts[state.daySlot]||{};
+  const primary=(focus||[]).find(id=>characterBible[id]) || cast[(state.day+state.daySlot)%cast.length]?.id || "ghost";
+  const secondary=cast.find(c=>c.id!==primary)?.id;
+  const locs=String(contract.preferred||"别墅公共区、走廊、露台").split("、").filter(Boolean);
+  const location=`${locs[(state.day+state.daySlot)%Math.max(1,locs.length)]||"别墅公共区"} · 备用分镜`;
+  const requiredBlock = beat.format==="task"
+    ? {type:"task",text:`节目组重新确认本幕规则：${beat.must||program.activity}`}
+    : beat.format==="interview"
+      ? {type:"interview",char:primary,text:"他在未播采访里承认，刚才的停顿不是遗忘，而是在重新判断该把多少真实反应交给镜头。"}
+      : beat.format==="observer"
+        ? {type:"observer",text:"观察室把重点放在一个具体动作上：有人没有立刻接话，却把视线留在了你刚才站过的位置。"}
+        : {type:"producer",text:`节目组临时加码：${beat.must||program.twist}。规则被写清楚后，本幕继续。`};
+  return {
+    title: beat.name || program.theme || "备用剧情",
+    subtitle: `${slotNames[state.daySlot]||"当前时段"} · 本地备用剧情`,
+    time: ["08:10","14:20","17:40","21:10"][state.daySlot] || "14:20",
+    location,
+    blocks:[
+      {type:"system",text:`AI分镜未能稳定生成，已启用备用剧情继续推进。原因：${String(reason||"未知错误").slice(0,120)}`},
+      requiredBlock,
+      {type:"narration",text:`镜头没有停摆。${program.theme||"今天的主题"}被工作人员重新拉回正轨，任务卡、耳返里的倒计时和每个人克制的呼吸一起把现场固定下来。${cast.find(c=>c.id===primary)?.name||primary}先反应过来，他没有替你决定，只是把选择空间让出来；${secondary?cast.find(c=>c.id===secondary)?.name:"另一个人"}则在旁边观察节目组是否又要临时改规则。`},
+      {type:"narration",text:"这不是空白的一幕。刚才发生的停顿会被记入今天的关系走向，接下来你仍然可以选择顺着规则走、质疑节目组，或把注意力落在某个具体的人身上。"}
+    ],
+    choices:[
+      {tag:"ACTION",text:"顺着节目组补发的规则继续完成本幕",focus:[primary],effects:{trust:2,respect:2},memory:`Day ${state.day} ${slotNames[state.daySlot]}：在备用分镜中继续完成「${beat.name||program.theme}」。`},
+      {tag:"QUESTION",text:"当场质疑节目组为什么临时改动规则",focus:[primary,secondary].filter(Boolean),effects:{respect:3,jealousy:1},memory:`Day ${state.day}：玩家质疑节目组规则变动。`},
+      {tag:"OBSERVE",text:"先不表态，观察谁在这次停顿里最先看向你",focus:[primary],effects:{heart:1,trust:1,respect:1},memory:`Day ${state.day}：玩家观察到${primary}在停顿后最先回应。`}
+    ],
+    focus:[primary,secondary].filter(Boolean),
+    facts:{ [`${slotNames[state.daySlot]||"当前"}地点`]: location, [`${beat.name||"本幕"}结果`]:"备用分镜已推进" },
+    source:"fallback",
+    diagnostic:String(reason||"fallback")
+  };
+}
+
 async function directorScene(){
   state.dynamicScene=null; save(); renderScene();
-  const cfg={url:"http://127.0.0.1:7897/v1",...JSON.parse(localStorage.getItem(API_STORE)||"{}")};
+  const cfg=getApiConfig();
   let focus=pickFocus(), program=dayPrograms[state.day], contract=slotContracts[state.daySlot], beat=currentBeat();
   const neglected=neglectedSignalers();
   if(state.daySlot>=2 && neglected.length && !focus.includes(neglected[0])) focus=[neglected[0],focus[0]];
@@ -1217,8 +1283,9 @@ ${continuityBrief()}
     state.dynamicScene={...parsed,source:"ai",diagnostic:`${cfg.model||"gpt-4o-mini"} · ${new Date().toLocaleTimeString()}`};
   }catch(e){
     console.warn("AI导演生成失败",e);
-    state.dynamicScene={source:"error",error:readableApiError(e),diagnostic:String(e.message||e)};
-    toast("AI生成失败，请重新生成");
+    state.dynamicScene=fallbackDirectorScene(readableApiError(e),focus);
+    mergeEpisodeFacts(state.dynamicScene.facts);
+    toast("AI生成失败，已启用备用剧情");
   }
   save(); renderScene();
 }
@@ -1254,7 +1321,7 @@ function applyStructuredEffects(choice){
 }
 
 async function generateConsequence(choice){
-  const cfg={url:"http://127.0.0.1:7897/v1",...JSON.parse(localStorage.getItem(API_STORE)||"{}")};
+  const cfg=getApiConfig();
   const focus=(choice.focus||state.dynamicScene?.focus||[]).filter(id=>characterBible[id]);
   try{
     const prompt=`你负责续写COD恋综《交火心跳：21日》中玩家选择后的即时反应。不要输出JSON，不要Markdown，只使用指定逐行标签。
@@ -1341,6 +1408,7 @@ function showMomentContinue(label="带着这段余波继续节目"){
 
 async function chooseDynamic(choice){
   addBlock({type:"player",text:choice.text});
+  storeMomentResult([{type:"player",text:choice.text}]);
   $("#choices").innerHTML="";
   $("#freeInputWrap").classList.add("hidden");
   await resolveDynamicChoice(choice);
@@ -1444,7 +1512,7 @@ async function sendSignal(id, text=""){
 }
 
 async function settleSignals(){
-  const cfg={url:"http://127.0.0.1:7897/v1",...JSON.parse(localStorage.getItem(API_STORE)||"{}")};
+  const cfg=getApiConfig();
   try{
     const prompt=`你是COD成年女性向恋综《交火心跳：21日》的匿名短信生成器。不要输出JSON，不要Markdown。
 当前Day ${state.day}。玩家今晚发给：${state.signalSent}。
@@ -1468,10 +1536,13 @@ async function settleSignals(){
     if(!signals.length) signals=proseToSignals(raw);
     state.receivedSignals=sanitizeSignals(signals);
     const senders=new Set(state.receivedSignals.map(s=>s.sender).filter(Boolean));
-    if(senders.size!==6) throw new Error(`AI只生成了 ${senders.size}/6 位嘉宾的有效短信，请重新生成`);
-    const posts=parseTaggedSocial(raw);
-    const postAuthors=new Set(posts.map(post=>post.author));
-    if(postAuthors.size!==6) throw new Error(`AI只生成了 ${postAuthors.size}/6 位嘉宾的朋友圈，请重新生成`);
+    if(senders.size!==6){
+      const bySender=new Map(state.receivedSignals.map(s=>[s.sender,s]));
+      fallbackSignals().forEach(s=>{ if(!bySender.has(s.sender)) bySender.set(s.sender,s); });
+      state.receivedSignals=[...bySender.values()];
+    }
+    const finalSenders=new Set(state.receivedSignals.map(s=>s.sender).filter(Boolean));
+    const posts=completeSocialPosts(parseTaggedSocial(raw));
     state.socialPosts.push(...posts.map(post=>({...post,day:state.day,at:new Date().toISOString()})));
     state.signalError=null;
     if(!state.signalCommitted){
@@ -1482,10 +1553,26 @@ async function settleSignals(){
     }
     if(state.receivedSignals.length===6) unlock("allVotes");
     state.signalHistory=state.signalHistory.filter(entry=>entry.day!==state.day);
-    state.signalHistory.push({day:state.day,playerTarget:state.signalSent,playerText:state.signalSentText,senders:[...senders]});
+    state.signalHistory.push({day:state.day,playerTarget:state.signalSent,playerText:state.signalSentText,senders:[...finalSenders]});
   }catch(e){
-    state.receivedSignals=[];
-    state.signalError=readableApiError(e);
+    const msg=readableApiError(e);
+    if(/有效短信|朋友圈|格式|正文为空|响应结构/.test(msg)){
+      state.receivedSignals=fallbackSignals();
+      state.socialPosts.push(...completeSocialPosts([]).map(post=>({...post,day:state.day,at:new Date().toISOString()})));
+      state.signalError=null;
+      if(!state.signalCommitted){
+        const r=state.relations[state.signalSent];
+        r.heart+=12; r.trust+=3; r.stage=Math.max(1,r.stage);
+        state.signalCommitted=true;
+        unlock("signal");
+      }
+      unlock("allVotes");
+      state.signalHistory=state.signalHistory.filter(entry=>entry.day!==state.day);
+      state.signalHistory.push({day:state.day,playerTarget:state.signalSent,playerText:state.signalSentText,senders:cast.map(c=>c.id),fallback:true});
+    }else{
+      state.receivedSignals=[];
+      state.signalError=msg;
+    }
   }
   save(); renderSignals();
   $("#signalStatus").textContent=state.signalError?"短信生成失败，请重新生成。":`午夜已过。你收到了 ${state.receivedSignals.length} 封匿名短信。`;
@@ -1564,7 +1651,7 @@ async function generateEnding(choice){
   $("#choices").innerHTML="";
   $("#choiceHint").textContent="正在生成三个月后的答案 · 最长等待3分钟";
   const thinking=document.createElement("div"); thinking.className="story-block thinking"; thinking.innerHTML="<i></i><i></i><i></i>"; $("#storyFeed").appendChild(thinking);
-  const cfg={url:"http://127.0.0.1:7897/v1",...JSON.parse(localStorage.getItem(API_STORE)||"{}")};
+  const cfg=getApiConfig();
   const selected=choice.ids.map(id=>cast.find(c=>c.id===id)).filter(Boolean);
   try{
     const prompt=`你为成年女性向COD恋综《交火心跳：21日》生成最终结局。不要JSON，不要Markdown，只用[旁白]与[台词:角色id]标签。
@@ -1631,13 +1718,14 @@ async function sendFree(){
     return;
   }
   addBlock({type:"player",text}); $("#freeInput").value="";
+  storeMomentResult([{type:"player",text}]);
   $("#choices").innerHTML="";
   $("#freeInputWrap").classList.add("hidden");
   $("#choiceHint").textContent="正在让你的自由行动进入剧情 · 最长等待3分钟";
   const focus=(state.dynamicScene?.focus||[]).filter(id=>state.relations[id]);
   state.playerAgencyLog.push({day:state.day,slot:state.day>1?slotNames[state.daySlot]:`序章${state.scene+1}`,text,focus,at:new Date().toISOString()});
   state.playerAgencyLog=state.playerAgencyLog.slice(-40);
-  const cfg={url:"http://127.0.0.1:7897/v1", ...JSON.parse(localStorage.getItem(API_STORE)||"{}")};
+  const cfg=getApiConfig();
   const thinking=document.createElement("div"); thinking.className="story-block thinking"; thinking.innerHTML="<i></i><i></i><i></i>"; $("#storyFeed").appendChild(thinking);
   try{
     const prompt=`你是成年女性向COD恋综文字游戏《交火心跳：21日》的自由行动续写引擎。不要输出JSON，不要Markdown，只输出正文。
@@ -1682,7 +1770,11 @@ ${continuityBrief()}
     }
   }catch(e){
     thinking.remove();
-    addBlock({type:"system",text:`自由行动生成失败：${readableApiError(e)}。旧选项已清除，本次行动尚未推进时间；你可以重新输入或检查接口。`});
+    const failText=`自由行动生成失败：${readableApiError(e)}。本次输入已记录；你可以重试，或继续当前剧情。`;
+    addBlock({type:"system",text:failText});
+    storeMomentResult([{type:"system",text:failText}]);
+    state.dailyLog.push({day:state.day,slot:state.day>1?slotNames[state.daySlot]:`序章${state.scene+1}`,choice:`自由行动（生成失败但已记录）：${text}`,focus,free:true,error:true});
+    save();
     $("#choiceHint").textContent="自由行动生成失败";
     $("#freeInputWrap").classList.remove("hidden");
   }
@@ -1724,7 +1816,7 @@ $$("[data-agency]").forEach(button=>button.onclick=()=>handleAgencyButton(button
 $$("[data-close]").forEach(b=>b.onclick=()=>$("#"+b.dataset.close).classList.add("hidden"));
 $$(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.add("hidden");});
 $("#settingsBtn").onclick=()=>{
-  const cfg=JSON.parse(localStorage.getItem(API_STORE)||"{}");
+  const cfg=getApiConfig();
   $("#apiUrl").value=cfg.url||"http://127.0.0.1:7897/v1"; $("#apiKey").value=cfg.key||""; $("#apiModel").value=cfg.model||"";
   $("#settingsContentLevel").value=state.profile?.contentLevel||"fade";
   $("#settingsBoundaries").value=state.profile?.boundaries||"";
@@ -1762,7 +1854,13 @@ $("#loadModels").onclick=async()=>{
 };
 $("#saveSettings").onclick=()=>{
   const models=[...$("#apiModelSelect").options].map(o=>o.value).filter(Boolean);
-  localStorage.setItem(API_STORE,JSON.stringify({url:$("#apiUrl").value.trim(),key:$("#apiKey").value.trim(),model:$("#apiModel").value.trim(),models}));
+  const url=$("#apiUrl").value.trim();
+  const key=$("#apiKey").value.trim();
+  const model=$("#apiModel").value.trim();
+  localStorage.setItem("LW_API_URL",url);
+  localStorage.setItem("LW_API_KEY",key);
+  localStorage.setItem("LW_API_MODEL",model);
+  localStorage.setItem(API_STORE,JSON.stringify({url,key,model,models}));
   if(state.profile){
     state.profile.contentLevel=$("#settingsContentLevel").value;
     state.profile.boundaries=$("#settingsBoundaries").value.trim();

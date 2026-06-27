@@ -302,18 +302,21 @@ async function callLandscapeAI(charId, userMsg) {
   if (!G.landscapeHistory[charId]) G.landscapeHistory[charId] = [];
   G.landscapeHistory[charId].push({ role:'user', content: userMsg });
 
-  const endpoint = G.apiEndpoint ? G.apiEndpoint.replace(/\/$/,'')+'/chat/completions' : 'https://api.anthropic.com/v1/messages';
-  const isOAI = !!G.apiEndpoint;
-  const model  = G.apiModel || (isOAI ? 'gpt-4o' : 'claude-sonnet-4-20250514');
+  const apiKey = localStorage.getItem('LW_API_KEY') || G.apiKey || '';
+  const apiEndpoint = localStorage.getItem('LW_API_URL') || G.apiEndpoint || '';
+  const apiModel = localStorage.getItem('LW_API_MODEL') || G.apiModel || '';
+  const endpoint = apiEndpoint ? apiEndpoint.replace(/\/$/,'')+'/chat/completions' : 'https://api.anthropic.com/v1/messages';
+  const isOAI = !!apiEndpoint;
+  const model  = apiModel || (isOAI ? 'gpt-4o' : 'claude-sonnet-4-20250514');
 
   try {
     let rawText = '';
     if (isOAI) {
-      const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${G.apiKey}`},body:JSON.stringify({model,max_tokens:800,messages:[{role:'system',content:systemPrompt},...G.landscapeHistory[charId]]})});
+      const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model,max_tokens:800,messages:[{role:'system',content:systemPrompt},...G.landscapeHistory[charId]]})});
       const d = await r.json();
       rawText = d.choices?.[0]?.message?.content || '';
     } else {
-      const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':G.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:800,system:systemPrompt,messages:G.landscapeHistory[charId]})});
+      const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:800,system:systemPrompt,messages:G.landscapeHistory[charId]})});
       const d = await r.json();
       rawText = d.content?.[0]?.text || '';
     }
@@ -338,11 +341,11 @@ function processLandscapeResponse(charId, rawText) {
   const lscapeMatch = rawText.match(/<lscape>([\s\S]*?)<\/lscape>/);
   if (lscapeMatch) {
     try {
-      const ls = JSON.parse(lscapeMatch[1].trim());
+      const ls = JSON.parse(lscapeMatch[1].trim().replace(/,\s*([}\]])/g,'$1'));
       if (ls.depth_delta)   lc.depth = (lc.depth||0) + ls.depth_delta;
       if (ls.shield_cost)   G.playerStats.shield  = Math.max(0, (G.playerStats.shield??100)  - ls.shield_cost);
       if (ls.contam_delta)  G.playerStats.contam  = Math.min(100,(G.playerStats.contam??0)   + ls.contam_delta);
-      if (ls.trust_delta && p) {
+      if (ls.trust_delta !== undefined && p) {
         p.trustAccum = Math.max(0, (p.trustAccum||0) + ls.trust_delta);
         const thr = (typeof PHASE_THRESHOLDS!=='undefined'?PHASE_THRESHOLDS[p.trustPhase||0]:null)||100;
         p.trust = Math.round((p.trustAccum/thr)*100);
@@ -394,6 +397,10 @@ function processLandscapeResponse(charId, rawText) {
     renderLandscapeOptions(charId, treatMatch[1], true);
   } else if (routeMatch) {
     renderLandscapeOptions(charId, routeMatch[1], false);
+  } else {
+    const fallback = buildLandscapeFallbackOptions(rawText, !!(G.currentLandscape?.spiritFound));
+    renderLandscapeOptions(charId, fallback.text, fallback.treat);
+    appendLandscapeNarr('（感知没有给出清晰路线，系统已整理出可继续选择的行动。）');
   }
 
   saveGame();
@@ -407,7 +414,16 @@ function renderLandscapeOptions(charId, optStr, isTreat) {
 
   if (header) header.textContent = isTreat ? '— 治疗方式 —' : '— 选择路线 —';
 
-  const parts = optStr.split('|').map(s => s.trim()).filter(Boolean);
+  const parts = optStr.includes('|')
+    ? optStr.split('|').map(s => s.trim()).filter(Boolean)
+    : optStr.split(/\n+/).map(s => s.trim()).filter(s=>/^[A-C][\.\)、:：\s]/i.test(s)).slice(0,3);
+  if (!parts.length) {
+    parts.push(
+      isTreat ? 'A. 以精神屏障稳定边界（安全）' : 'A. 沿着最稳定的气息向前探索（安全）',
+      isTreat ? 'B. 尝试接近精神体并释放安抚信号（未知）' : 'B. 追踪精神体留下的痕迹（未知）',
+      isTreat ? 'C. 暂停深入，先确认对方是否愿意继续（安全）' : 'C. 绕开异常区域寻找出口标记（危险）'
+    );
+  }
   const opts  = parts.map((raw, i) => {
     const text = raw.replace(/^[A-C][\.。]\s*/, '').trim();
     const riskMatch = text.match(/（(安全|危险|未知)）/);
@@ -429,6 +445,18 @@ function renderLandscapeOptions(charId, optStr, isTreat) {
       <div style="flex:1;font-size:13px;color:#c8dde8;line-height:1.6">${o.label}</div>
       ${o.risk ? `<div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:${riskColor[o.risk]||'#5a7a90'};flex-shrink:0;padding:2px 6px;border:1px solid;border-color:${riskColor[o.risk]||'#5a7a90'};border-radius:2px">${o.risk}</div>` : ''}
     </div>`).join('');
+}
+
+function buildLandscapeFallbackOptions(rawText, spiritFound) {
+  const lines = String(rawText||'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const labeled = lines.filter(s=>/^[A-C][\.\)、:：\s]/i.test(s)).slice(0,3);
+  if (labeled.length) return { text:labeled.join('|'), treat:spiritFound };
+  return {
+    treat: spiritFound,
+    text: spiritFound
+      ? 'A. 以精神屏障稳定边界（安全）| B. 接近精神体并释放安抚信号（未知）| C. 暂停治疗，先确认对方是否愿意继续（安全）'
+      : 'A. 沿着最稳定的气息向前探索（安全）| B. 追踪精神体留下的痕迹（未知）| C. 绕开异常区域寻找出口标记（危险）'
+  };
 }
 
 function escStr(s) {

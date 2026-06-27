@@ -284,18 +284,21 @@ ${identityMap[charId]||'你说英语，后跟中文翻译。'}
 - 玩家说错话/触碰禁区：-3到-8
 - 角色性格上不会因为这句话有变化：0`;
 
-  const endpoint = G.apiEndpoint ? G.apiEndpoint.replace(/\/$/,'')+'/chat/completions' : 'https://api.anthropic.com/v1/messages';
-  const isOAI = !!G.apiEndpoint;
-  const model = G.apiModel||(isOAI?'gpt-4o':'claude-sonnet-4-20250514');
+  const apiKey = localStorage.getItem('LW_API_KEY') || G.apiKey || '';
+  const apiEndpoint = localStorage.getItem('LW_API_URL') || G.apiEndpoint || '';
+  const apiModel = localStorage.getItem('LW_API_MODEL') || G.apiModel || '';
+  const endpoint = apiEndpoint ? apiEndpoint.replace(/\/$/,'')+'/chat/completions' : 'https://api.anthropic.com/v1/messages';
+  const isOAI = !!apiEndpoint;
+  const model = apiModel||(isOAI?'gpt-4o':'claude-sonnet-4-20250514');
   const msgs = history.slice(-16);
 
   let rawReply = '';
   if (isOAI) {
-    const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${G.apiKey}`},body:JSON.stringify({model,max_tokens:300,messages:[{role:'system',content:sys},...msgs]})});
+    const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model,max_tokens:300,messages:[{role:'system',content:sys},...msgs]})});
     const data = await r.json();
     rawReply = data.choices?.[0]?.message?.content||'...';
   } else {
-    const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':G.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:300,system:sys,messages:msgs})});
+    const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:300,system:sys,messages:msgs})});
     const data = await r.json();
     rawReply = data.content?.[0]?.text||'...';
   }

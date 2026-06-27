@@ -7,7 +7,7 @@ async function triggerNextTaskEvent() {
     addSysMsg('今日事件', '今天所有任务已完成或无待触发事件。');
     return;
   }
-  const task = pending[Math.floor(Math.random()*pending.length)];
+  const task = pending.find(t=>t.charId===currentCharPovId) || pending[0];
   const c = CHARS.find(x=>x.id===task.charId);
 
   document.getElementById('tnc-char').textContent = c.name;

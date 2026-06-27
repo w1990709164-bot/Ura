@@ -94,17 +94,20 @@ async function refreshForum() {
   }
 ]`;
 
-    const endpoint = G.apiEndpoint ? G.apiEndpoint.replace(/\/$/,'')+'/chat/completions' : 'https://api.anthropic.com/v1/messages';
-    const isOAI = !!G.apiEndpoint;
-    const model = G.apiModel||(isOAI?'gpt-4o':'claude-sonnet-4-20250514');
+    const apiKey = localStorage.getItem('LW_API_KEY') || G.apiKey || '';
+    const apiEndpoint = localStorage.getItem('LW_API_URL') || G.apiEndpoint || '';
+    const apiModel = localStorage.getItem('LW_API_MODEL') || G.apiModel || '';
+    const endpoint = apiEndpoint ? apiEndpoint.replace(/\/$/,'')+'/chat/completions' : 'https://api.anthropic.com/v1/messages';
+    const isOAI = !!apiEndpoint;
+    const model = apiModel||(isOAI?'gpt-4o':'claude-sonnet-4-20250514');
 
     let rawText = '';
     if (isOAI) {
-      const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${G.apiKey}`},body:JSON.stringify({model,max_tokens:800,messages:[{role:'user',content:prompt}]})});
+      const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model,max_tokens:800,messages:[{role:'user',content:prompt}]})});
       const data = await r.json();
       rawText = data.choices?.[0]?.message?.content||'[]';
     } else {
-      const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':G.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:800,messages:[{role:'user',content:prompt}]})});
+      const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:800,messages:[{role:'user',content:prompt}]})});
       const data = await r.json();
       rawText = data.content?.[0]?.text||'[]';
     }

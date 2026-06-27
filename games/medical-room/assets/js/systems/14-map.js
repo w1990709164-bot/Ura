@@ -54,6 +54,34 @@ function renderMap() {
 function getLocationName(id) {
   return LOCATIONS.find(l=>l.id===id)?.name || '未知';
 }
+function applyMapEncounterTrust(locId, locName) {
+  if (locId === 'clinic' || locId === 'quarters' || !G.patients) return;
+  const ids = (typeof CHARS !== 'undefined' ? CHARS.map(c=>c.id) : Object.keys(G.patients))
+    .filter(id => G.patients[id]);
+  if (!ids.length) return;
+  const seen = ids.filter(id => (G.patients[id].visitCount||0)>0 || (G.patients[id].trustAccum||0)>0 || (G.contacts||[]).includes(id));
+  const pool = seen.length ? seen : ids;
+  const charId = pool[(Number(G.day||1) + locId.length) % pool.length];
+  const p = G.patients[charId];
+  const c = typeof CHARS !== 'undefined' ? CHARS.find(x=>x.id===charId) : null;
+  const delta = locId === 'archive' ? 1 : 2;
+  if (p.trustPhase === undefined) p.trustPhase = 0;
+  if (p.trustAccum === undefined) p.trustAccum = 0;
+  p.trustAccum = Math.max(0, p.trustAccum + delta);
+  const threshold = (typeof PHASE_THRESHOLDS !== 'undefined' ? PHASE_THRESHOLDS[p.trustPhase||0] : null) || 100;
+  p.trust = Math.max(0, Math.min(100, Math.round((p.trustAccum / threshold) * 100)));
+  p.location = locName;
+  if (!p.memory) p.memory = { summary:'尚未接触', keyEvents:[], doctorNote:'', lastUpdated:null };
+  if (!Array.isArray(p.memory.keyEvents)) p.memory.keyEvents = [];
+  p.memory.keyEvents.push({ day:G.day, text:`在${locName}发生过一次诊疗外偶遇，信任+${delta}。` });
+  p.memory.keyEvents = p.memory.keyEvents.slice(-12);
+  p.memory.lastUpdated = new Date().toISOString();
+  if (typeof checkPhaseUp === 'function') checkPhaseUp(charId);
+  if (typeof addWorldLog === 'function') addWorldLog('map', charId, `在${locName}偶遇${c?.name||charId}，诊疗外信任+${delta}。`);
+  if (typeof showTrustChange === 'function') showTrustChange(charId, delta);
+  else if (typeof showToast === 'function') showToast(`${c?.name||charId} 信任 +${delta}`);
+}
+
 function travelTo(locId, locName) {
   const prev = G.currentLocation || 'clinic';
   if (prev === locId) return;
@@ -63,6 +91,7 @@ function travelTo(locId, locName) {
     G.playerStats.shield = Math.min(100, (G.playerStats.shield ?? 100) + 15);
     showToast('🛏 精神屏障恢复 +15');
   }
+  applyMapEncounterTrust(locId, locName);
   showPanel('scene');
   const locEl = document.getElementById('tb-location');
   if (locEl) locEl.textContent = locName;

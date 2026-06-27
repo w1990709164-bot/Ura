@@ -33,6 +33,8 @@ function saveGame() {
       icuMode: G.icuMode||false,
       icuDaysLeft: G.icuDaysLeft||0,
       worldLog: (G.worldLog||[]).slice(-200),
+      landscapeHistory: G.landscapeHistory || {},
+      currentLandscape: G.currentLandscape || null,
     };
     localStorage.setItem('tower_clinic_save', JSON.stringify(save));
   } catch(e){ console.warn('Save failed:', e); }
@@ -56,6 +58,8 @@ function loadGame() {
     if (G.icuMode === undefined) G.icuMode = false;
     if (!G.icuDaysLeft) G.icuDaysLeft = 0;
     if (!G.worldLog) G.worldLog = [];
+    if (!G.landscapeHistory) G.landscapeHistory = {};
+    if (G.currentLandscape === undefined) G.currentLandscape = null;
     if (!G.currentScene) G.currentScene = G.currentLocation || 'clinic';
     if (!G.sessionTurns) G.sessionTurns = 0;
     if (!G.clinicSession) G.clinicSession = null;
