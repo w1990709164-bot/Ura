@@ -25,8 +25,10 @@ function saveGame() {
       job: G.job,
       jobGrade: G.jobGrade,
       currentLocation: G.currentLocation,
-      history: G.history.slice(-30),
-      messages: G.messages.slice(-80),
+      history: (G.history||[]).slice(-60),
+      messages: (G.messages||[]).slice(-160),
+      storyLog: (G.storyLog||[]).slice(-200),
+      worldLog: (G.worldLog||[]).slice(-200),
       turnCount: G.turnCount,
       weeklyTaskDone: G.weeklyTaskDone,
       weeklyMarketOpen: G.weeklyMarketOpen,
@@ -51,6 +53,10 @@ function loadGame() {
     });
     if (!G.inventory) G.inventory = [];
     if (!G.stats) G.stats = {tq:0,mj:0,jz:0,js:0,zs:0,qs:0,yl:0};
+    if (!Array.isArray(G.history)) G.history = [];
+    if (!Array.isArray(G.messages)) G.messages = [];
+    if (!Array.isArray(G.storyLog)) G.storyLog = [];
+    if (!Array.isArray(G.worldLog)) G.worldLog = [];
     if (!Array.isArray(G.apUsedThisYear)) G.apUsedThisYear = [];
     if (!Number.isFinite(G._freeToBond)) G._freeToBond = 0;
     if (!Number.isFinite(G._freeToGrow)) G._freeToGrow = 0;

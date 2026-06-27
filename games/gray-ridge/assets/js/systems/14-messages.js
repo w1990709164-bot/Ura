@@ -67,7 +67,7 @@ function appendMsg(el) {
 function restoreMessages() {
   const msgs = document.getElementById('messages');
   msgs.innerHTML = '';
-  (G.messages||[]).slice(-60).forEach(m => {
+  (G.messages||[]).slice(-120).forEach(m => {
     switch(m.type) {
       case 'narr': addNarr(m.content, false); break;
       case 'sys': addSysMsg(m.title, m.content, false); break;

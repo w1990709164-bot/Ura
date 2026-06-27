@@ -15,6 +15,14 @@ function buildSystemPrompt() {
   const wisdomTxt = (G.stats.zs||0) >= 7 ? '高智识：叙事细腻，能感知角色微表情和内心波动' :
                    (G.stats.zs||0) >= 4 ? '中智识：叙事清晰，有自己的观察和判断' :
                    '低智识：叙事懵懂，世界是模糊的感官和本能';
+  const recentStory = (G.storyLog||[]).slice(-12).map(entry => {
+    const label = entry.kind === 'memory' ? '记忆' : '剧情';
+    return `第${entry.day||'?'}天/第${entry.year||'?'}年第${entry.week||'?'}周 ${label}：${entry.text}`;
+  }).join('\n') || '暂无';
+  const recentWorld = (G.worldLog||[]).slice(-8).map(entry => {
+    if (typeof entry === 'string') return entry;
+    return `${entry.type||'记录'}：${entry.text||entry.content||JSON.stringify(entry)}`;
+  }).join('\n') || '暂无';
 
   return `你是《灰脊》的游戏叙事引擎，为一款架空兽人乙女向互动小说游戏提供叙事和角色扮演。
 
@@ -34,6 +42,12 @@ ${G.phase==='cub'?wisdomTxt:''}
 心情：${G.mood}
 当前位置：${LOCATIONS.find(l=>l.id===G.currentLocation)?.name||'灰脊'}
 ${G.inHeat?'⚠ 玩家当前处于发情期':''}
+
+【长期剧情记录】
+${recentStory}
+
+【世界事件记录】
+${recentWorld}
 
 【角色状态】
 ${charStates}
@@ -193,6 +207,10 @@ König/Krueger说德语+"中文翻译"，Horangi说韩语+"中文翻译"，Nikto
 <horae>
 {"char_id":"角色id或null","bond_delta":好感变化(-10到+12),"whisper":"角色当前心声（一句话，随关系阶段深度）","char_status":"normal/heat/injured/critical/coma","char_dynamic":"休息中/巡逻/训练/任务中/用餐","char_location":"hall/forge/medical/training/canteen/camps/market","stat_gain":{"属性key":增量}或null,"gold_delta":金额变化或0,"mood":"玩家当前心情emoji","player_heat":false,"item_gained":null或{"name":"道具名","desc":"描述","type":"use/gift/dice/weapon/suppress","icon":"emoji","statKey":"属性key可选","statBonus":数值可选},"location":"玩家当前位置id","task_complete":任务完成时为true否则false,"week_end":仅成人期（adult）且本周剧情自然结束时为true；幼崽期（cub）必须为false，不得使用"下周"等时间跳跃表达,"time_advance_days":"仅成人期剧情明确经过若干天时填写1-31，否则为0；幼崽期必须为0","dice_check":需要骰子检定时填{"attr":"属性key","difficulty":难度值，必须根据玩家当前该属性动态设置：属性0-2时难度8-10，属性3-5时难度10-12，属性6-8时难度12-14，属性9+时难度14-16，D级任务整体-2，A级任务整体+2，确保约50%通过率}否则null}
 </horae>
+
+<memory>
+用1-2句记录本轮最重要的长期剧情事实、承诺、关系变化或伏笔；不要重复无意义日常。
+</memory>
 
 叙事正文（**角色名** (职位): *动作* "母语" / 「中文翻译」）
 

@@ -46,6 +46,7 @@ const G = {
   // Conversation
   history: [],
   messages: [],
+  storyLog: [],
   isThinking: false,
   turnCount: 0,
 

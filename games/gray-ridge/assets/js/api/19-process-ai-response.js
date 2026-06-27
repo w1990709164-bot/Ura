@@ -1,10 +1,31 @@
 // ══════════════════════════════
 // PROCESS AI RESPONSE
 // ══════════════════════════════
+function appendStoryLog(kind, text, meta={}) {
+  const clean = String(text||'').replace(/\s+/g, ' ').trim();
+  if (!clean) return;
+  if (!Array.isArray(G.storyLog)) G.storyLog = [];
+  G.storyLog.push({
+    kind,
+    text: clean.slice(0, 700),
+    day: G.gameDay,
+    year: G.gameYear,
+    week: G.gameWeek,
+    phase: G.phase,
+    location: G.currentLocation,
+    at: Date.now(),
+    ...meta,
+  });
+  G.storyLog = G.storyLog.slice(-200);
+}
+
 function processAIResponse(rawText) {
   // Extract horae JSON
   const horaeMatch = rawText.match(/<horae>([\s\S]*?)<\/horae>/);
   const narrative = rawText.replace(/<horae>[\s\S]*?<\/horae>/g,'').trim();
+  const memoryBlocks = [...narrative.matchAll(/<memory>([\s\S]*?)<\/memory>/g)]
+    .map(m => m[1].trim())
+    .filter(Boolean);
 
   let parsedHorae = null;
   if (horaeMatch) {
@@ -61,6 +82,9 @@ function processAIResponse(rawText) {
 
   // Display narrative AFTER stripping options
   if (cleanText) parseAndDisplayNarrative(cleanText);
+
+  memoryBlocks.forEach(text => appendStoryLog('memory', text));
+  appendStoryLog('scene', cleanText);
 
   // Parse and show options
   if (optMatch) {
