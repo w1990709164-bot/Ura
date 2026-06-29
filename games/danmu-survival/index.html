@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>弹幕求生·末日三十天</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ===== 标题屏 ===== -->
+    <section id="screen-title" class="screen active">
+      <div class="title-logo">弹幕求生</div>
+      <div class="title-sub">· 末日三十天 ·</div>
+      <div class="menu">
+        <button id="btn-new" class="btn btn-primary">新游戏</button>
+        <button id="btn-continue" class="btn">继续</button>
+        <button id="btn-save-title" class="btn btn-ghost">💾 存档 / 读档</button>
+        <button id="btn-api" class="btn btn-ghost">🔌 API 设置</button>
+        <button id="btn-devp2" class="btn btn-ghost" style="font-size:12px;opacity:.7">🧪 直接试末日（测试用）</button>
+      </div>
+      <div class="title-tag">
+        一觉醒来，你穿越到末日前的公寓。<br>
+        脑海里飘着一群观众的弹幕——他们是金手指，<br>
+        也会骗你。还有 30 天，囤货，活下去。
+      </div>
+    </section>
+
+    <!-- ===== 创建屏（选异能） ===== -->
+    <section id="screen-create" class="screen">
+      <div class="create-h">选择你的异能</div>
+      <div class="create-p">穿越附赠一个异能，开局 Lv1，末日后靠击杀丧尸 / 嗑晶核升级。选一个：</div>
+      <div id="ability-grid"></div>
+      <button id="btn-start" class="btn btn-primary" disabled>就它了，醒来 →</button>
+    </section>
+
+    <!-- ===== 游戏主屏 ===== -->
+    <section id="screen-game" class="screen">
+      <div class="hud">
+        <span class="h-day" id="hud-day">Day 1/30</span>
+        <span class="h-ap" id="hud-ap">⚡●●●</span>
+        <span class="h-ab" id="hud-ability"></span>
+        <span class="h-money" id="hud-money">¥800</span>
+        <span class="icon-btn" id="btn-news">📰<span class="news-dot" id="news-dot"></span></span>
+        <span class="icon-btn" id="btn-danmaku">📺<span class="dm-badge-count" id="dm-count">0</span></span>
+        <span class="icon-btn" id="btn-save-game">💾</span>
+        <span class="icon-btn" id="btn-api-game">🔌</span>
+      </div>
+
+      <div class="res-bar">
+        <div class="res-chip"><div class="rl">💧水</div><div class="rv" id="res-water">0</div></div>
+        <div class="res-chip"><div class="rl">🍖食物</div><div class="rv" id="res-food">0</div></div>
+        <div class="res-chip"><div class="rl">💊药品</div><div class="rv" id="res-meds">0</div></div>
+        <div class="res-chip"><div class="rl">🔪防身</div><div class="rv" id="res-def">0</div></div>
+        <div class="res-chip"><div class="rl">📦空间</div><div class="rv" id="res-space">0/40</div></div>
+      </div>
+
+      <div class="game-body">
+        <div id="today-events"></div>
+        <div class="log-h">动态</div>
+        <div id="log-list"></div>
+      </div>
+
+      <div class="action-bar">
+        <div class="action-btn" data-act="work"><span class="ai">💼</span>打工</div>
+        <div class="action-btn" data-act="goout"><span class="ai">🚶</span>出门</div>
+        <div class="action-btn" data-act="offline"><span class="ai">🏪</span>采购</div>
+        <div class="action-btn" data-act="online"><span class="ai">🛒</span>网购</div>
+        <div class="action-btn go wide" data-act="next">🌙 睡觉，推进到下一天 →</div>
+      </div>
+    </section>
+
+    <!-- ===== 第二阶段·剧情屏 ===== -->
+    <section id="screen-story" class="screen">
+      <div class="hud2">
+        <span class="h2-day" id="s-day">末日 第1天</span>
+        <span class="h2-stat" id="s-hp">❤️100</span>
+        <span class="h2-stat" id="s-crystal">💎0</span>
+        <span class="h2-stat" id="s-base">野外</span>
+        <span class="h2-stat" id="s-tide">尸潮--</span>
+        <span class="h2-ab" id="s-ab">异能 Lv1</span>
+        <span class="icon-btn" id="btn-radio">📻</span>
+        <span class="icon-btn" id="btn-bag">🎒</span>
+        <span class="icon-btn" id="btn-save-story">💾</span>
+        <span class="icon-btn" id="btn-codex">📂 档案</span>
+      </div>
+      <div class="story-scroll" id="story-scroll"></div>
+      <div class="story-foot">
+        <div id="story-choices"></div>
+        <div class="story-input-row">
+          <input id="story-input" class="story-input" placeholder="不满意？自己写下你的行动…" autocomplete="off">
+          <button id="story-send" class="story-send">▶</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 基地档案屏 ===== -->
+    <section id="screen-codex" class="screen">
+      <div class="hud2">
+        <span class="h2-day">📂 基地档案</span>
+        <span class="icon-btn" id="btn-codex-back" style="margin-left:auto">← 返回</span>
+      </div>
+      <div id="codex-grid" class="codex-grid"></div>
+    </section>
+
+  </div>
+
+  <div id="modal-root"></div>
+
+  <!-- 脚本按序加载 -->
+  <script src="assets/js/00-state.js"></script>
+  <script src="assets/js/01-data.js"></script>
+  <script src="assets/js/02-api.js"></script>
+  <script src="assets/js/03-danmaku.js"></script>
+  <script src="assets/js/04-game.js"></script>
+  <script src="assets/js/06-phase2.js"></script>
+  <script src="assets/js/05-init.js"></script>
+</body>
+</html>

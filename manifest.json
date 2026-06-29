@@ -48,5 +48,15 @@
     "source": "hearts-in-crossfire-full-test.zip",
     "css_files": 1,
     "js_files": 1
+  },
+  {
+    "id": "danmu-survival",
+    "name": "弹幕求生",
+    "title": "弹幕求生 · 末日三十天",
+    "description": "COD同人末日生存 / 弹幕真假 / 基地与尸潮",
+    "entry": "games/danmu-survival/index.html",
+    "source": "C:/Users/Mayn/Desktop/games/danmu-survival",
+    "css_files": 1,
+    "js_files": 7
   }
 ]
