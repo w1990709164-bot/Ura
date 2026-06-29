@@ -56,16 +56,6 @@
     };
     U.$('#btn-api').onclick = openApiPanel;
     U.$('#btn-api-game') && (U.$('#btn-api-game').onclick = openApiPanel);
-    // 测试入口：跳过囤货，直接进第二阶段
-    const dev = U.$('#btn-devp2');
-    if (dev) dev.onclick = () => {
-      DS.state = DS.attachRuntime(DS.newState());
-      DS.state.player.ability = { id: 'body', level: 3, xp: 0, xpNext: 100 };
-      DS.state.player.money = 600;
-      DS.state.resources = { water: 8, food: 8, meds: 2, defense: 2 };
-      DS.state.metLeads = { ghost: true, soap: true };
-      DS.phase2ui.start();
-    };
   }
 
   /* 标题页氛围弹幕（缓慢循环） */
