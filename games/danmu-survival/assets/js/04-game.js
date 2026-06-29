@@ -156,14 +156,15 @@
         [{ label: '放下报纸', cls: 'btn-primary' }]);
       Game.renderGame(); return;
     }
-    const tagCls = { '头条': 't-top', '财经': 't-fin', '民生': 't-life', '紧急': 't-urgent', '简讯': 't-brief', '广告': 't-ad', '社会': 't-soc', '电波': 't-urgent', '天气': '', '体育': 't-soc', '科技': 't-fin' };
+    const tagCls = { '头条': 't-top', '财经': 't-fin', '民生': 't-life', '紧急': 't-urgent', '简讯': 't-brief', '广告': 't-ad', '社会': 't-soc', '电波': 't-urgent', '噪声': 't-brief', '天气': '', '体育': 't-soc', '科技': 't-fin' };
     const radio = s.phase >= 2 && s.hasRadio;
-    const items = radio ? D.radioByDay(s.day) : (s.news && s.news.length ? s.news : D.makeNews(s.day));
+    const radioDay = radio && s.story ? s.story.day : s.day;
+    const items = radio ? D.radioByDay(radioDay, s) : (s.news && s.news.length ? s.news : D.makeNews(s.day));
     const html = items.map(n => `<div class="news-item">
       <span class="news-tag ${tagCls[n.tag] || ''}">${n.tag}</span>
       <div class="news-h">${U.esc(n.h)}</div>${n.b ? `<div class="news-b">${U.esc(n.b)}</div>` : ''}
     </div>`).join('');
-    const title = radio ? `<span class="paper-name">📻 幸存者电波</span> · 第${s.day}天`
+    const title = radio ? `<span class="paper-name">📻 幸存者电波</span> · 末日第${radioDay}天`
       : `<span class="paper-name">末日晨报</span> · Day ${s.day}`;
     const foot = radio ? '<p class="hint">收音机里的杂音中，偶尔能听到求生的线索。</p>'
       : '<p class="hint">弹幕正围绕这些新闻吵真假——点顶栏 📺 可回看慢读、逐条标信/疑。</p>';

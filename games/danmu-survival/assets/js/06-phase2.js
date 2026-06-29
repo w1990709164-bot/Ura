@@ -90,6 +90,7 @@
   /* ---------- 玩家选择 / 自定义输入 → 推进 ---------- */
   P2.onPlayerInput = function (text) {
     if (!text || S().story.busy) return;
+    if (P2.handleLocalChoice(text)) return;
     P2.send(text, {});
   };
 
@@ -198,7 +199,7 @@
       return;
     }
 
-    s.story.choices = Array.isArray(obj.choices) && obj.choices.length ? obj.choices : ['继续'];
+    s.story.choices = P2.enrichChoices(Array.isArray(obj.choices) && obj.choices.length ? obj.choices : ['继续']);
     s.story.turn++;
     // 每若干回合推进“末日天数”
     if (s.story.turn % 3 === 0) {
@@ -302,6 +303,87 @@
       return;
     }
     P2.renderHUD(); P2.render(); DS.save(); Game.closeModal();
+  };
+
+  P2.enrichChoices = function (choices) {
+    const s = S(), b = P2.ensureBase();
+    const out = choices.slice(0, 4);
+    const add = text => { if (!out.includes(text)) out.push(text); };
+    if (!s.hasRadio && s.story.day >= 2) add('【收音机】搜一间保安室，找能接收外界的旧收音机');
+    if (!s.story.atBase && (s.hasRadio || s.story.day >= 4)) add('【前往西郊】沿断续线索去找骷髅旗基地');
+    if (s.story.atBase) {
+      add('【基地行动】加固临时防线');
+      add('【基地行动】用晶核换补给');
+    }
+    if ((b.tideDay || 7) - s.story.day <= 2) add('【尸潮预警】组织一次夜间侦查');
+    return out.slice(0, 6);
+  };
+
+  P2.handleLocalChoice = function (text) {
+    if (text.indexOf('【收音机】') === 0) {
+      append('me', text);
+      P2.obtainRadio('你在保安室的抽屉底摸到一台手摇收音机。旋钮转过一圈，砂砾般的噪声里，有人反复念着“西郊、骷髅旗、仍在收人”。');
+      S().story.choices = P2.enrichChoices(['调低音量继续听', '把坐标记在墙上', '收好收音机，准备离开']);
+      P2.render();
+      return true;
+    }
+    if (text.indexOf('【前往西郊】') === 0) {
+      append('me', text);
+      P2.establishBase();
+      S().story.choices = P2.enrichChoices(['接受登记，但隐瞒一部分异能细节', '用晶核换一张床位', '主动要求参加夜哨证明实力']);
+      P2.render();
+      DS.save();
+      return true;
+    }
+    if (text.indexOf('【基地行动】加固') === 0) {
+      append('me', text);
+      P2.baseAction('fortify');
+      return true;
+    }
+    if (text.indexOf('【基地行动】用晶核') === 0) {
+      append('me', text);
+      P2.baseAction('trade');
+      return true;
+    }
+    if (text.indexOf('【尸潮预警】') === 0) {
+      append('me', text);
+      P2.scoutTide();
+      return true;
+    }
+    return false;
+  };
+
+  P2.establishBase = function () {
+    const s = S();
+    const pool = D.phase2.baseProfiles || [];
+    const picked = pool[(s.story.day + Object.keys(s.codex || {}).length) % pool.length] || { name: '临时营地', security: 2, supplies: 2, trust: -1, desc: '铁丝网和废车围出的幸存者据点。' };
+    s.story.baseName = picked.name;
+    s.story.atBase = true;
+    const b = P2.ensureBase();
+    b.security = Math.max(b.security, picked.security);
+    b.supplies = Math.max(b.supplies, picked.supplies);
+    b.trust = Math.max(b.trust, picked.trust);
+    b.tideDay = Math.max(s.story.day + 3, b.tideDay || 7);
+    append('gm', `${picked.desc}\n\n你到达时，哨塔上的枪口先一步转向你。登记员隔着铁网问你带来了什么：物资、晶核、能力，或者一个能让他们相信你不会拖累防线的理由。`);
+    append('sys', `【基地落点】${picked.name} 建立：防御${b.security} / 补给${b.supplies} / 信任${b.trust}。第一次尸潮预计第${b.tideDay}天前后抵达。`);
+    P2.floatDanmaku(['终于到基地了', '别急着交底，异能者很值钱', '骷髅旗？141线要来了？']);
+    P2.renderHUD();
+  };
+
+  P2.scoutTide = function () {
+    const s = S(), b = P2.ensureBase();
+    const roll = U.roll(20) + s.player.ability.level * 2;
+    if (roll >= 14) {
+      b.zombieHeat = Math.max(0, b.zombieHeat - 4);
+      b.trust += 1;
+      append('sys', `【侦查成功】你提前发现尸群主路，带人改了路障。尸潮压力 -4，基地信任 +1。`);
+    } else {
+      const dmg = U.randInt(6, 14);
+      s.story.hp = U.clamp(s.story.hp - dmg, 0, s.story.hpMax);
+      b.zombieHeat += 2;
+      append('sys', `【侦查受挫】你们惊动了游荡尸群。尸潮压力 +2，你受伤 -${dmg}HP。`);
+    }
+    P2.renderHUD(); P2.render(); DS.save();
   };
 
   P2.gainXP = function (n) {
