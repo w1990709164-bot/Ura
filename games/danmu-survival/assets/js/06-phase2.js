@@ -307,6 +307,13 @@
 
   P2.enrichChoices = function (choices) {
     const s = S(), b = P2.ensureBase();
+    if (s.story.anchor === 'base_gate') {
+      const out = choices.slice(0, 3);
+      ['【基地审查】交出一部分物资，换一个合法床位',
+       '【基地审查】主动展示战力，要求按实力登记',
+       '【基地审查】隐瞒异能，先混进普通幸存者队列'].forEach(c => { if (!out.includes(c)) out.push(c); });
+      return out.slice(0, 6);
+    }
     const out = choices.slice(0, 4);
     const add = text => { if (!out.includes(text)) out.push(text); };
     if (!s.hasRadio && s.story.day >= 2) add('【收音机】搜一间保安室，找能接收外界的旧收音机');
@@ -329,10 +336,22 @@
     }
     if (text.indexOf('【前往西郊】') === 0) {
       append('me', text);
-      P2.establishBase();
-      S().story.choices = P2.enrichChoices(['接受登记，但隐瞒一部分异能细节', '用晶核换一张床位', '主动要求参加夜哨证明实力']);
-      P2.render();
-      DS.save();
+      P2.startBaseGate();
+      return true;
+    }
+    if (text.indexOf('【基地审查】交出') === 0) {
+      append('me', text);
+      P2.resolveBaseGate('supplies');
+      return true;
+    }
+    if (text.indexOf('【基地审查】主动展示') === 0) {
+      append('me', text);
+      P2.resolveBaseGate('strength');
+      return true;
+    }
+    if (text.indexOf('【基地审查】隐瞒') === 0) {
+      append('me', text);
+      P2.resolveBaseGate('hide');
       return true;
     }
     if (text.indexOf('【基地行动】加固') === 0) {
@@ -353,21 +372,66 @@
     return false;
   };
 
-  P2.establishBase = function () {
+  P2.pickBaseProfile = function () {
     const s = S();
     const pool = D.phase2.baseProfiles || [];
-    const picked = pool[(s.story.day + Object.keys(s.codex || {}).length) % pool.length] || { name: '临时营地', security: 2, supplies: 2, trust: -1, desc: '铁丝网和废车围出的幸存者据点。' };
+    if (s.story.pendingBaseName) {
+      const found = pool.find(p => p.name === s.story.pendingBaseName);
+      if (found) return found;
+    }
+    return pool[(s.story.day + Object.keys(s.codex || {}).length) % pool.length] || { name: '临时营地', security: 2, supplies: 2, trust: -1, desc: '铁丝网和废车围出的幸存者据点。' };
+  };
+
+  P2.startBaseGate = function () {
+    const s = S();
+    const picked = P2.pickBaseProfile();
+    s.story.anchor = 'base_gate';
+    s.story.pendingBaseName = picked.name;
+    P2.send(`【主线锚点：抵达${picked.name}外围】你沿收音机和弹幕线索抵达西郊据点外缘。请自由演绎抵达过程、基地外观、哨兵审查压力和弹幕反应，但不要直接让玩家入驻。结尾停在审查口，choices 可以写氛围选项，系统会补充三种固定审查方式：交物资、展示战力、隐瞒异能。`, { system: true, hideMe: true });
+  };
+
+  P2.establishBase = function (route) {
+    const s = S();
+    const picked = P2.pickBaseProfile();
     s.story.baseName = picked.name;
     s.story.atBase = true;
+    s.story.anchor = '';
+    s.story.pendingBaseName = '';
     const b = P2.ensureBase();
     b.security = Math.max(b.security, picked.security);
     b.supplies = Math.max(b.supplies, picked.supplies);
     b.trust = Math.max(b.trust, picked.trust);
+    if (route === 'supplies') {
+      const paidFood = Math.min(s.resources.food || 0, 2);
+      const paidWater = Math.min(s.resources.water || 0, 2);
+      s.resources.food -= paidFood;
+      s.resources.water -= paidWater;
+      b.supplies += paidFood + paidWater;
+      b.trust += paidFood + paidWater >= 2 ? 1 : 0;
+    } else if (route === 'strength') {
+      b.security += 1;
+      b.trust += 2;
+      s.story.exposed = true;
+    } else if (route === 'hide') {
+      b.trust -= 1;
+      s.story.flags = s.story.flags || {};
+      s.story.flags.hiddenAbilityAtBase = true;
+    }
     b.tideDay = Math.max(s.story.day + 3, b.tideDay || 7);
-    append('gm', `${picked.desc}\n\n你到达时，哨塔上的枪口先一步转向你。登记员隔着铁网问你带来了什么：物资、晶核、能力，或者一个能让他们相信你不会拖累防线的理由。`);
     append('sys', `【基地落点】${picked.name} 建立：防御${b.security} / 补给${b.supplies} / 信任${b.trust}。第一次尸潮预计第${b.tideDay}天前后抵达。`);
-    P2.floatDanmaku(['终于到基地了', '别急着交底，异能者很值钱', '骷髅旗？141线要来了？']);
+    P2.floatDanmaku(['终于到基地了', '别急着交底，异能者很值钱', '这基地不养闲人']);
     P2.renderHUD();
+  };
+
+  P2.resolveBaseGate = function (route) {
+    const picked = P2.pickBaseProfile();
+    const routeText = {
+      supplies: '玩家交出一部分水粮作为入驻押金，换取一个合法床位。请演绎登记员的冷淡、周围幸存者的目光、物资被点数入库的细节；不要写成轻松被接纳，信任只是小幅提升。',
+      strength: '玩家主动展示战力/异能来证明自己不是累赘。请演绎试探、围观、哨兵态度变化与暴露风险；可以让某个男主或其势力远远注意到她，但不要立刻恋爱。',
+      hide: '玩家隐瞒异能，混进普通幸存者队列。请演绎她如何压住异常、避开盘问、换来暂时安全；埋下未来被发现的风险。'
+    }[route] || '';
+    P2.establishBase(route);
+    P2.send(`【主线锚点：基地审查通过】地点：${picked.name}。${routeText} 数值已由系统结算，请不要再在 base 字段重复加减，base填null；结尾给出入驻后的下一步选择，例如找床位、听广播、观察基地、参加夜哨。`, { system: true, hideMe: true });
   };
 
   P2.scoutTide = function () {
