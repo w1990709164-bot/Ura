@@ -8,11 +8,14 @@
   const DS = (window.DS = window.DS || {});
 
   /* ---------- 常量 ---------- */
-  DS.VERSION = '0.1.0';
+  DS.VERSION = '0.2.0';
   DS.SAVE_KEY = 'DS_SAVE_V1';
   DS.AP_MAX = 3;          // 每天行动点
   DS.LAST_DAY = 30;       // 末日爆发日
   DS.SPACE_MAX = 50;      // 公寓初始储物空间（水占地大，逼你取舍）
+  // 末日逃生随身携带上限：除“空间仓库”异能外，囤再多也只能带走随身能背走的量
+  // （既符合“一个人逃命带不走几百份水粮”的真实，也杜绝囤货+SL反复刷无限物资）
+  DS.CARRY_CAP = { water: 6, food: 6, meds: 3, defense: 3 };
 
   /* ---------- 工具 ---------- */
   const U = (DS.util = {
@@ -85,6 +88,24 @@
       dead: false,
       deathReason: '',
     };
+  };
+
+  /* ---------- 末日逃生：计算随身可携带物资（不修改原对象） ----------
+   * 返回 { kept, left, capped, unlimited }
+   *  · “空间仓库”异能：随身储物，全部带走（unlimited=true）
+   *  · 其他异能：每条物资线封顶到 DS.CARRY_CAP，多出的留在公寓
+   */
+  DS.computeCarry = function (resources, abilityId) {
+    const lines = ['water', 'food', 'meds', 'defense'];
+    const unlimited = abilityId === 'storage';
+    const kept = {}, left = {};
+    lines.forEach(k => {
+      const had = Math.max(0, (resources && resources[k]) || 0);
+      const cap = unlimited ? Infinity : (DS.CARRY_CAP[k] != null ? DS.CARRY_CAP[k] : had);
+      kept[k] = Math.min(had, cap);
+      left[k] = had - kept[k];
+    });
+    return { kept, left, capped: lines.some(k => left[k] > 0), unlimited };
   };
 
   /* 给状态挂运行时方法（不会被存档序列化，读档后需重挂） */

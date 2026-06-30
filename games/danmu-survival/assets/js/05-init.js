@@ -47,12 +47,8 @@
     const cont = U.$('#btn-continue');
     cont.disabled = !DS.hasSave();
     cont.onclick = () => {
-      if (DS.load()) {
-        if (DS.state.player.ability.id === 'eye') DS.danmaku.setReveal(true);
-        const sc = DS.state.screen === 'create' ? 'create' : 'game';
-        Game.show(sc);
-        if (sc === 'game') Game.startDanmakuStream();
-      } else Game.toast('没有可用存档');
+      if (DS.load()) Game.resume();   // 统一走 resume：正确恢复一阶段/创建/二阶段剧情
+      else Game.toast('没有可用存档');
     };
     U.$('#btn-api').onclick = openApiPanel;
     U.$('#btn-api-game') && (U.$('#btn-api-game').onclick = openApiPanel);

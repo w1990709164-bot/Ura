@@ -31,9 +31,16 @@
     s.phase = 2;
     const conv = Math.floor((s.player.money > 0 ? s.player.money : 0) / 100);
     s.crystals = (s.crystals || 0) + conv;
+    // 逃生只能带走随身物资（空间仓库异能除外）：把囤的物资封顶到真实可携带量
+    const carry = DS.computeCarry(s.resources, s.player.ability.id);
+    s.resources.water = carry.kept.water;
+    s.resources.food = carry.kept.food;
+    s.resources.meds = carry.kept.meds;
+    s.resources.defense = carry.kept.defense;
     s.story = Object.assign(s.story || {}, {
       day: 1, turn: 0, hp: 100, hpMax: 100, history: [], narrative: '', choices: [],
       busy: false, atBase: false, baseName: '', exposed: false, mode: 'opening', conv,
+      carryLeft: carry.capped ? carry.left : null, carryUnlimited: carry.unlimited,
       base: { security: 0, supplies: 0, trust: 0, tideDay: 7, zombieHeat: 0 },
     });
     clearInterval(Game._dmTimer);
@@ -58,6 +65,17 @@
         else {
           const ab = (D.abilities.find(a => a.id === s.player.ability.id) || {});
           append('sys', `末日前的现金折算为 💎${s.story.conv} 枚晶核。异能【${ab.name}】Lv${s.player.ability.level} 已觉醒。从此，晶核是你的命，也是你的钱。`);
+          // 随身携带提示：带不走的留在公寓 / 空间仓库整批带走
+          if (s.story.carryUnlimited) {
+            append('sys', '📦【空间仓库】随身储物把你囤下的物资整批收了进来——这是你逃命的底气。');
+          } else if (s.story.carryLeft) {
+            const L = s.story.carryLeft, parts = [];
+            if (L.water) parts.push(`💧水×${L.water}`);
+            if (L.food) parts.push(`🍖食物×${L.food}`);
+            if (L.meds) parts.push(`💊药×${L.meds}`);
+            if (L.defense) parts.push(`🔪防身×${L.defense}`);
+            if (parts.length) append('sys', `逃命要紧，你只背得动随身的物资。带不走的（${parts.join('、')}）永远留在了公寓。`);
+          }
           P2.renderHUD();
           P2.firstTurn();
         }
@@ -539,7 +557,7 @@
     const s = S();
     append('sys', '💀 ' + reason);
     s.story.choices = ['重新开始'];
-    P2.choiceHandler = () => { DS.clearSave(); Game.show('title'); DS.bootDanmaku && DS.bootDanmaku(); Game.newGame ? null : null; location.reload(); };
+    P2.choiceHandler = () => { DS.clearSave(); location.reload(); };
     P2.render();
   };
 

@@ -69,6 +69,7 @@
   /* 读档后回到正确界面 */
   Game.resume = function () {
     const s = DS.state;
+    if (s.story) s.story.busy = false;     // 防止存档时正卡在 AI 生成中，读档后永久卡“生成中…”
     if (s.player.ability.id === 'eye') DS.danmaku.setReveal(true);
     if (s.phase >= 2) {
       DS.phase2ui.choiceHandler = null;
@@ -242,8 +243,6 @@
         const d = s.dmHistory.slice().reverse()[revIdx];
         if (!d) return;
         s.judged[d._k] = b.dataset.v;
-        // 主动判断会轻微影响该ID信誉感知
-        if (d.id) s._rep(d.id, b.dataset.v === 'trust' ? 0 : 0);
         Game.openDanmakuPanel();
       };
     });
@@ -622,6 +621,13 @@
   Game.endPhase1 = function () {
     const s = S(); const r = s.resources;
     const ok = k => r[k] >= D.goals[k];
+    // 逃生只能带走随身物资（空间仓库异能除外）——结算页提前告知，避免进二阶段才发现“缩水”
+    const carry = DS.computeCarry(r, s.player.ability.id);
+    const carryNote = carry.unlimited
+      ? '<p class="hint">📦【空间仓库】随身储物，囤下的物资可以整批带走。</p>'
+      : carry.capped
+        ? `<p class="hint">⚠ 逃命要紧，你只能背走随身能带的：💧${carry.kept.water} 🍖${carry.kept.food} 💊${carry.kept.meds} 🔪${carry.kept.defense}。带不走的（💧${carry.left.water} 🍖${carry.left.food} 💊${carry.left.meds} 🔪${carry.left.defense}）只能留在公寓。</p>`
+        : '<p class="hint">你的物资不多，随身全部带走。</p>';
     const summary = `
       <p>Day 30 凌晨，城市的天空被撕开。<b>末日，来了。</b></p>
       <p>囤货结算（决定你末日开局的状态）：</p>
@@ -630,6 +636,7 @@
         <li>💊 药品 ${r.meds}/${D.goals.meds} ${ok('meds') ? '✅' : '⚠️'}　🔪 防身 ${r.defense}/${D.goals.defense} ${ok('defense') ? '✅' : '⚠️'}</li>
         <li>💰 现金 ¥${s.player.money}（将折算为晶核）</li>
       </ul>
+      ${carryNote}
       <p class="hint">接下来进入第二阶段——AI 驱动的末日求生剧情。</p>`;
     clearInterval(Game._dmTimer);
     Game.modal('🧟 末日爆发', summary, [
