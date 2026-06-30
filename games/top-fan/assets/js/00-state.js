@@ -94,6 +94,7 @@
       // 固定劲敌（开局生成）：贯穿全程的对家
       rival: { name: '', grudge: 0, beat: 0 },
       pendingEvent: null,       // 当前待处理的危机/撕番事件
+      prep: null,               // 本场公演的备战选择（抢歌/组队/定位）
       ap: TF.START_AP,          // 本周剩余行动点
       // 男主运行时数据： id -> { love, met(数字破屏), offline(线下相遇), revealed }
       leads: {},

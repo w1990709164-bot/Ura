@@ -72,7 +72,7 @@
 
     toStage() {
       if (TF.state.player.sick) { TF.ui.toast('你还病着，硬上台会很惨…要不先休养？'); }
-      TF.stage.run();
+      TF.prep.open();   // 先备战：抢歌 / 组队 / 抢定位
     },
 
     afterResult() {
@@ -174,6 +174,8 @@
           <span class="tr-i">${a.icon}</span><span class="tr-n">${a.name}</span><span class="tr-d">${a.desc}</span>
         </button>`).join('');
       U.$$('#hub-actions .tr-btn').forEach(b => b.onclick = () => {
+        const act = TF.train.ACTIONS.find(x => x.id === b.dataset.act);
+        if (act && act.special) { TF.live.run(act.special); return; }   // 直播/路演自有流程
         const r = TF.train.doAction(b.dataset.act);
         if (!r.ok) { TF.ui.toast(r.msg || '不行'); return; }
         if (r.msg) TF.ui.toast(r.msg);

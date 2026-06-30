@@ -119,6 +119,31 @@ body{
 /* 班级配色 */
 .cls-A{color:#ff3d8b}.cls-B{color:#a98bff}.cls-C{color:#5bb6e0}.cls-D{color:#8a9a6b}.cls-F{color:#b0a0bd}
 
+/* ---------- 备战屏 ---------- */
+.prep-top{background:linear-gradient(120deg,var(--purple),var(--pink));border-radius:var(--r);padding:14px 16px;color:#fff;box-shadow:var(--shadow)}
+.prep-title{font-weight:900;font-size:1.15rem}
+.prep-sub{font-size:.78rem;opacity:.92;margin-top:3px}
+.prep-body{flex:1;overflow-y:auto;margin:12px 0}
+.prep-tip{background:rgba(255,255,255,.7);border-radius:12px;padding:9px 13px;font-size:.82rem;line-height:1.6;margin-bottom:6px;color:#8a7a98}
+.prep-tip b{color:var(--pink-deep)}
+.prep-h{font-weight:900;color:var(--pink-deep);margin:14px 2px 7px;font-size:.92rem}
+.prep-opt{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--line);border-radius:14px;
+  padding:11px 14px;margin-bottom:8px;cursor:pointer;transition:.15s;box-shadow:0 3px 10px rgba(169,139,255,.08)}
+.prep-opt.on{border-color:var(--pink);box-shadow:0 6px 16px rgba(255,61,139,.2);transform:translateY(-1px)}
+.prep-opt.locked{opacity:.5;cursor:not-allowed;filter:grayscale(.4)}
+.po-main{flex:1;min-width:0}.po-main b{font-size:.95rem}
+.po-sub{display:block;font-size:.74rem;color:var(--muted);margin-top:2px}
+.po-hot{font-size:.8rem;color:var(--pink);font-weight:700;white-space:nowrap}
+.po-lock{font-size:.74rem;color:var(--muted);white-space:nowrap}
+
+/* 训练直播翻牌 */
+.live-picks{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+.live-pick{text-align:left;font:inherit;background:#fff6fb;border:1.5px solid var(--line);border-radius:14px;
+  padding:11px 14px;cursor:pointer;transition:.15s}
+.live-pick:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(255,61,139,.16)}
+.live-pick b{display:block;font-size:.88rem}
+.live-pick span{font-size:.82rem;color:var(--muted)}
+
 /* ---------- 公演屏 ---------- */
 .stage-screen{background:radial-gradient(120% 80% at 50% 0%,#3a1f4d,#251433 70%,#1a0f26);color:#fff}
 .stage-top{text-align:center;margin-bottom:10px}

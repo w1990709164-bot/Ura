@@ -15,6 +15,8 @@
     { id: 'charm', icon: '✨', name: '练台风', stat: 'charm', gain: 2, stress: 6, desc: '提升 舞台魅力' },
     { id: 'visual', icon: '💅', name: '形象管理', stat: 'visual', gain: 2, stress: 4, desc: '提升 颜值' },
     { id: 'biz', icon: '📱', name: '营业发博', stat: null, gain: 0, stress: 3, desc: '涨粉 + 拉近距离' },
+    { id: 'live', icon: '📺', name: '训练直播', special: 'live', desc: '刷弹幕圈粉 / 涨暗恋值' },
+    { id: 'roadshow', icon: '🚐', name: '路演打歌', special: 'roadshow', desc: '刷路人缘 / 线下偶遇' },
     { id: 'rest', icon: '🛋️', name: '休息', stat: null, gain: 0, stress: -22, desc: '降低压力，回血' },
   ];
 

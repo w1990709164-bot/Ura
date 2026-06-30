@@ -30,6 +30,9 @@
     // 事件结算后继续
     U.$('#event-continue').onclick = () => TF.game.afterEvent();
 
+    // 备战登台
+    U.$('#prep-go').onclick = () => TF.prep.go();
+
     // 手机悬浮按钮（各屏通用）
     U.$$('.phone-fab').forEach(b => b.onclick = () => TF.phone.open('weibo'));
     U.$('#phone-close').onclick = () => TF.phone.close();

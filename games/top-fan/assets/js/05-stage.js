@@ -27,7 +27,9 @@
     const s = TF.state, p = s.player;
     const round = TF.ROUNDS[s.round - 1] || TF.ROUNDS[0];
     const st = p.stats;
-    const mainKey = round.mainStat;
+    const prep = s.prep || null;
+    // 备战抢到的歌决定本场主项
+    const mainKey = (prep && prep.statKey) || round.mainStat;
     // 表演分：主项权重高 + 魅力托底 - 压力拖累 + 随机
     let score = st[mainKey] * 2.2 + st.charm * 1.1 + st.visual * 0.6 + st.vocal * 0.3 + st.dance * 0.3
       - (p.stress / 100) * 14 + U.randInt(-6, 8);
@@ -46,22 +48,27 @@
     if (band >= 46) rankClass = 'A'; else if (band >= 34) rankClass = 'B';
     else if (band >= 22) rankClass = 'C'; else if (band >= 12) rankClass = 'D'; else rankClass = 'F';
 
-    // 担当：最高属性项
-    const cand = ['vocal', 'dance', 'rap', 'visual', 'charm'];
-    let best = cand[0];
-    cand.forEach(k => { if (st[k] > st[best]) best = k; });
-    const position = TF.POSITIONS[best] || 'All-rounder';
+    // 担当：抢到 Center 则锁 Center，否则最高属性项
+    let position;
+    if (prep && prep.posId === 'center') position = TF.POSITIONS.charm;
+    else {
+      const cand = ['vocal', 'dance', 'rap', 'visual', 'charm'];
+      let best = cand[0];
+      cand.forEach(k => { if (st[k] > st[best]) best = k; });
+      position = TF.POSITIONS[best] || 'All-rounder';
+    }
 
     // 票数
     const tierVote = tier === 'perfect' ? 1.7 : tier === 'flub' ? 0.55 : 1.0;
     // 路人缘影响路人盘：口碑好则基础票更高（0.6~1.3 倍）
     const repFactor = 0.6 + (p.repute / 100) * 0.7;
+    const prepMul = prep && prep.voteMul ? prep.voteMul : 1;   // 抢歌/定位/组队加成
     const baseVote = Math.round((score * 1400 + 8000) * tierVote * repFactor);
     const fanVote = Math.round(p.followers * 1.2);
     const leadVote = TF.leadBoost();
-    const addVotes = baseVote + fanVote + leadVote + U.randInt(0, 5000);
+    const addVotes = Math.round((baseVote + fanVote + leadVote + U.randInt(0, 5000)) * prepMul);
 
-    return { tier, score, rankClass, position, baseVote, fanVote, leadVote, addVotes, round };
+    return { tier, score, rankClass, position, baseVote, fanVote, leadVote, addVotes, round, songName: prep && prep.songName };
   };
 
   /* 生成排行榜（你 + 前后名次的对手）*/
@@ -107,13 +114,14 @@
     const result = S.compute();
     s._pendingResult = result;
     const round = result.round;
-    const mainCN = TF.STAT_LABELS[round.mainStat];
+    const mainCN = TF.STAT_LABELS[(s.prep && s.prep.statKey) || round.mainStat];
 
     TF.screens.go('stage');
     const scroll = U.$('#stage-narrative');
     scroll.innerHTML = '';
+    const songTxt = result.songName ? ` · ${result.songName}` : '';
     U.$('#stage-title').textContent = `第${s.round}次公演 · ${round.name}`;
-    U.$('#stage-sub').textContent = `🔴 直播中 · 主项【${mainCN}】 · ${round.theme}`;
+    U.$('#stage-sub').textContent = `🔴 直播中${songTxt} · 主项【${mainCN}】`;
     U.$('#stage-next').style.display = 'none';
 
     TF.danmaku.init(); TF.danmaku.show(); TF.danmaku.clear();
@@ -168,6 +176,9 @@
     if (result.tier === 'perfect') p.stress = U.clamp(p.stress - 10, 0, 100);
     else if (result.tier === 'flub') p.stress = U.clamp(p.stress + 18, 0, 100);
     else p.stress = U.clamp(p.stress + 6, 0, 100);
+    // 备战（抢 Center / 和劲敌同队）带来的额外压力
+    if (s.prep && s.prep.stressAdd) p.stress = U.clamp(p.stress + s.prep.stressAdd, 0, 100);
+    s.prep = null;
 
     const board = S.makeBoard(p.votes);
     s.lastStage = { tier: result.tier, rankClass: result.rankClass, position: result.position,
