@@ -29,8 +29,8 @@
     P2._req = (P2._req || 0) + 1;             // 作废任何在途请求
     P2.choiceHandler = null;
     s.phase = 2;
-    const conv = Math.floor((s.player.money > 0 ? s.player.money : 0) / 100);
-    s.crystals = (s.crystals || 0) + conv;
+    // 末日开始：旧时代的钱彻底作废，晶核统一清零——只能靠一颗颗击杀丧尸攒出来
+    s.crystals = 0;
     // 逃生只能带走随身物资（空间仓库异能除外）：把囤的物资封顶到真实可携带量
     const carry = DS.computeCarry(s.resources, s.player.ability.id);
     s.resources.water = carry.kept.water;
@@ -39,7 +39,7 @@
     s.resources.defense = carry.kept.defense;
     s.story = Object.assign(s.story || {}, {
       day: 1, turn: 0, hp: 100, hpMax: 100, history: [], narrative: '', choices: [],
-      busy: false, atBase: false, baseName: '', exposed: false, mode: 'opening', conv,
+      busy: false, atBase: false, baseName: '', exposed: false, mode: 'opening',
       carryLeft: carry.capped ? carry.left : null, carryUnlimited: carry.unlimited,
       base: { security: 0, supplies: 0, trust: 0, tideDay: 7, zombieHeat: 0 },
     });
@@ -64,7 +64,7 @@
         if (s._openIdx < beats.length) step();
         else {
           const ab = (D.abilities.find(a => a.id === s.player.ability.id) || {});
-          append('sys', `末日前的现金折算为 💎${s.story.conv} 枚晶核。异能【${ab.name}】Lv${s.player.ability.level} 已觉醒。从此，晶核是你的命，也是你的钱。`);
+          append('sys', `旧世界的纸币一夜之间成了废纸——末日里没人收钱，你兜里的钱再也买不到任何东西。唯一的硬通货是晶核💎，而它只能从丧尸尸体里一颗颗亲手挖出来。此刻你的晶核：💎0。异能【${ab.name}】Lv${s.player.ability.level} 已觉醒。`);
           // 随身携带提示：带不走的留在公寓 / 空间仓库整批带走
           if (s.story.carryUnlimited) {
             append('sys', '📦【空间仓库】随身储物把你囤下的物资整批收了进来——这是你逃命的底气。');
@@ -178,9 +178,9 @@
     // 弹幕：飘过屏幕（不再塞进正文）
     P2.floatDanmaku(obj.danmaku);
 
-    // 晶核：战斗由骰子系统结算；AI 旁路（交易/服务/零散）限幅≤4，战斗回合不发，杜绝凭空暴增
+    // 晶核：只能靠击杀丧尸（战斗骰子系统）获得；AI 旁路仅允许“消耗”（交易/以物易物/保护费），正数一律不发
     if (!isOpening && obj.crystals && !obj.combat) {
-      const dc = U.clamp(obj.crystals | 0, -30, 4);
+      const dc = U.clamp(obj.crystals | 0, -30, 0);
       const before = s.crystals;
       s.crystals = Math.max(0, s.crystals + dc);
       if (s.crystals !== before) append('sys', `晶核 ${s.crystals > before ? '+' : ''}${s.crystals - before}（💎${s.crystals}）`);
@@ -473,10 +473,13 @@
   };
   P2.checkLevel = function () {
     const a = S().player.ability;
+    let leveled = false;
     while (a.xp >= a.xpNext) {
       a.xp -= a.xpNext; a.level++; a.xpNext = Math.round(a.xpNext * 1.5);
       append('sys', `【异能升级】→ Lv${a.level}！你能感到力量在体内拔节。`);
+      leveled = true;
     }
+    if (leveled) P2.renderHUD();   // 升级后立刻刷新顶栏等级，别等下一次渲染
   };
 
   /* ---------- 男主档案 ---------- */
