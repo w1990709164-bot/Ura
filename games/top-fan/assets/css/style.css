@@ -144,6 +144,30 @@ body{
 .live-pick b{display:block;font-size:.88rem}
 .live-pick span{font-size:.82rem;color:var(--muted)}
 
+/* ---------- 出道日常屏 ---------- */
+.daily-top{background:linear-gradient(120deg,var(--pink),var(--purple));border-radius:var(--r);padding:14px 16px;color:#fff;box-shadow:var(--shadow)}
+.daily-week{font-weight:900;font-size:1.15rem}
+.daily-status{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.ds-chip{background:rgba(255,255,255,.22);border-radius:999px;padding:4px 11px;font-size:.78rem;font-weight:700;display:flex;gap:5px;align-items:baseline;backdrop-filter:blur(4px)}
+.ds-chip b{font-size:.92rem}
+.daily-offers{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;margin-bottom:8px}
+.tg-card{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:12px 14px;
+  box-shadow:0 4px 13px rgba(169,139,255,.12);cursor:pointer;transition:.15s;border:2px solid transparent}
+.tg-card[data-offer]:hover{transform:translateY(-2px);border-color:var(--pink)}
+.tg-card.taken{opacity:.5;cursor:default}
+.tg-ic{font-size:1.8rem;flex-shrink:0}
+.tg-main{flex:1;min-width:0}
+.tg-name{font-weight:900;font-size:.95rem}
+.tg-type{font-size:.66rem;color:#fff;background:var(--purple);padding:1px 7px;border-radius:999px;vertical-align:middle}
+.tg-desc{font-size:.78rem;color:var(--muted);margin:2px 0 4px;line-height:1.5}
+.tg-rew{font-size:.72rem;color:#8a7a98}
+.tg-live{font-size:.68rem;color:#fff;background:linear-gradient(120deg,var(--pink),var(--purple));padding:2px 8px;border-radius:999px;font-weight:700;white-space:nowrap}
+.tg-done{font-size:.72rem;color:var(--muted);white-space:nowrap}
+.army-block{margin-top:14px}
+.army-h{font-weight:900;color:var(--pink-deep);margin-bottom:8px}
+.army-row{background:linear-gradient(120deg,#fff0f7,#fff);border:1.5px solid var(--line);border-left-width:5px;
+  border-radius:12px;padding:11px 13px;margin-bottom:8px;font-size:.88rem;line-height:1.7}
+
 /* ---------- 公演屏 ---------- */
 .stage-screen{background:radial-gradient(120% 80% at 50% 0%,#3a1f4d,#251433 70%,#1a0f26);color:#fff}
 .stage-top{text-align:center;margin-bottom:10px}

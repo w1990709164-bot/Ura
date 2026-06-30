@@ -87,10 +87,12 @@
         rankClass: 'F',         // 当前班级
         position: '',           // 当前担当
         rankNo: 99,             // 排行榜名次
-        votes: 0,               // 当前票数
+        votes: 0,               // 当前票数 / 出道后作人气值
         followers: 0,           // 微博粉丝数
         weiboOpen: false,       // 是否开通微博
+        money: 0,               // 商务收入（出道后）
       },
+      daily: null,              // 出道后日常子状态（见 12-daily.js）
       // 固定劲敌（开局生成）：贯穿全程的对家
       rival: { name: '', grudge: 0, beat: 0 },
       pendingEvent: null,       // 当前待处理的危机/撕番事件

@@ -114,10 +114,11 @@
       return `<div class="ph-scroll"><div class="tg-locked">
         <div class="tg-lock-i">📅</div>
         <div class="tg-lock-t">通告 · 出道后解锁</div>
-        <div class="tg-lock-d">成团出道后，这里会弹来各种邀约——<br>综艺、演唱会、🎖️军旅慰问、影视……<br>那时，潜伏在你票数里的人，将一个个走到你面前。</div>
+        <div class="tg-lock-d">成团出道后，这里会弹来各种邀约——<br>综艺、演唱会、见面会、影视……<br>那时，潜伏在你票数里的人，将一个个走到你面前。</div>
       </div></div>`;
     }
-    return `<div class="ph-scroll"><div class="wb-empty">（出道日常 · 接通告系统 · 开发中）</div></div>`;
+    const d = TF.state.daily;
+    return `<div class="ph-scroll"><div class="wb-empty">📅 出道第 ${d ? d.week : 1} 周<br>本周通告在主界面接取（综艺 / 演出 / 影视 / 商务…）。<br>关掉手机，去挑通告吧。</div></div>`;
   }
 
   /* ---------- 交互绑定 ---------- */

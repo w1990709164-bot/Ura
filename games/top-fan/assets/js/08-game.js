@@ -77,6 +77,7 @@
 
     afterResult() {
       const s = TF.state;
+      if (s.debuted) { TF.daily.enter(); return; }      // 出道结局后 → 进入出道日常
       if (s.round >= TF.FINAL_ROUND) { TF.game.debut(); return; }
       s.round++;
       TF.train.weeklyReset();
@@ -87,6 +88,7 @@
     },
 
     afterEvent() {
+      if (TF.state.debuted) { TF.daily.render(); return; }   // 日常期事件 → 回日常
       TF.screens.go('hub');
       TF.ui.toast(`第 ${TF.state.round} 周训练期开始（行动点 ${TF.state.ap}）`);
     },
@@ -107,9 +109,9 @@
             : `<p>你止步于出道位边缘（第 ${p.rankNo} 名）。镜头扫过你强忍的笑，弹幕里全是不舍。</p>`}
           <p class="modal-sub">最终班级 ${p.rankClass} · ${U.fmt(p.votes)} 票 · 微博粉丝 ${U.fmt(p.followers)}</p>
           ${topLead ? `<p class="debut-lead">而那个超话等级永远第一的人——<b style="color:${topLead.l.color}">${s.leads[topLead.l.id].met ? topLead.l.name : topLead.l.handle}</b>，把整季的票都默默投给了你。</p>` : ''}
-          <p class="debut-next">🎖️ 出道后的日常正在路上：综艺、演唱会、军旅慰问……<br>那时，潜伏在你票数里的人，会一个个走到你面前。<span class="muted">（第二阶段开发中）</span></p>
+          <p class="debut-next">🎬 出道后的日常开始了：综艺、演唱会、见面会、影视……<br>那些潜伏在你票数里的人，终于要一个个走到你面前。</p>
         </div>`;
-      U.$('#result-next').textContent = '回到训练营（自由练习）→';
+      U.$('#result-next').textContent = '🎤 进入出道日常 →';
     },
   };
 

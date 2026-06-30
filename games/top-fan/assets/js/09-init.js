@@ -14,6 +14,7 @@
     };
     U.$('#btn-continue').onclick = () => {
       if (!TF.load()) { TF.ui.toast('没有存档'); return; }
+      if (TF.state.debuted) { TF.daily.enter(); return; }
       const sc = TF.state.screen;
       TF.screens.go(sc === 'stage' || sc === 'result' ? 'hub' : (sc === 'title' || sc === 'create' ? 'hub' : sc));
     };
