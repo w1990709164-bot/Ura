@@ -42,11 +42,12 @@
   }
 
   function songOptions() {
-    // 每场固定抽 4 首（按 round 取不同切片，保证多样）
-    const start = ((TF.state.round - 1) * 2) % TF.SONGS.length;
-    const pool = [];
-    for (let i = 0; i < 4; i++) pool.push(TF.SONGS[(start + i) % TF.SONGS.length]);
-    return pool;
+    // 2 首热门（轮换）+ 2 首低热度保底，确保任何名次都至少能挑到歌
+    const hot = TF.SONGS.filter(s => s.hot > 55);
+    const low = TF.SONGS.filter(s => s.hot <= 55);
+    const rot = (arr, n) => { const r = []; for (let i = 0; i < n; i++) r.push(arr[(TF.state.round - 1 + i) % arr.length]); return r; };
+    const picks = rot(hot, 2).concat(rot(low, 2));
+    return picks.filter((s, i) => s && picks.indexOf(s) === i);
   }
 
   function render() {
@@ -55,9 +56,11 @@
     U.$('#prep-title').textContent = `第${s.round}场备战 · ${round.name}`;
     const cap = maxHot();
 
-    // 抢歌
-    const songs = songOptions().map(sg => {
-      const locked = sg.hot > cap;
+    // 抢歌：名次不够的热门歌被高位选走，但永远至少留最冷门的一首可选
+    const opts = songOptions();
+    const minHot = Math.min.apply(null, opts.map(o => o.hot));
+    const songs = opts.map(sg => {
+      const locked = sg.hot > cap && sg.hot > minHot;
       const on = draft.song && draft.song.id === sg.id;
       return `<div class="prep-opt song ${on ? 'on' : ''} ${locked ? 'locked' : ''}" ${locked ? '' : `data-song="${sg.id}"`}>
         <div class="po-main"><b>${sg.name}</b><span class="po-sub">主项 ${TF.STAT_LABELS[sg.stat]} · 难度${sg.diff} · 票加成 ×${sg.mul}</span></div>
