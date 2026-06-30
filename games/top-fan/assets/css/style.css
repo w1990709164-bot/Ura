@@ -18,12 +18,13 @@ body{
   background:linear-gradient(160deg,var(--bg1),var(--bg2) 55%,var(--bg3));
   background-attachment:fixed;display:flex;justify-content:center;
 }
-#app{width:100%;max-width:480px;min-height:100vh;position:relative;
+#app{width:100%;max-width:480px;height:100vh;position:relative;
   background:linear-gradient(170deg,#fff6fb,#fbf3ff 60%,#fff2f8);
-  box-shadow:0 0 50px rgba(169,139,255,.12);overflow:hidden}
+  box-shadow:0 0 50px rgba(169,139,255,.12);overflow-y:auto;overflow-x:hidden}
 
 /* ---------- 屏幕 ---------- */
-.screen{display:none;flex-direction:column;min-height:100vh;padding:20px 16px 28px}
+/* 屏幕至少铺满一屏；内容超出时由 #app 纵向滚动（修复捏人页无法下滑） */
+.screen{display:none;flex-direction:column;min-height:100%;padding:20px 16px 28px}
 .screen.active{display:flex;animation:fade .35s ease}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
