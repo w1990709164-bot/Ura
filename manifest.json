@@ -58,5 +58,15 @@
     "source": "C:/Users/Mayn/Desktop/games/danmu-survival",
     "css_files": 1,
     "js_files": 7
+  },
+  {
+    "id": "top-fan",
+    "name": "头号粉丝",
+    "title": "头号粉丝 · TOP FAN",
+    "description": "选秀养成 / 明星 × COD大兵饭圈暗恋 / 隔屏暗恋到破屏相遇",
+    "entry": "games/top-fan/index.html",
+    "source": "games/top-fan",
+    "css_files": 1,
+    "js_files": 10
   }
 ]

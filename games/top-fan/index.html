@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>头号粉丝 · TOP FAN</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== 标题屏 ===== -->
+  <section id="screen-title" class="screen active">
+    <div class="title-deco">✦ ♡ ✦</div>
+    <div class="title-logo">头号粉丝</div>
+    <div class="title-sub">TOP&nbsp;FAN · 出道倒计时</div>
+    <div class="title-tag">
+      你是参加选秀的练习生，从海选一路冲向成团出道。<br>
+      超话里那些为你拼命的神仙粉——站姐、数据、反黑、氪金……<br>
+      其实是一支被组织起来的特遣队。<br>
+      他们隔着屏幕先沦陷，而你，还不知道。
+    </div>
+    <div class="menu">
+      <button id="btn-new" class="btn btn-primary">✧ 新游戏</button>
+      <button id="btn-continue" class="btn">继续</button>
+      <button id="btn-api" class="btn btn-ghost">🔌 API 设置</button>
+    </div>
+    <div class="title-foot">里世界 · LIWORLD</div>
+  </section>
+
+  <!-- ===== 捏人屏 ===== -->
+  <section id="screen-create" class="screen">
+    <div class="cr-wrap">
+      <div class="cr-h">选择你的出道方向</div>
+      <div id="identity-grid" class="identity-grid"></div>
+
+      <div class="cr-h">个人资料</div>
+      <div class="cr-form">
+        <label>艺名 <input id="cr-name" maxlength="12" placeholder="给自己起个名字"></label>
+        <label>年龄 <input id="cr-age" type="number" min="15" max="30" value="18"></label>
+        <label>粉丝团名 <input id="cr-fanclub" maxlength="14" placeholder="留空自动生成"></label>
+        <label>超话名 <input id="cr-super" maxlength="14" placeholder="留空＝艺名"></label>
+      </div>
+
+      <div class="cr-h">初始属性 · 自由分配 <span class="alloc-left">剩 <b id="alloc-left">20</b> 点</span></div>
+      <div id="alloc-grid" class="alloc-grid"></div>
+
+      <button id="cr-start" class="btn btn-primary btn-big" disabled>✧ 进入训练营 →</button>
+    </div>
+  </section>
+
+  <!-- ===== 训练 Hub ===== -->
+  <section id="screen-hub" class="screen">
+    <div class="hub-top">
+      <div class="hub-top-l">
+        <div class="hub-round" id="hub-round">第1场</div>
+        <div class="hub-badges">
+          <span class="hb" id="hub-class">F班</span>
+          <span class="hb" id="hub-rank">未上榜</span>
+          <span class="hb" id="hub-fans">👥 0</span>
+          <span class="hb hb-ap" id="hub-ap">⚡6</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stress-row">
+      <span class="stress-label">压力</span>
+      <div class="stress-bar"><div class="stress-fill" id="hub-stress-fill"></div></div>
+      <span class="stress-val" id="hub-stress-val">0</span>
+    </div>
+
+    <div class="hub-stats" id="hub-stats"></div>
+
+    <div class="hub-sec-h">本周训练 · 分配行动点</div>
+    <div class="hub-actions" id="hub-actions"></div>
+
+    <div class="hub-sec-h">动态</div>
+    <div class="hub-log" id="hub-log"></div>
+
+    <button class="btn btn-primary btn-big" id="hub-stage-btn" onclick="TF.game.toStage()">🎬 上台公演</button>
+
+    <button class="phone-fab" title="打开微博">📱<span class="fab-dot"></span></button>
+  </section>
+
+  <!-- ===== 公演屏 ===== -->
+  <section id="screen-stage" class="screen stage-screen">
+    <div class="stage-top">
+      <div class="stage-title" id="stage-title">公演</div>
+      <div class="stage-sub" id="stage-sub">🔴 直播中</div>
+    </div>
+    <div class="stage-narrative" id="stage-narrative"></div>
+    <button class="btn btn-primary btn-big" id="stage-next" style="display:none">查看成绩 →</button>
+  </section>
+
+  <!-- ===== 成绩屏 ===== -->
+  <section id="screen-result" class="screen">
+    <div class="result-card">
+      <div id="result-body"></div>
+      <button class="btn btn-primary btn-big" id="result-next">下一步 →</button>
+    </div>
+    <button class="phone-fab" title="打开微博">📱</button>
+  </section>
+
+</div>
+
+<!-- ===== 手机 ===== -->
+<div id="phone">
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div id="phone-screen"></div>
+    <button id="phone-close">✕</button>
+  </div>
+</div>
+
+<!-- ===== API 弹窗 ===== -->
+<div id="api-modal">
+  <div class="api-box">
+    <div class="modal-h">🔌 API 设置</div>
+    <p class="modal-sub">留空也能玩（模板模式）。填了 Key 后，公演叙事、弹幕、男主私信会由 AI 实时生成，更鲜活。</p>
+    <label>接口地址（OpenAI 兼容，留空走 Anthropic）<input id="api-url" placeholder="https://api.example.com/v1"></label>
+    <label>API Key <input id="api-key" type="password" placeholder="sk-..."></label>
+    <label>模型 <input id="api-model" placeholder="claude-... 或 gpt-..."></label>
+    <div class="api-actions">
+      <button class="btn btn-ghost" id="api-test">测试连接</button>
+      <button class="btn btn-primary" id="api-save">保存</button>
+      <button class="btn" id="api-close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+
+<script src="assets/js/00-state.js"></script>
+<script src="assets/js/01-data.js"></script>
+<script src="assets/js/02-api.js"></script>
+<script src="assets/js/03-danmaku.js"></script>
+<script src="assets/js/04-weibo.js"></script>
+<script src="assets/js/05-stage.js"></script>
+<script src="assets/js/06-train.js"></script>
+<script src="assets/js/07-phone.js"></script>
+<script src="assets/js/08-game.js"></script>
+<script src="assets/js/09-init.js"></script>
+</body>
+</html>
