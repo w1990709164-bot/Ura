@@ -556,15 +556,15 @@
     const s = S(), r = s.resources;
     s.flags.shortageToday = false;
 
-    // ① 入室抢劫：现金多 / 囤货显眼 且 防身不足 → 被盯上
-    if ((s.player.money > 700 || s.space.used > 24) && U.chance(0.32)) {
+    // ① 入室抢劫：现金多 / 囤货显眼 且 防身不足 → 被盯上（前 3 天治安尚可，给玩家立足时间）
+    if (s.day >= 4 && (s.player.money > 900 || s.space.used > 26) && U.chance(0.28)) {
       if (r.defense >= 2) {
         DS.log('深夜有人撬门——你抄起武器，对方见你有防备，悻悻离开。（防身救了你）', 'good');
       } else if (r.defense >= 1) {
         r.defense -= 1;
         DS.log('有人破门而入！一番搏斗你吓退了他，但武器损坏，防身 -1。', 'bad');
       } else {
-        const lose = Math.min(s.player.money, U.randInt(180, 420));
+        const lose = Math.min(s.player.money, U.randInt(100, 260));
         s.player.money -= lose;
         DS.log(`遭入室抢劫！你手无寸铁，被抢走 ¥${lose}。该囤点防身武器了。`, 'bad');
       }
@@ -619,10 +619,18 @@
   Game.nextDay = function () {
     const s = S();
     Game.settleJudgments();   // 先结算今日识弹（startDay 会清空 dmHistory/judged）
-    // 日常开销：房租水电杂费，随末日临近上涨、恐慌时翻倍
-    const expense = 30 + (s.day - 1) * 5 + (s.flags.panic ? 70 : 0);
-    s.player.money -= expense;
-    DS.log(`日常开销（房租·水电·杂费）-¥${expense}。`, 'info');
+    // 日常开销：房租水电杂费，随末日临近上涨、恐慌时上浮（曲线放缓，打工足以覆盖）
+    const expense = 25 + (s.day - 1) * 3 + (s.flags.panic ? 50 : 0);
+    if (s.player.money >= expense) {
+      s.player.money -= expense;
+      s.flags.brokeDays = 0;
+      DS.log(`日常开销（房租·水电·杂费）-¥${expense}。`, 'info');
+    } else {
+      // 付不起：先欠着，连续两天交不出才被扫地出门（与渴/饿死一致的 2 天缓冲）
+      s.player.money = 0;
+      s.flags.brokeDays = (s.flags.brokeDays || 0) + 1;
+      DS.log(`交不起 ¥${expense} 房租水电，被房东堵在门口。（欠费第 ${s.flags.brokeDays} 天——连续两天就被赶出去）`, 'bad');
+    }
 
     let crisis = [];
     if (s.resources.water >= 1) s.resources.water--; else crisis.push('water');
@@ -634,7 +642,7 @@
     if (s.flags.thirstDays >= 2) return Game.gameOver('你连续两天没有干净的水，倒在公寓地板上。（渴死）');
     if (s.flags.hungerDays >= 2) return Game.gameOver('饥饿击垮了你，末日还没来，你先没撑住。（饿死）');
     if ((s.flags.sickStreak || 0) >= 3) return Game.gameOver('高烧连日不退，家里没有一粒药，你在反复昏睡中再没能睁开眼。（病死）');
-    if (s.player.money < 0) return Game.gameOver('你身无分文，又无物可卖。（穷死）');
+    if ((s.flags.brokeDays || 0) >= 2) return Game.gameOver('连续两天交不起房租，你被赶出公寓，囤的物资全留在了里面，流落街头。（穷死）');
     if (s.flags.jailTrap && s.day >= 28) return Game.gameOver('你还关在看守所里，末日降临，铁门成了催命符。（团灭）');
 
     // 网购到货（有翻车/被偷风险，钱不退）
