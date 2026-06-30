@@ -79,6 +79,68 @@
     },
   ];
 
+  // —— 追加事件卡 ——
+  E.CARDS.push(
+    {
+      id: 'rumor', cat: 'scandal', special: 'jealous', title: '深夜绯闻',
+      narrative: '你被拍到深夜和一个神秘男生同框，#{name}恋情# 空降热搜，女友粉/男友粉炸锅，评论区一半脱粉一半磕到。',
+      choices: [
+        { label: '澄清：只是工作人员', effects: { repute: 4, stress: 12 }, outcome: '工作室秒辟谣，附上通告行程，绯闻熄火——但有些人的醋意压不住了。' },
+        { label: '不解释，私下处理', effects: { repute: -6, stress: 10 }, outcome: '你选择沉默，热度反而拖了几天，路人浮想联翩。' },
+        { label: '大方承认是发小', effects: { repute: 8, stress: 8, followers: -0.03 }, outcome: '坦荡反而圈了路人好感，掉了点 CP 粉，但人设更稳了。' },
+      ],
+    },
+    {
+      id: 'sasaeng', cat: 'scandal', special: 'sasaeng', title: '私生饭堵门',
+      narrative: '私生饭蹲守你的住处、跟踪行程、半夜敲门偷拍，#{name}被私生骚扰# 上热搜，你吓得睡不着。',
+      choices: [
+        { label: '报警 + 公开喊话抵制', effects: { repute: 8, stress: 14 }, outcome: '你硬气发声抵制私生，路人力挺，但也把对方激得更疯。', risk: 'mid' },
+        { label: '默默搬家躲避', effects: { repute: -2, stress: 18 }, outcome: '你疲于奔命地躲，安全感全无，状态受影响。', risk: 'high' },
+      ],
+    },
+    {
+      id: 'teammate', cat: 'scandal', title: '队友塌房连累',
+      narrative: '和你同台的队友爆出抄袭丑闻，舆论殃及全队，#{name}是否知情# 被连带质疑。',
+      choices: [
+        { label: '理性切割，划清界限', effects: { repute: 6, stress: 10, votes: -3000 }, outcome: '你及时表态划界，自保成功，但被嘲"不讲情义"。', risk: 'low' },
+        { label: '仗义力挺队友', effects: { repute: -8, stress: 12, grudge: 0 }, outcome: '你公开维护队友，重情圈了一波粉，却被卷进更深的舆论。', risk: 'high' },
+        { label: '沉默不表态', effects: { repute: -4, stress: 8 }, outcome: '你选择沉默，两边不讨好，但风波终会过去。' },
+      ],
+    },
+    {
+      id: 'endorse', cat: 'scandal', title: '代言翻车',
+      narrative: '你刚接的小众品牌被曝质量问题，#{name}恰烂钱# 词条挂起，粉丝替你心疼，路人开始质疑你的商业判断。',
+      choices: [
+        { label: '第一时间解约止损', effects: { repute: 6, stress: 10, votes: -2000 }, outcome: '果断解约，态度获认可，损失降到最低。', risk: 'low' },
+        { label: '观望，等品牌回应', effects: { repute: -10, stress: 12 }, outcome: '拖延让你被绑上品牌的烂账，路人缘大跌。', risk: 'high' },
+      ],
+    },
+    {
+      id: 'gaffe', cat: 'scandal', major: true, title: '直播失言争议',
+      narrative: '一场直播里你一句口误被剪成"内涵某群体"，#{name}失言# 发酵成大型公关危机，品牌方观望，节目组施压。',
+      choices: [
+        { label: '诚恳道歉 + 解释语境', effects: { repute: 4, stress: 18, votes: -6000 }, outcome: '你放低姿态道歉并还原语境，风波渐平，元气有损。', risk: 'mid' },
+        { label: '坚称被断章取义', effects: { repute: -8, stress: 16, followers: -0.06 }, outcome: '不认错的姿态火上浇油，掉了一批粉。', risk: 'high' },
+      ],
+    },
+    {
+      id: 'viral', cat: 'surprise', title: '意外出圈', positive: true,
+      narrative: '你某个公演的名场面切片被疯转出圈，路人涌入，#{name}这个舞台# 屠了好评榜！天上掉的国民度。',
+      choices: [
+        { label: '趁热打铁发营业', effects: { repute: 12, stress: 4, followers: 0.12, votes: 9000 }, outcome: '你抓住流量乘势营业，粉丝暴涨，路人转粉一大批！' },
+        { label: '保持平常心继续练', effects: { repute: 8, stress: -6, votes: 4000 }, outcome: '你没飘，专注打磨下个舞台，事业粉狂喜。' },
+      ],
+    },
+    {
+      id: 'fanwall', cat: 'surprise', special: 'applause', title: '应援名场面', positive: true,
+      narrative: '公演现场，你的后援会突然打出一整面灯牌海，齐刷刷的应援口号震得全场——这阵仗，专业到不像粉丝。',
+      choices: [
+        { label: '在台上哭了', effects: { repute: 10, stress: -12, followers: 0.05 }, outcome: '你当场红了眼眶，这一幕又上了热搜，双向奔赴的名场面。' },
+        { label: '深深鞠躬回应', effects: { repute: 12, stress: -8 }, outcome: '你对着灯牌海深鞠一躬，台下喊声更响了。' },
+      ],
+    }
+  );
+
   /* ---------- 劲敌恩怨线（3 个递进节点）---------- */
   E.RIVAL_BEATS = [
     {
@@ -145,7 +207,7 @@
     const s = TF.state, ev = s.pendingEvent;
     if (!ev) { TF.screens.go('hub'); return; }
     const sub = txt => txt.replace(/\{name\}/g, s.player.name || '你').replace(/\{rival\}/g, s.rival.name || '对家');
-    const catCN = { scandal: '🔥 黑料危机', position: '⚔️ 公演撕番', production: '🎬 节目组黑幕', rival: '⚔️ 劲敌恩怨' }[ev.cat] || '突发';
+    const catCN = { scandal: '🔥 黑料危机', position: '⚔️ 公演撕番', production: '🎬 节目组黑幕', rival: '⚔️ 劲敌恩怨', surprise: '✨ 天降惊喜' }[ev.cat] || '突发';
     U.$('#event-cat').textContent = catCN;
     U.$('#event-cat').className = 'event-cat cat-' + ev.cat;
     U.$('#event-title').textContent = ev.title;
@@ -216,20 +278,34 @@
     if (effects.grudge) s.rival.grudge += effects.grudge;
 
     // 男主介入叙事 + 暗恋值上涨 + 可能破屏
+    const ev = s.pendingEvent || {};
     let interveneHtml = '';
     const negative = (fans < 0 || (effects.votes || 0) < 0 || (effects.repute || 0) < 0);
-    if (negative && prot.top && prot.score > 20) {
-      const l = prot.top, ld = s.leads[l.id];
-      ld.love = U.clamp(ld.love + 5, 0, TF.LOVE_MAX);
+    const showLead = negative || ev.special === 'applause';
+    // 特殊事件优先选对应工种的男主出面（吃醋/护私生/应援）
+    let protector = prot.top;
+    const prefer = ev.special === 'jealous' ? ['nikto', 'graves', 'soap', 'gaz', 'krueger']
+      : ev.special === 'sasaeng' ? ['keegan', 'nikto', 'krueger']
+        : ev.special === 'applause' ? ['merrick', 'price', 'soap', 'gaz'] : null;
+    if (prefer) {
+      for (const id of prefer) {
+        if (s.leads[id] && s.leads[id].entered && s.leads[id].love > 0) { protector = TF.LEAD_BY_ID[id]; break; }
+      }
+    }
+    if (showLead && protector && (prot.score > 20 || ev.special === 'applause')) {
+      const l = protector, ld = s.leads[l.id];
+      ld.love = U.clamp(ld.love + (ev.special === 'applause' ? 4 : 5), 0, TF.LOVE_MAX);
+      const verb = ev.special === 'jealous' ? '酸归酸，照样替你摆平了' : ev.special === 'sasaeng' ? '把堵你的人清得干干净净' : ev.special === 'applause' ? '把这场应援安排得密不透风' : '替你挡了一刀';
+      const line = ev.special === 'jealous' ? jealousLine(l) : ev.special === 'sasaeng' ? sasaengLine(l) : ev.special === 'applause' ? applauseLine(l) : E.interveneLine(l);
       interveneHtml = `<div class="ev-intervene" style="border-color:${l.color}">
-        🛡️ <b style="color:${l.color}">${ld.met ? l.name : l.handle}</b>（${l.job}）替你挡了一刀——${E.interveneLine(l)}
+        ${ev.special === 'applause' ? '🎆' : ev.special === 'jealous' ? '🍋' : '🛡️'} <b style="color:${l.color}">${ld.met ? l.name : l.handle}</b>（${l.job}）${verb}——${line}
         <span class="ev-love">超话热度 +</span></div>`;
-      TF.log(`${ld.met ? l.name : l.handle} 在风波里护了你一把。`, 'love');
-      // 高保护 + 未破屏 → 概率破屏
+      TF.log(`${ld.met ? l.name : l.handle}${ev.special === 'applause' ? ' 给了你一场名场面应援。' : ' 在风波里护了你一把。'}`, 'love');
+      // 高好感 + 未破屏 → 概率破屏
       if (!ld.met && ld.love >= 40 && U.chance(0.5)) {
         ld.met = true; s.weibo.dms[l.id] = s.weibo.dms[l.id] || [];
-        interveneHtml += `<div class="ev-break">💥 混乱中你终于看清——「${U.esc(l.handle)}」原来是 <b style="color:${l.color}">${U.esc(l.name)}</b>。私信已解锁。</div>`;
-        TF.log(`💥 破屏：危机中认出了 ${l.name}。`, 'love');
+        interveneHtml += `<div class="ev-break">💥 你终于看清——「${U.esc(l.handle)}」原来是 <b style="color:${l.color}">${U.esc(l.name)}</b>。私信已解锁。</div>`;
+        TF.log(`💥 破屏：认出了 ${l.name}。`, 'love');
       }
     }
 
@@ -264,6 +340,34 @@
     };
     return m[l.id] || '默默替你扛下了一切。';
   };
+
+  function jealousLine(l) {
+    const m = {
+      nikto: '"那个男的，已经查无此人了。"——他面无表情地发来一句。',
+      graves: '"绯闻？我把那家八卦号买下来了，删干净。"',
+      soap: '冲进评论区一通输出，末了一句"她身边的位置，轮不到外人"。',
+      gaz: '默默置顶辟谣，可你看见他在线状态亮了一整夜。',
+      krueger: '"哼，谁敢蹭你热度。"——嘴上骂着，手已经把对方挂上了热搜。',
+    };
+    return m[l.id] || '嘴上不说，醋意全写在了行动里。';
+  }
+  function sasaengLine(l) {
+    const m = {
+      keegan: '"你住处周围我已经清过场了，今晚安心睡。"',
+      nikto: '"堵你门的那个人，不会再出现了。"',
+      krueger: '亲自蹲守反治了那个私生，"代拍？我才是专业的。"',
+    };
+    return m[l.id] || '把骚扰你的人挡在了你看不见的地方。';
+  }
+  function applauseLine(l) {
+    const m = {
+      merrick: '"灯牌第七排往左半步，口号三遍——执行。"全是他的调度。',
+      price: '"让她知道，她从来不是一个人在台上。"',
+      soap: '嗓门最大那个，喊得比谁都卖力。',
+      gaz: '"大家跟我一起，3、2、1——"',
+    };
+    return m[l.id] || '把这份心意，安排成了你台上最暖的一刻。';
+  }
 
   function deltaChip(name, v, isStress) {
     if (!v) return '';

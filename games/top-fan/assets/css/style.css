@@ -179,6 +179,7 @@ body{
 .cat-scandal{background:linear-gradient(120deg,#ff9a6b,var(--bad))}
 .cat-rival,.cat-position{background:linear-gradient(120deg,#a98bff,#ff6fae)}
 .cat-production{background:linear-gradient(120deg,#5bb6e0,#a98bff)}
+.cat-surprise{background:linear-gradient(120deg,#ffd86b,#ff8fc0)}
 .event-title{font-weight:900;font-size:1.3rem;color:var(--pink-deep);margin:12px 0 10px}
 .event-narr{background:linear-gradient(120deg,#fff4f9,#f6f0ff);border-radius:14px;padding:14px 16px;
   line-height:1.85;font-size:.95rem}
