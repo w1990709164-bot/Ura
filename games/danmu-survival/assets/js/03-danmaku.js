@@ -48,9 +48,11 @@
       // 该轨道在弹幕“离开左边缘约 40%”后才放下一条
       this._laneNextFree[lane] = now + dur * 1000 * 0.42;
 
+      // 真假可见：来自“鉴弹之眼”异能(cfg.reveal)，或该条已被识破为可信源/带节奏(item.revealKind)
+      const reveal = (this.cfg.reveal || item.revealKind) && item.kind && item.kind !== 'flavor';
       const el = document.createElement('div');
       el.className = 'danmaku-item';
-      if (this.cfg.reveal && item.kind && item.kind !== 'flavor') {
+      if (reveal) {
         el.classList.add(item.kind === 'true' ? 'dm-true' : 'dm-false');
       }
       el.style.top = (8 + lane * (this.cfg.fontSize + 14)) + 'px';
@@ -60,8 +62,8 @@
 
       const idPart = item.id ? `<span class="dm-id">${U.esc(item.id)}</span>` : '';
       let badge = '';
-      if (this.cfg.reveal && item.kind === 'true') badge = '<span class="dm-badge dm-badge-t">真</span>';
-      if (this.cfg.reveal && item.kind === 'false') badge = '<span class="dm-badge dm-badge-f">假</span>';
+      if (reveal && item.kind === 'true') badge = '<span class="dm-badge dm-badge-t">真</span>';
+      if (reveal && item.kind === 'false') badge = '<span class="dm-badge dm-badge-f">假</span>';
       el.innerHTML = `${idPart}${badge}<span class="dm-text">${U.esc(item.text)}</span>`;
 
       el.addEventListener('animationend', () => el.remove());

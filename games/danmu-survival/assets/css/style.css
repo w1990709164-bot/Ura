@@ -90,6 +90,8 @@ body{
 .jb.on{background:var(--acc2);border-color:var(--acc2);color:#fff}
 .rep{font-size:10px;padding:1px 5px;border-radius:6px;background:#222b36;color:var(--dim);margin-left:2px}
 .rep.pos{color:#aef0c6;background:#1d3328} .rep.neg{color:#f3b6b6;background:#33201f}
+.rep.src{color:#aef0c6;background:#1d4d33;font-weight:700} .rep.noise{color:#f3b6b6;background:#5a2326;font-weight:700}
+.jb-na{font-size:11px;color:#5a6573;padding:5px 4px}
 .shop-row .up{color:var(--bad);font-size:11px;margin-left:1px}
 
 /* 中部：事件 + 日志 */

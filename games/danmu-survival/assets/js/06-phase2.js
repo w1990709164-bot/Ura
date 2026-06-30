@@ -31,8 +31,8 @@
     s.phase = 2;
     // 末日开始：旧时代的钱彻底作废，晶核统一清零——只能靠一颗颗击杀丧尸攒出来
     s.crystals = 0;
-    // 逃生只能带走随身物资（空间仓库异能除外）：把囤的物资封顶到真实可携带量
-    const carry = DS.computeCarry(s.resources, s.player.ability.id);
+    // 逃生只能带走随身物资（空间仓库异能除外）：把囤的物资封顶到真实可携带量（洞察高则上限提升）
+    const carry = DS.computeCarry(s.resources, s.player.ability.id, DS.insightCarryBonus(s.insight));
     s.resources.water = carry.kept.water;
     s.resources.food = carry.kept.food;
     s.resources.meds = carry.kept.meds;
@@ -205,15 +205,11 @@
     // 死亡
     if (s.story.hp <= 0) return P2.gameOver('你倒在了血泊里，再没能站起来。');
 
-    // 战斗
+    // 战斗：不直接结算，先让玩家选战法（硬刚/搏命/稳健/智取）
     if (obj.combat && obj.combat.enemy) {
-      const res = P2.resolveCombat(obj.combat.enemy, obj.combat.level | 0 || 1);
-      append('sys', res.txt);
+      s.story.pendingCombat = { enemy: String(obj.combat.enemy).slice(0, 24), level: obj.combat.level | 0 || 1 };
       P2.renderHUD();
-      if (s.story.hp <= 0) return P2.gameOver(`你被${obj.combat.enemy}撕碎了。`);
-      // 把战斗结果回传给 GM 续写
-      s.story.choices = []; P2.render();
-      setTimeout(() => P2.send(`[战斗判定结果] ${res.txt} 请据此续写剧情后果，并给出新的选择。`, { system: true, hideMe: true }), 350);
+      P2.presentCombat();
       return;
     }
 
@@ -230,22 +226,86 @@
   };
 
   /* ---------- 战斗：跑团骰（等级×10 + d20） ---------- */
-  P2.resolveCombat = function (enemy, level) {
+  P2.resolveCombat = function (enemy, level, opt) {
+    opt = opt || {};
     const s = S();
     const lv = s.player.ability.level;
+    // 防身武器助战：常规每件 +4，搏命 +7（最多按 3 件计）
+    const def = U.clamp(s.resources.defense || 0, 0, 3);
+    const defBonus = def * (opt.weaponAllIn ? 7 : 4);
+    const defNote = defBonus ? `+武器${defBonus}` : '';
     const myRoll = U.roll(20), enRoll = U.roll(20);
-    const my = lv * 10 + myRoll, en = level * 10 + enRoll;
+    const my = lv * 10 + defBonus + myRoll, en = level * 10 + enRoll;
     if (my >= en) {
       const gain = U.randInt(1, Math.max(1, level + 1));
       s.crystals += gain;
       P2.gainXP(level * 12 + 10);
-      return { win: true, txt: `【战斗】你 Lv${lv}(骰${myRoll}→${my}) vs ${enemy} Lv${level}(骰${enRoll}→${en})：你赢了！缴获 💎${gain}。` };
+      let brk = '';
+      if (opt.weaponAllIn && def > 0) { s.resources.defense--; brk = ' 搏命一击后武器卷了刃（🔪-1）。'; }
+      return { win: true, txt: `【战斗】你 Lv${lv}(骰${myRoll}${defNote}→${my}) vs ${enemy} Lv${level}(骰${enRoll}→${en})：你赢了！缴获 💎${gain}。${brk}` };
     } else {
       const dmg = U.randInt(14, 32);
       s.story.hp = U.clamp(s.story.hp - dmg, 0, s.story.hpMax);
       P2.gainXP(level * 4);
-      return { win: false, txt: `【战斗】你 Lv${lv}(骰${myRoll}→${my}) vs ${enemy} Lv${level}(骰${enRoll}→${en})：你落了下风，受创 -${dmg} HP。` };
+      let brk = '';
+      if (def > 0 && (opt.weaponAllIn || U.chance(0.5))) { s.resources.defense--; brk = ' 防身武器在搏斗中损坏（🔪-1）。'; }
+      return { win: false, txt: `【战斗】你 Lv${lv}(骰${myRoll}${defNote}→${my}) vs ${enemy} Lv${level}(骰${enRoll}→${en})：你落了下风，受创 -${dmg} HP。${brk}` };
     }
+  };
+
+  /* ---------- 遭遇战：先给战法选择，再结算 ---------- */
+  P2.presentCombat = function () {
+    const s = S(), pc = s.story.pendingCombat; if (!pc) return;
+    append('sys', `⚔ 遭遇战：${pc.enemy}（Lv${pc.level}）。你的异能 Lv${s.player.ability.level}${s.resources.defense ? `，防身武器×${s.resources.defense}` : '，手无寸铁'}。选择战法：`);
+    const ch = ['【战斗·硬刚】正面交手'];
+    if (s.resources.defense > 0) ch.push('【战斗·搏命】拼上防身武器（加成更高，武器必损）');
+    if (s.resources.meds > 0) ch.push('【战斗·稳健】先嗑药回血再上');
+    ch.push('【战斗·智取】拉开距离避战（不拿晶核）');
+    s.story.choices = ch;
+    P2.choiceHandler = null;     // 走 onPlayerInput → handleLocalChoice
+    P2.render();
+  };
+  P2.runPendingCombat = function (label) {
+    const s = S(), pc = s.story.pendingCombat; if (!pc) return;
+    s.story.pendingCombat = null;
+    // 智取避战：用等级+d20 判定能否脱身
+    if (label.indexOf('智取') >= 0) {
+      const roll = U.roll(20) + s.player.ability.level * 2;
+      let txt;
+      if (roll >= 12) txt = `你果断拉开距离，绕开了 ${pc.enemy}，没有硬碰硬。`;
+      else { const dmg = U.randInt(6, 16); s.story.hp = U.clamp(s.story.hp - dmg, 0, s.story.hpMax); txt = `脱离时被 ${pc.enemy} 撕咬到，-${dmg}HP，但总算甩脱了。`; }
+      append('sys', '【智取】' + txt);
+      P2.renderHUD();
+      if (s.story.hp <= 0) return P2.gameOver('你在逃离中力竭倒下。');
+      s.story.choices = []; P2.render();
+      setTimeout(() => P2.send(`[战斗判定结果] 玩家选择避战：${txt} 请据此续写后果并给出新选择。`, { system: true, hideMe: true }), 350);
+      return;
+    }
+    // 稳健：先嗑一份药
+    if (label.indexOf('稳健') >= 0 && s.resources.meds > 0) {
+      s.resources.meds--; const before = s.story.hp;
+      s.story.hp = U.clamp(s.story.hp + 25, 0, s.story.hpMax);
+      append('sys', `你先嗑了一份药，回血 +${s.story.hp - before}（❤️${s.story.hp}）。`);
+    }
+    const res = P2.resolveCombat(pc.enemy, pc.level, { weaponAllIn: label.indexOf('搏命') >= 0 });
+    append('sys', res.txt);
+    P2.renderHUD();
+    if (s.story.hp <= 0) return P2.gameOver(`你被${pc.enemy}撕碎了。`);
+    s.story.choices = []; P2.render();
+    setTimeout(() => P2.send(`[战斗判定结果] ${res.txt} 请据此续写剧情后果，并给出新的选择。`, { system: true, hideMe: true }), 350);
+  };
+
+  /* ---------- 嗑晶核升级：晶核的第二个出口，兑现“嗑晶核升级”承诺 ---------- */
+  P2.crystalLevelUp = function () {
+    const s = S(), a = s.player.ability;
+    const cost = a.level * 2;          // Lv1→2 需 2，Lv2→3 需 4 …
+    if (s.crystals < cost) { Game.toast(`嗑晶核突破需要 💎${cost}`); return; }
+    s.crystals -= cost;
+    a.level++; a.xpNext = Math.round(a.xpNext * 1.5);
+    if (a.xp >= a.xpNext) a.xp = a.xpNext - 1;
+    append('sys', `你咬碎 ${cost} 枚晶核，灼热的能量顺着脊椎炸开——异能突破到 Lv${a.level}！（消耗 💎${cost}）`);
+    P2.floatDanmaku(['嗑嗨了！', '这就突破了？', '别嗑太猛主播', '氪金玩家实锤']);
+    P2.renderHUD(); P2.render(); DS.save(); Game.closeModal();
   };
 
   /* ---------- 基地 / 尸潮 / 收音机硬机制 ---------- */
@@ -345,6 +405,11 @@
   };
 
   P2.handleLocalChoice = function (text) {
+    if (text.indexOf('【战斗·') === 0) {
+      append('me', text);
+      P2.runPendingCombat(text);
+      return true;
+    }
     if (text.indexOf('【收音机】') === 0) {
       append('me', text);
       P2.obtainRadio('你在保安室的抽屉底摸到一台手摇收音机。旋钮转过一圈，砂砾般的噪声里，有人反复念着“西郊、骷髅旗、仍在收人”。');
@@ -578,6 +643,7 @@
       <p>💎 晶核 <b>${s.crystals}</b>　❤️ HP <b>${s.story.hp}/${s.story.hpMax}</b></p>
       <p class="hint">晶核：击杀丧尸缴获，可在剧情里向商人/基地<strong>交易、以物易物、交保护费</strong>（直接在输入框说出你的意图即可）。</p>
       <div class="bag-list">${rows}</div>`, [
+        { label: `嗑晶核升级(💎${s.player.ability.level * 2})`, onClick: () => P2.crystalLevelUp() },
         { label: s.hasRadio ? '收听电波' : '修收音机', onClick: () => P2.baseAction('radio') },
         { label: '加固防线', onClick: () => P2.baseAction('fortify') },
         { label: '晶核交易', onClick: () => P2.baseAction('trade') },

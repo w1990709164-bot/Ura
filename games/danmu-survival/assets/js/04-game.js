@@ -199,7 +199,10 @@
     const imp = s._dmImportant || [];
     if (imp.length && (priority || U.chance(0.5))) item = imp.shift();
     else item = U.pick(D.ambientDanmaku);
-    DS.danmaku.shoot(item);
+    // 识人养成：信誉绝对值够高的ID，其真假自动暴露（克隆避免污染共享弹幕池）
+    const reliable = item.id && item.kind && item.kind !== 'flavor'
+      && Math.abs(s.reputation[item.id] || 0) >= DS.SIGNAL_REP;
+    DS.danmaku.shoot(reliable ? Object.assign({}, item, { revealKind: true }) : item);
     Game._recordDm(item);
   };
   Game._recordDm = function (item) {
@@ -215,25 +218,32 @@
   /* ============ 弹幕回看面板 ============ */
   Game.openDanmakuPanel = function () {
     const s = S();
-    const reveal = s.player.ability.id === 'eye';
+    const hasEye = s.player.ability.id === 'eye';
     const rows = s.dmHistory.slice().reverse().map((d, idx) => {
-      const realIdx = s.dmHistory.length - 1 - idx;
       const rep = d.id ? (s.reputation[d.id] || 0) : 0;
+      // 信誉够高/够低的ID会带“信源/带节奏”标签，且其真假对玩家暴露（眼系则全暴露）
+      const signal = d.id && rep >= DS.SIGNAL_REP ? 'src' : (d.id && rep <= -DS.SIGNAL_REP ? 'noise' : '');
+      const reveal = hasEye || (d.kind && d.kind !== 'flavor' && Math.abs(rep) >= DS.SIGNAL_REP);
+      const srcTag = signal === 'src' ? '<span class="rep src">✓信源</span>'
+        : signal === 'noise' ? '<span class="rep noise">⚠带节奏</span>' : '';
       const repTag = d.id ? `<span class="rep ${rep > 0 ? 'pos' : rep < 0 ? 'neg' : ''}">信誉${rep > 0 ? '+' : ''}${rep}</span>` : '';
       let mark = '';
       if (reveal && d.kind === 'true') mark = '<span class="dm-badge dm-badge-t">真</span>';
       if (reveal && d.kind === 'false') mark = '<span class="dm-badge dm-badge-f">假</span>';
       const j = s.judged[d._k];
-      return `<div class="dm-row">
-        <div class="dm-row-main">${mark}<span class="dm-row-id">${U.esc(d.id || '匿名')}</span>${repTag}
-          <div class="dm-row-text">${U.esc(d.text)}</div></div>
-        <div class="dm-row-judge">
+      const judgeUI = d.kind && d.kind !== 'flavor'
+        ? `<div class="dm-row-judge">
           <button class="jb ${j === 'trust' ? 'on' : ''}" data-k="${idx}" data-v="trust">信</button>
           <button class="jb ${j === 'doubt' ? 'on' : ''}" data-k="${idx}" data-v="doubt">疑</button>
-        </div></div>`;
+        </div>`
+        : '<div class="dm-row-judge"><span class="jb-na">闲聊</span></div>';
+      return `<div class="dm-row">
+        <div class="dm-row-main">${mark}<span class="dm-row-id">${U.esc(d.id || '匿名')}</span>${srcTag}${repTag}
+          <div class="dm-row-text">${U.esc(d.text)}</div></div>
+        ${judgeUI}</div>`;
     }).join('') || '<p class="hint">今天还没有弹幕。</p>';
     Game.modal('📺 弹幕回看', `
-      <p class="hint">慢慢读。觉得某条可信就点「信」，可疑点「疑」——${reveal ? '你的【鉴弹之眼】已标出真假。' : '判断对了，将来会有回报。'}</p>
+      <p class="hint">慢慢读，对有真假的弹幕点「信」/「疑」，<b>睡觉时结算</b>：判对攒洞察，判错倒扣。${hasEye ? '你的【鉴弹之眼】已标出全部真假。' : '看穿过的「信源」会自动亮出真假。'}　🔮 洞察 <b>${s.insight || 0}</b></p>
       <div class="dm-feed">${rows}</div>`, [
       { label: '关闭', cls: 'btn-primary' },
     ]);
@@ -246,6 +256,29 @@
         Game.openDanmakuPanel();
       };
     });
+  };
+
+  /* ============ 识弹结算（睡觉时） ============
+   * · 每条有真假的弹幕：应验(真)→该ID信誉+1，打脸(假)→-1，累积“信源/带节奏”
+   * · 玩家若标了信/疑：判对洞察+1，判错-1（眼系太轻松，正确不加分只防倒扣）
+   */
+  Game.settleJudgments = function () {
+    const s = S();
+    const hasEye = s.player.ability.id === 'eye';
+    let correct = 0, wrong = 0, delta = 0;
+    s.dmHistory.forEach(d => {
+      if (!d.id || !d.kind || d.kind === 'flavor') return;
+      s._rep(d.id, d.kind === 'true' ? +1 : -1);   // ID 应验/打脸，累积信誉
+      const j = s.judged[d._k];
+      if (!j) return;
+      const right = (j === 'trust' && d.kind === 'true') || (j === 'doubt' && d.kind === 'false');
+      if (right) { correct++; if (!hasEye) delta++; }
+      else { wrong++; delta--; }
+    });
+    if (correct || wrong) {
+      s.insight = (s.insight || 0) + delta;
+      DS.log(`📺 识弹结算：判对 ${correct}、判错 ${wrong}，洞察 ${delta >= 0 ? '+' : ''}${delta}（累计 ${s.insight}）。`, delta >= 0 ? 'good' : 'bad');
+    }
   };
 
   /* ============ 每日开始 ============ */
@@ -537,18 +570,23 @@
       }
     }
 
-    // ② 生病：有药轻松过，没药破财又伤身
+    // ② 生病：有药压下去并恢复，没药则病情累积——连续 3 天无药硬扛会病死
     if (U.chance(0.20)) {
       if (r.meds >= 1) {
         r.meds -= 1;
-        DS.log('你淋雨发烧了一场，好在备了药，用掉 1 份药品。', 'bad');
+        s.flags.sickStreak = Math.max(0, (s.flags.sickStreak || 0) - 1);
+        DS.log('你淋雨发烧了一场，好在备了药，用掉 1 份药品压了下去。', 'bad');
       } else {
         const cost = Math.min(s.player.money, 220);
         s.player.money -= cost;
         s.flags.sickStreak = (s.flags.sickStreak || 0) + 1;
-        DS.log(`你病倒了，家里没药，只能花 ¥${cost} 去黑诊所。下次记得囤药。`, 'bad');
+        DS.log(`你病倒了，家里没药，只能花 ¥${cost} 去黑诊所撑着。病情还在累积（无药硬扛第 ${s.flags.sickStreak} 天）。`, 'bad');
+        if (s.flags.sickStreak >= 2) DS.log('⚠ 你高烧不退、浑身发软——再不弄到药，可能撑不过去。', 'bad');
       }
-    } else { s.flags.sickStreak = 0; }
+    } else {
+      // 没生病的一天：身体慢慢恢复
+      s.flags.sickStreak = Math.max(0, (s.flags.sickStreak || 0) - 1);
+    }
 
     // ③ 抢购断货潮：临近末日，某些天全城售罄
     if (s.day >= 12 && U.chance(0.28)) {
@@ -580,6 +618,7 @@
 
   Game.nextDay = function () {
     const s = S();
+    Game.settleJudgments();   // 先结算今日识弹（startDay 会清空 dmHistory/judged）
     // 日常开销：房租水电杂费，随末日临近上涨、恐慌时翻倍
     const expense = 30 + (s.day - 1) * 5 + (s.flags.panic ? 70 : 0);
     s.player.money -= expense;
@@ -594,6 +633,7 @@
 
     if (s.flags.thirstDays >= 2) return Game.gameOver('你连续两天没有干净的水，倒在公寓地板上。（渴死）');
     if (s.flags.hungerDays >= 2) return Game.gameOver('饥饿击垮了你，末日还没来，你先没撑住。（饿死）');
+    if ((s.flags.sickStreak || 0) >= 3) return Game.gameOver('高烧连日不退，家里没有一粒药，你在反复昏睡中再没能睁开眼。（病死）');
     if (s.player.money < 0) return Game.gameOver('你身无分文，又无物可卖。（穷死）');
     if (s.flags.jailTrap && s.day >= 28) return Game.gameOver('你还关在看守所里，末日降临，铁门成了催命符。（团灭）');
 
@@ -622,7 +662,10 @@
     const s = S(); const r = s.resources;
     const ok = k => r[k] >= D.goals[k];
     // 逃生只能带走随身物资（空间仓库异能除外）——结算页提前告知，避免进二阶段才发现“缩水”
-    const carry = DS.computeCarry(r, s.player.ability.id);
+    const bonus = DS.insightCarryBonus(s.insight);
+    const carry = DS.computeCarry(r, s.player.ability.id, bonus);
+    const insightNote = (!carry.unlimited && bonus > 0)
+      ? `<p class="hint">🔮 洞察 ${s.insight}：你读懂了弹幕的真假，提前打包了更聪明的逃生包，随身上限 +${bonus}。</p>` : '';
     const carryNote = carry.unlimited
       ? '<p class="hint">📦【空间仓库】随身储物，囤下的物资可以整批带走。</p>'
       : carry.capped
@@ -636,7 +679,7 @@
         <li>💊 药品 ${r.meds}/${D.goals.meds} ${ok('meds') ? '✅' : '⚠️'}　🔪 防身 ${r.defense}/${D.goals.defense} ${ok('defense') ? '✅' : '⚠️'}</li>
         <li>💰 现金 ¥${s.player.money}（将折算为晶核）</li>
       </ul>
-      ${carryNote}
+      ${insightNote}${carryNote}
       <p class="hint">接下来进入第二阶段——AI 驱动的末日求生剧情。</p>`;
     clearInterval(Game._dmTimer);
     Game.modal('🧟 末日爆发', summary, [
