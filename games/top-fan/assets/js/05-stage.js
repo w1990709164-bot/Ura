@@ -54,7 +54,9 @@
 
     // 票数
     const tierVote = tier === 'perfect' ? 1.7 : tier === 'flub' ? 0.55 : 1.0;
-    const baseVote = Math.round((score * 1400 + 8000) * tierVote);
+    // 路人缘影响路人盘：口碑好则基础票更高（0.6~1.3 倍）
+    const repFactor = 0.6 + (p.repute / 100) * 0.7;
+    const baseVote = Math.round((score * 1400 + 8000) * tierVote * repFactor);
     const fanVote = Math.round(p.followers * 1.2);
     const leadVote = TF.leadBoost();
     const addVotes = baseVote + fanVote + leadVote + U.randInt(0, 5000);

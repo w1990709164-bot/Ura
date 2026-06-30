@@ -83,6 +83,7 @@
         stats: { vocal: 0, dance: 0, rap: 0, visual: 0, stamina: 0, charm: 0 },
         stress: 0,
         sick: false,
+        repute: 50,             // 路人缘 / 口碑（0~100），危机会伤它，影响路人票
         rankClass: 'F',         // 当前班级
         position: '',           // 当前担当
         rankNo: 99,             // 排行榜名次
@@ -90,6 +91,9 @@
         followers: 0,           // 微博粉丝数
         weiboOpen: false,       // 是否开通微博
       },
+      // 固定劲敌（开局生成）：贯穿全程的对家
+      rival: { name: '', grudge: 0, beat: 0 },
+      pendingEvent: null,       // 当前待处理的危机/撕番事件
       ap: TF.START_AP,          // 本周剩余行动点
       // 男主运行时数据： id -> { love, met(数字破屏), offline(线下相遇), revealed }
       leads: {},

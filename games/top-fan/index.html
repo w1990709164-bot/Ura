@@ -58,6 +58,7 @@
           <span class="hb" id="hub-class">F班</span>
           <span class="hb" id="hub-rank">未上榜</span>
           <span class="hb" id="hub-fans">👥 0</span>
+          <span class="hb" id="hub-repute">💗 50</span>
           <span class="hb hb-ap" id="hub-ap">⚡6</span>
         </div>
       </div>
@@ -90,6 +91,25 @@
     </div>
     <div class="stage-narrative" id="stage-narrative"></div>
     <button class="btn btn-primary btn-big" id="stage-next" style="display:none">查看成绩 →</button>
+  </section>
+
+  <!-- ===== 事件屏（危机 / 撕番 / 黑幕）===== -->
+  <section id="screen-event" class="screen">
+    <div class="event-card">
+      <div class="event-cat" id="event-cat">突发</div>
+      <div class="event-title" id="event-title"></div>
+      <div id="event-body"></div>
+      <div id="event-choices" class="event-choices"></div>
+      <div id="event-free" class="event-free" style="display:none">
+        <div class="event-free-hint" id="event-free-hint"></div>
+        <div class="event-free-row">
+          <input id="event-free-input" class="event-free-input" placeholder="自己想词应对…" autocomplete="off">
+          <button id="event-free-send" class="event-free-send">发送应对</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-big" id="event-continue" style="display:none">继续 →</button>
+    </div>
+    <button class="phone-fab" title="打开微博">📱</button>
   </section>
 
   <!-- ===== 成绩屏 ===== -->
@@ -139,6 +159,7 @@
 <script src="assets/js/06-train.js"></script>
 <script src="assets/js/07-phone.js"></script>
 <script src="assets/js/08-game.js"></script>
+<script src="assets/js/10-events.js"></script>
 <script src="assets/js/09-init.js"></script>
 </body>
 </html>

@@ -27,6 +27,9 @@
     U.$('#stage-next').onclick = () => TF.stage.finish();
     U.$('#result-next').onclick = () => TF.game.afterResult();
 
+    // 事件结算后继续
+    U.$('#event-continue').onclick = () => TF.game.afterEvent();
+
     // 手机悬浮按钮（各屏通用）
     U.$$('.phone-fab').forEach(b => b.onclick = () => TF.phone.open('weibo'));
     U.$('#phone-close').onclick = () => TF.phone.close();

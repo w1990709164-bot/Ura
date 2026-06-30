@@ -58,6 +58,7 @@
       s.player.supertopic = U.$('#cr-super').value.trim() || name;
       s.player.stats = Object.assign({}, create.stats);
       TF.state = s;
+      TF.events.initRival();
       // 第 1 周准备
       TF.train.weeklyReset();
       TF.weibo.refreshFeed(); TF.weibo.refreshHot();
@@ -79,8 +80,15 @@
       if (s.round >= TF.FINAL_ROUND) { TF.game.debut(); return; }
       s.round++;
       TF.train.weeklyReset();
+      // 本周开场：可能撞上黑料 / 撕番 / 黑幕
+      if (TF.events.weekStart()) return;     // 触发了事件，事件结算后再回 hub
       TF.screens.go('hub');
       TF.ui.toast(`第 ${s.round} 周训练期开始（行动点 ${s.ap}）`);
+    },
+
+    afterEvent() {
+      TF.screens.go('hub');
+      TF.ui.toast(`第 ${TF.state.round} 周训练期开始（行动点 ${TF.state.ap}）`);
     },
 
     debut() {
@@ -151,6 +159,7 @@
       U.$('#hub-class').innerHTML = `<b class="cls-${p.rankClass}">${p.rankClass}</b>班`;
       U.$('#hub-rank').textContent = p.rankNo <= 60 ? `#${p.rankNo}` : '未上榜';
       U.$('#hub-fans').textContent = '👥 ' + U.fmt(p.followers);
+      U.$('#hub-repute').textContent = '💗 ' + p.repute;
       U.$('#hub-ap').textContent = '⚡' + s.ap;
       // 压力条
       const sp = U.$('#hub-stress-fill'); sp.style.width = p.stress + '%';

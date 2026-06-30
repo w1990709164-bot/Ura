@@ -171,6 +171,38 @@ body{
 .debut-lead{background:linear-gradient(120deg,#fff0f7,#f3ecff);border-radius:14px;padding:12px;margin-top:10px}
 .debut-next{margin-top:14px;font-size:.85rem;color:#8a7a98;line-height:1.7}
 
+/* ---------- 事件屏（危机 / 撕番 / 黑幕）---------- */
+#screen-event{justify-content:center}
+.event-card{background:#fff;border-radius:24px;padding:22px 18px;box-shadow:var(--shadow);margin:auto 0}
+.event-cat{display:inline-block;font-weight:900;font-size:.82rem;padding:5px 14px;border-radius:999px;
+  color:#fff;background:var(--muted);letter-spacing:1px}
+.cat-scandal{background:linear-gradient(120deg,#ff9a6b,var(--bad))}
+.cat-rival,.cat-position{background:linear-gradient(120deg,#a98bff,#ff6fae)}
+.cat-production{background:linear-gradient(120deg,#5bb6e0,#a98bff)}
+.event-title{font-weight:900;font-size:1.3rem;color:var(--pink-deep);margin:12px 0 10px}
+.event-narr{background:linear-gradient(120deg,#fff4f9,#f6f0ff);border-radius:14px;padding:14px 16px;
+  line-height:1.85;font-size:.95rem}
+.event-choices{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.ev-choice{text-align:left;font:inherit;font-weight:700;color:var(--ink);background:#fff6fb;border:1.5px solid var(--line);
+  border-radius:14px;padding:13px 16px;cursor:pointer;transition:.16s}
+.ev-choice:hover{border-color:var(--pink);transform:translateY(-1px);box-shadow:0 6px 16px rgba(255,61,139,.18)}
+.event-free{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+.event-free-hint{font-size:.8rem;color:var(--muted);margin-bottom:8px}
+.event-free-row{display:flex;gap:8px}
+.event-free-input{flex:1;font:inherit;padding:11px 14px;border:1.5px solid var(--line);border-radius:999px;outline:none;background:#fffafd}
+.event-free-input:focus{border-color:var(--pink)}
+.event-free-send{border:none;border-radius:999px;padding:0 18px;background:linear-gradient(120deg,var(--pink),var(--purple));color:#fff;font-weight:700;cursor:pointer}
+.event-free-send:disabled{opacity:.6}
+.ev-delta{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 4px}
+.dchip{font-size:.78rem;font-weight:700;padding:4px 11px;border-radius:999px}
+.d-up{background:rgba(107,207,154,.18);color:#3aa06a}
+.d-down{background:rgba(255,107,142,.16);color:var(--bad)}
+.ev-intervene{margin-top:12px;background:linear-gradient(120deg,#fff0f7,#fff);border:1.5px solid var(--line);
+  border-left-width:5px;border-radius:14px;padding:12px 14px;font-size:.9rem;line-height:1.7}
+.ev-love{color:var(--love);font-weight:700}
+.ev-break{margin-top:10px;background:linear-gradient(120deg,#fff7e6,#fff0f8);border-radius:12px;padding:11px 13px;
+  font-size:.9rem;line-height:1.7}
+
 /* ---------- 手机悬浮按钮 ---------- */
 .phone-fab{position:fixed;right:18px;bottom:84px;width:56px;height:56px;border:none;border-radius:50%;
   background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-size:1.5rem;cursor:pointer;
