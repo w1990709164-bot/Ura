@@ -462,19 +462,40 @@
   };
 
   /* ---------- 男主档案 ---------- */
-  P2.unlockLead = function (id) {
+  P2.leadStageFromAffection = function (affection, currentStage) {
+    let stage = D.relationshipStageById(currentStage || 'logged');
+    (D.relationshipStages || []).forEach(item => {
+      if (affection >= item.minAffection) stage = item;
+    });
+    return stage.id;
+  };
+  P2.normalizeCodexEntry = function (id) {
     const s = S();
-    if (!s.codex[id]) s.codex[id] = { met: true, affection: 0 };
-    else s.codex[id].met = true;
+    if (!D.leadInfo[id]) return null;
+    const c = s.codex[id] = Object.assign({ met: true, affection: 0, stage: 'logged', lastScene: '' }, s.codex[id] || {});
+    c.met = true;
+    c.affection = U.clamp(c.affection || 0, -20, 100);
+    c.stage = P2.leadStageFromAffection(c.affection, c.stage);
+    return c;
+  };
+  P2.unlockLead = function (id) {
+    const c = P2.normalizeCodexEntry(id);
+    if (!c) return;
     const info = D.leadInfo[id]; const m = D.maleLeads.find(x => x.id === id) || {};
-    append('sys', `【档案解锁】${m.name || id} · ${info.role}　异能【${info.ab}】`);
+    const stage = D.relationshipStageById(c.stage);
+    append('sys', `【档案解锁】${m.name || id} · ${info.role}　异能【${info.ab}】Lv${info.abLv}　关系：${stage.name}`);
     P2.renderHUD();
   };
   P2.addAffection = function (id, delta) {
-    const s = S();
     if (!D.leadInfo[id]) return;
-    if (!s.codex[id]) s.codex[id] = { met: true, affection: 0 };
-    s.codex[id].affection = U.clamp((s.codex[id].affection || 0) + delta, -20, 100);
+    const c = P2.normalizeCodexEntry(id);
+    const before = c.stage;
+    c.affection = U.clamp((c.affection || 0) + delta, -20, 100);
+    c.stage = P2.leadStageFromAffection(c.affection, c.stage);
+    if (before !== c.stage) {
+      const m = D.maleLeads.find(x => x.id === id) || {};
+      append('sys', `【关系推进】${m.name || id}：${D.relationshipStageById(before).name} → ${D.relationshipStageById(c.stage).name}`);
+    }
   };
 
   /* ---------- 渲染 ---------- */
@@ -561,12 +582,18 @@
       const info = D.leadInfo[m.id] || {};
       const c = s.codex[m.id];
       if (c && c.met) {
-        const aff = c.affection || 0;
+        const normalized = P2.normalizeCodexEntry(m.id) || c;
+        const aff = normalized.affection || 0;
         const pct = U.clamp(aff, 0, 100);
+        const stage = D.relationshipStageById(normalized.stage || 'logged');
+        const entry = D.leadEntryStageNames[info.entryStage] || '可接触';
+        const tags = (info.tags || []).slice(0, 3).join(' · ');
         return `<div class="codex-card unlocked">
           <div class="cc-name">${m.name}</div>
-          <div class="cc-role">${info.role || ''}</div>
+          <div class="cc-role">${info.role || ''} · ${entry}</div>
           <div class="cc-ab">异能【${info.ab}】Lv${info.abLv}</div>
+          <div class="cc-role">阶段：${stage.name}</div>
+          <div class="cc-role">${tags}</div>
           <div class="cc-trait">${info.trait || ''}</div>
           <div class="cc-aff">好感 <div class="aff-bar"><i style="width:${pct}%"></i></div> ${aff}</div>
         </div>`;

@@ -266,20 +266,40 @@
 
   /* ---------- 男主档案（基地档案 UI + AI 参考） ---------- */
   D.leadInfo = {
-    ghost:   { role: 'TF141·中尉', ab: '潜匿', abLv: 6, trait: '冷峻寡言，骷髅面罩，独狼，对圈内人极护短' },
-    price:   { role: 'TF141·上尉/队长', ab: '指挥', abLv: 6, trait: '沉稳的领袖，老烟枪，扛起所有人的责任' },
-    soap:    { role: 'TF141·军士', ab: '爆破', abLv: 5, trait: '高能外向的苏格兰人，莫西干头，藏着真心' },
-    gaz:     { role: 'TF141·中士', ab: '鹰眼', abLv: 5, trait: '开朗，观察力强，可靠的伙伴' },
-    keegan:  { role: 'Ghosts·侦察', ab: '预判', abLv: 5, trait: '沉默的侦察兵，凡事预先算计' },
-    logan:   { role: 'Ghosts', ab: '坚守', abLv: 4, trait: '安静坚韧，沉默的倾听者，比外表硬' },
-    hesh:    { role: 'Ghosts', ab: '护战', abLv: 4, trait: '保护欲强的兄长，比弟弟话多' },
-    kick:    { role: '技术专家', ab: '机械', abLv: 4, trait: '语速极快的技术宅，渴望真正的朋友' },
-    zimo:    { role: 'PSYOPS·特战', ab: '精神', abLv: 5, trait: '白切黑，记忆力惊人，心理战高手，天津腔' },
-    horangi: { role: 'KorTac', ab: '赌运', abLv: 5, trait: '江湖气的老赌徒，看透世事' },
-    krueger: { role: 'Chimera·前KSK', ab: '猎杀', abLv: 5, trait: '高警觉毒舌的德国人，不向不值得的人解释' },
-    konig:   { role: 'KorTac', ab: '重装', abLv: 6, trait: '两米社恐巨人，战斗时精准冷酷' },
-    nikto:   { role: 'KorTac·前FSB', ab: '不灭', abLv: 6, trait: '冰冷，创伤解离，自称"我们"' },
-    graves:  { role: '影子部队·指挥官', ab: '号令', abLv: 6, trait: '南方口音的魅力操纵者，亦敌亦友，每句恭维都有算计' },
+    ghost:   { role: 'TF141·中尉', ab: '潜匿', abLv: 6, trait: '冷峻寡言，骷髅面罩，独狼，对圈内人极护短', entryStage: 'distant', tags: ['潜入', '高压救援', '危险观察'] },
+    price:   { role: 'TF141·上尉/队长', ab: '指挥', abLv: 6, trait: '沉稳的领袖，老烟枪，扛起所有人的责任', entryStage: 'base', tags: ['指挥', '基地秩序', '救援调度'] },
+    soap:    { role: 'TF141·军士', ab: '爆破', abLv: 5, trait: '高能外向的苏格兰人，莫西干头，藏着真心', entryStage: 'base', tags: ['爆破', '士气', '并肩作战'] },
+    gaz:     { role: 'TF141·中士', ab: '鹰眼', abLv: 5, trait: '开朗，观察力强，可靠的伙伴', entryStage: 'early', tags: ['侦察', '电台', '温和支援'] },
+    keegan:  { role: 'Ghosts·侦察', ab: '预判', abLv: 5, trait: '沉默的侦察兵，凡事预先算计', entryStage: 'distant', tags: ['远程观察', '夜间侦察', '冷处理'] },
+    logan:   { role: 'Ghosts', ab: '坚守', abLv: 4, trait: '安静坚韧，沉默的倾听者，比外表硬', entryStage: 'base', tags: ['守夜', '沉默陪伴', '防线'] },
+    hesh:    { role: 'Ghosts', ab: '护战', abLv: 4, trait: '保护欲强的兄长，比弟弟话多', entryStage: 'base', tags: ['护送', '防守', '家人感'] },
+    kick:    { role: '技术专家', ab: '机械', abLv: 4, trait: '语速极快的技术宅，渴望真正的朋友', entryStage: 'radio', tags: ['收音机', '修设备', '基地后勤'] },
+    zimo:    { role: 'PSYOPS·特战', ab: '精神', abLv: 5, trait: '白切黑，记忆力惊人，心理战高手，天津腔', entryStage: 'trade', tags: ['心理战', '交易', '情报'] },
+    horangi: { role: 'KorTac', ab: '赌运', abLv: 5, trait: '江湖气的老赌徒，看透世事', entryStage: 'trade', tags: ['黑市', '下注', '危险交易'] },
+    krueger: { role: 'Chimera·前KSK', ab: '猎杀', abLv: 5, trait: '高警觉毒舌的德国人，不向不值得的人解释', entryStage: 'tide', tags: ['猎杀', '尸潮', '试探'] },
+    konig:   { role: 'KorTac', ab: '重装', abLv: 6, trait: '两米社恐巨人，战斗时精准冷酷', entryStage: 'tide', tags: ['重装', '压制', '反差'] },
+    nikto:   { role: 'KorTac·前FSB', ab: '不灭', abLv: 6, trait: '冰冷，创伤解离，自称"我们"', entryStage: 'danger', tags: ['污染区', '创伤', '极危救援'] },
+    graves:  { role: '影子部队·指挥官', ab: '号令', abLv: 6, trait: '南方口音的魅力操纵者，亦敌亦友，每句恭维都有算计', entryStage: 'trade', tags: ['影子部队', '谈判', '利益交换'] },
+  };
+
+  D.relationshipStages = [
+    { id: 'rumor', name: '传闻', minAffection: -20, desc: '只适合传闻、广播、远景或擦肩，不应直接亲密互动。' },
+    { id: 'logged', name: '档案解锁', minAffection: 0, desc: '正式知道姓名/代号，可短暂对话，但关系仍疏离。' },
+    { id: 'cooperated', name: '合作过', minAffection: 20, desc: '完成过一次任务或互相帮过忙，可以有战术默契。' },
+    { id: 'recognized', name: '被认可', minAffection: 45, desc: '对方承认主角实力与判断，愿意透露更多真实态度。' },
+    { id: 'trusted', name: '可信任', minAffection: 70, desc: '可以交付背后、保护资源或卷入个人困境。' },
+    { id: 'route', name: '个人线', minAffection: 90, desc: '进入强个人羁绊，但仍要被末日压力考验。' },
+  ];
+  D.relationshipStageById = id => D.relationshipStages.find(x => x.id === id) || D.relationshipStages[0];
+
+  D.leadEntryStageNames = {
+    early: '早期接触',
+    distant: '远景观察',
+    radio: '电台/技术线',
+    base: '基地接触',
+    trade: '交易/势力线',
+    tide: '尸潮高压线',
+    danger: '污染区高危线',
   };
 
   /* ---------- 第二阶段：AI 导演 ---------- */
@@ -292,12 +312,63 @@
       '就在这时，一阵剧痛从你的脊椎窜上后脑——\n\n你眼前的弹幕疯狂刷屏：「觉醒了！」「她的异能觉醒了！」\n\n一股从未有过的力量，在你体内苏醒。',
     ],
 
+    availableLeadIds(s, mode) {
+      const day = (s.story && s.story.day) || 1;
+      const b = (s.story && s.story.base) || {};
+      const atBase = !!(s.story && s.story.atBase);
+      const radio = !!s.hasRadio;
+      const tideSoon = (b.tideDay || 7) - day <= 2 || (b.zombieHeat || 0) >= 10;
+      const stageOk = {
+        early: day >= 1,
+        distant: day >= 1,
+        radio: radio || day >= 4,
+        base: atBase || day >= 6,
+        trade: atBase || radio || day >= 8,
+        tide: tideSoon || day >= 10,
+        danger: day >= 12 || (s.story && s.story.exposed),
+      };
+      return D.maleLeads
+        .filter(m => {
+          const info = D.leadInfo[m.id] || {};
+          if (s.codex && s.codex[m.id] && s.codex[m.id].met) return true;
+          if (mode === 'rumor') return day >= 1;
+          return !!stageOk[info.entryStage || 'base'];
+        })
+        .map(m => m.id);
+    },
+
+    relationshipSummary(s) {
+      const entries = Object.keys(s.codex || {}).filter(id => D.leadInfo[id]).map(id => {
+        const c = s.codex[id] || {};
+        let stage = D.relationshipStageById(c.stage || 'logged');
+        (D.relationshipStages || []).forEach(item => {
+          if ((c.affection || 0) >= item.minAffection) stage = item;
+        });
+        return `${id}:${stage.name}/好感${c.affection || 0}`;
+      });
+      return entries.length ? entries.join('、') : '暂无正式解锁男主';
+    },
+
+    leadStageNote(s) {
+      const ids = D.phase2.availableLeadIds(s);
+      const visible = ids.map(id => {
+        const info = D.leadInfo[id] || {};
+        return `${id}(${D.leadEntryStageNames[info.entryStage] || '可接触'}:${(info.tags || []).join('/')})`;
+      }).join('、') || '暂无';
+      const rumorOnly = D.maleLeads
+        .filter(m => !ids.includes(m.id))
+        .map(m => m.id)
+        .join('、') || '无';
+      return `当前可正式登场/解锁：${visible}。暂未到登场阶段：${rumorOnly}，只能以传闻、广播、远景、任务痕迹出现，不能直接亲密互动。关系状态：${D.phase2.relationshipSummary(s)}。`;
+    },
+
     // GM 系统提示词：定义世界、机制、口吻
     systemPrompt(s) {
       const ab = (D.abilities.find(a => a.id === s.player.ability.id) || {});
       const lv = s.player.ability.level;
       const met = Object.keys(s.metLeads || {}).map(id => (D.leadInfo[id] ? `${id}(${D.leadInfo[id].role})` : id)).join('、') || '无';
       const base = (s.story && s.story.base) || {};
+      const leadGuide = D.phase2.leadStageNote(s);
       return [
         '你是末日生存乙女游戏《弹幕求生·末日三十天》第二阶段的游戏主持人(GM)，负责生成沉浸式剧情。背景：丧尸感染爆发，文明崩塌。题材借用使命召唤(COD)角色作为后续登场的强力NPC/男主。',
         `主角：穿越来的女主（玩家）。异能【${ab.name}】Lv${lv}（${ab.desc}）。她脑中能看到只有自己可见的"弹幕"——一群观众围观她的末日直播，弹幕偶尔会冒出来吐槽或提醒。`,
@@ -306,6 +377,7 @@
           : s.player.ability.id === 'heal' ? '主角异能【治愈】能为他人疗伤，可借此换取晶核、物资或信任（在缺医少药的末日，这是稀缺的硬本事）——多给她行医、救人换报酬的选择。'
           : '主角异能偏战斗/生存，多给她战斗与搜刮的选择。'),
         `已提前擦肩而过的人（末日前）：${met}。这些人末日后可能重逢。`,
+        `男主登场与关系推进：${leadGuide} 用unlock正式解锁男主档案；未解锁前只可远景/传闻/电台铺垫。好感不是恋爱开关，必须通过合作、救援、尸潮、交易、守夜等事件逐步推进，不要一见面就亲密或告白。`,
         `硬机制状态：${s.story.atBase ? `身处基地「${s.story.baseName}」，防御${base.security || 0}，补给${base.supplies || 0}，信任${base.trust || 0}` : '尚未入驻基地'}；尸潮压力${base.zombieHeat || 0}，预计第${base.tideDay || 7}天有一次尸潮检定；${s.hasRadio ? '已获得收音机' : '尚未获得收音机'}。`,
         '叙事要求：第二人称"你"，环境与感官描写细腻，每次输出150-300字剧情，营造危机感与人性张力。剧情正文里【不要】写弹幕，弹幕放到单独的 danmaku 字段。',
         '严格只输出JSON，不要任何额外文字，格式：',
@@ -328,7 +400,8 @@
       const base = s && s.story && s.story.atBase ? `当前玩家身处庇护所「${s.story.baseName}」。` : '当前玩家在野外/独自行动。';
       const exp = s && s.story && s.story.exposed ? '玩家的异能已暴露，相关人会有反应。' : '玩家尚未公开暴露异能。';
       const radio = s && s.hasRadio ? '收音机线已开启：可用断续广播投放基地、尸潮和各势力男主线索。' : '收音机线未开启：适合在搜刮、便利店、保安室或废车里安排一次获得机会。';
-      return stage + ' ' + base + exp + ' ' + radio + ' 自然推进，不要急于求成，一次只演一个小场景。';
+      const leads = s ? D.phase2.leadStageNote(s) : '';
+      return stage + ' ' + base + exp + ' ' + radio + ' ' + leads + ' 自然推进，不要急于求成，一次只演一个小场景。';
     },
 
     baseProfiles: [
@@ -342,6 +415,12 @@
       const b = (s.story && s.story.base) || {};
       const untilTide = Math.max(0, (b.tideDay || 7) - ((s.story && s.story.day) || day));
       const lead = [];
+      const hintIds = D.phase2.availableLeadIds(s, 'rumor').filter(id => !(s.codex && s.codex[id] && s.codex[id].met));
+      const hinted = hintIds.length ? U.pick(hintIds) : null;
+      if (hinted && D.leadInfo[hinted]) {
+        const info = D.leadInfo[hinted];
+        lead.push(`……断续信号提到${hinted}相关线索：${(info.tags || []).join('、')}。暂不建议直接接触，先记录频段与势力动向……`);
+      }
       if (!s.story.atBase) {
         lead.push(
           '……西郊仍在收人，但不收累赘。能带物资、晶核、医疗或战斗能力者，优先登记……',

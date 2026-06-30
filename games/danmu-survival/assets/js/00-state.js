@@ -73,7 +73,7 @@
         base: { security: 0, supplies: 0, trust: 0, tideDay: 7, zombieHeat: 0 },
         exposed: false,         // 异能是否已暴露
       },
-      codex: {},                // 男主档案 id -> {met:true, affection:0}
+      codex: {},                // 男主档案 id -> {met:true, affection:0, stage:'logged'}
       // 弹幕回看历史（今日）
       dmHistory: [],
       // 玩家对弹幕的判断： id -> 'trust'|'doubt'
