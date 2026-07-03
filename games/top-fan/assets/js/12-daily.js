@@ -156,6 +156,12 @@
   /* ---------- 推进一周 ---------- */
   D.advanceWeek = function () {
     const s = TF.state, d = s.daily;
+    if (d.week >= 12) {
+      s.daily.ended = true;
+      TF.save();
+      TF.ui.modal('🎬 出道季收官', `<p>十二周通告期结束，你终于从连轴转里停下来。</p><p class="modal-sub">粉丝、舞台和那些越过屏幕的人都被写进了这个出道季。之后可以继续留在当前档回看手机、微博和关系，也可以重新开始。</p>`, () => D.render());
+      return;
+    }
     d.week++;
     d.energy = D.maxEnergy();
     d.offers = genOffers();

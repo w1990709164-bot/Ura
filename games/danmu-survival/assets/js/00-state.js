@@ -96,6 +96,17 @@
     return s;
   };
 
+  DS.recalcSpace = function (s) {
+    s = s || DS.state;
+    if (!s || !s.space || !window.DS?.data?.items) return;
+    let used = 0;
+    DS.data.items.forEach(it => {
+      if (it.line && s.resources) used += Math.max(0, s.resources[it.line] || 0) * (it.space || 0);
+      else if (s.flags) used += Math.max(0, s.flags['has_' + it.id] || 0) * (it.space || 0);
+    });
+    s.space.used = Math.max(0, used);
+  };
+
   /* 当前游戏状态（运行时） */
   DS.state = DS.attachRuntime(DS.newState());
 
@@ -113,6 +124,7 @@
       const data = JSON.parse(raw);
       if (!data || !data.version) return false;
       DS.state = DS.attachRuntime(data);
+      DS.recalcSpace(DS.state);
       return true;
     } catch (e) { console.error('读档失败', e); return false; }
   };
@@ -138,6 +150,7 @@
       const raw = localStorage.getItem(DS.SLOT_PREFIX + n);
       if (!raw) return false;
       DS.state = DS.attachRuntime(JSON.parse(raw));
+      DS.recalcSpace(DS.state);
       DS.save();           // 同步到“继续”自动档
       return true;
     } catch (e) { console.error('读档失败', e); return false; }

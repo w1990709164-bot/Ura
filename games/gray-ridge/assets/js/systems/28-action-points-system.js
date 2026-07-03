@@ -7,7 +7,7 @@
 const AP_PER_YEAR  = 12;
 const AP_BOND_MAX  = 4;
 const AP_GROW_MAX  = 4;
-const AP_FREE_MAX  = 4;
+const AP_FREE_MAX  = 6;
 
 // ── 渲染主面板（内嵌在主页面） ──────────────────────────────
 function renderApPanel() {

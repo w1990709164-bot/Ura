@@ -510,6 +510,7 @@
     s.space.used += it.space * n;
     if (it.line) s.resources[it.line] += n;
     else s.flags['has_' + it.id] = (s.flags['has_' + it.id] || 0) + n;
+    DS.recalcSpace(s);
   };
 
   /* ============ 街头遭遇（出门时） ============ */
@@ -530,6 +531,7 @@
         DS.log('深夜有人撬门——你抄起武器，对方见你有防备，悻悻离开。（防身救了你）', 'good');
       } else if (r.defense >= 1) {
         r.defense -= 1;
+        DS.recalcSpace(s);
         DS.log('有人破门而入！一番搏斗你吓退了他，但武器损坏，防身 -1。', 'bad');
       } else {
         const lose = Math.min(s.player.money, U.randInt(180, 420));
@@ -542,6 +544,7 @@
     if (U.chance(0.20)) {
       if (r.meds >= 1) {
         r.meds -= 1;
+        DS.recalcSpace(s);
         DS.log('你淋雨发烧了一场，好在备了药，用掉 1 份药品。', 'bad');
       } else {
         const cost = Math.min(s.player.money, 220);
@@ -589,6 +592,7 @@
     let crisis = [];
     if (s.resources.water >= 1) s.resources.water--; else crisis.push('water');
     if (s.resources.food >= 1) s.resources.food--; else crisis.push('food');
+    DS.recalcSpace(s);
     s.flags.thirstDays = crisis.includes('water') ? (s.flags.thirstDays || 0) + 1 : 0;
     s.flags.hungerDays = crisis.includes('food') ? (s.flags.hungerDays || 0) + 1 : 0;
     if (crisis.length) DS.log('今天缺：' + crisis.map(c => c === 'water' ? '水' : '粮').join('、') + '。', 'bad');

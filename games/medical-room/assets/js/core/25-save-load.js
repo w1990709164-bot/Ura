@@ -21,6 +21,7 @@ function saveGame() {
       turnCount: G.turnCount,
       contacts: G.contacts,
       chatHistories: G.chatHistories,
+      chatTrustToday: G.chatTrustToday || {},
       timeSlots: G.timeSlots,
       slotsUsed: G.slotsUsed,
       messages: G.messages.slice(-80),
@@ -54,6 +55,7 @@ function loadGame() {
     if (!G.allTimeSeenIds) G.allTimeSeenIds = [];
     if (!G.inventory) G.inventory = [];
     if (!G.gifts) G.gifts = [];
+    if (!G.chatTrustToday) G.chatTrustToday = {};
     if (!G.completedToday) G.completedToday = [];
     if (G.icuMode === undefined) G.icuMode = false;
     if (!G.icuDaysLeft) G.icuDaysLeft = 0;
@@ -66,6 +68,13 @@ function loadGame() {
     if (!G.playerStats.level) G.playerStats.level = '见习';
     if (!G.playerStats.lastLeveledAt) G.playerStats.lastLeveledAt = null;
     // Ensure all patients have new fields
+    CHARS.forEach(c => {
+      if (!G.patients[c.id]) G.patients[c.id] = {
+        mental:50, stress:30, trust:0, heat:0, tags:[], injury:'',
+        visitCount:0, lastVisit:'—', location:'待命', trustPhase:0,
+        trustAccum:0, memory:{summary:'尚未接触', keyEvents:[], doctorNote:'', lastUpdated:null}
+      };
+    });
     Object.keys(G.patients).forEach(id => {
       const p = G.patients[id];
       if (!p.injury) p.injury = '';

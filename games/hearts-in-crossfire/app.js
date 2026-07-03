@@ -1394,7 +1394,8 @@ async function advanceAfterCurrentMoment(){
 function showMomentContinue(label="带着这段余波继续节目"){
   $("#choiceHint").textContent="这一幕尚未完全结束";
   const turns=state.momentTurns?.[momentKey()]||0;
-  $("#choices").innerHTML=`${turns<3?`<button class="choice-btn" id="stayMoment"><span class="tag">STAY</span>继续当前互动（${3-turns}轮可用）</button>`:""}
+  const limit=5;
+  $("#choices").innerHTML=`${turns<limit?`<button class="choice-btn" id="stayMoment"><span class="tag">STAY</span>继续当前互动（${limit-turns}轮可用）</button>`:""}
     <button class="choice-btn" id="continueDynamic"><span class="tag">CONTINUE</span>${label}</button>`;
   if($("#stayMoment")) $("#stayMoment").onclick=()=>{
     state.followUpMode=true;
@@ -1441,9 +1442,19 @@ async function resolveDynamicChoice(choice){
     save(); renderCast();
   }catch(e){
     thinking.remove();
-    addBlock({type:"system",text:`选择后续生成失败：${readableApiError(e)}。本次选择尚未结算，关系与时间均未改变。`});
-    $("#choiceHint").textContent="生成失败";
-    $("#choices").innerHTML=`<button class="choice-btn" id="retryConsequence"><span class="tag">RETRY</span>重新生成这一选择的后续</button>`;
+    const fallback=[
+      {type:"system",text:`选择后续生成失败：${readableApiError(e)}。系统已用本地余波记录本次选择，避免当前幕卡死。`},
+      {type:"narration",text:"你的选择被节目组记录下来。镜头没有立刻切走，相关的人也没有忽略它：有人沉默，有人调整站位，有人把还没说出口的反应压回喉间。当前幕先收束在这个余波里，后续会继续承接这次选择。"}
+    ];
+    applyStructuredEffects(choice);
+    state.dailyLog.push({day:state.day,slot:slotNames[state.daySlot],choice:`${choice.text}（本地兜底结算）`,focus:choice.focus||[],fallback:true});
+    fallback.forEach(addBlock);
+    storeMomentResult(fallback);
+    markMomentResolved("choice",choice.text);
+    save(); renderCast();
+    $("#choiceHint").textContent="已启用本地后续";
+    showMomentContinue("带着这段余波继续节目");
+    $("#choices").innerHTML+=`<button class="choice-btn" id="retryConsequence"><span class="tag">RETRY</span>重新生成这一选择的后续</button>`;
     $("#retryConsequence").onclick=()=>resolveDynamicChoice(choice);
   }
   window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});

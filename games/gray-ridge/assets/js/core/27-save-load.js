@@ -60,6 +60,8 @@ function loadGame() {
     if (!Array.isArray(G.apUsedThisYear)) G.apUsedThisYear = [];
     if (!Number.isFinite(G._freeToBond)) G._freeToBond = 0;
     if (!Number.isFinite(G._freeToGrow)) G._freeToGrow = 0;
+    if (G.apPending && (!G.apPending.type || !['bond','grow','free'].includes(G.apPending.type))) G.apPending = null;
+    if (G.apPending && (G.apPending.turns || 0) >= 4) G.apPending = null;
     return true;
   } catch(e){ return false; }
 }

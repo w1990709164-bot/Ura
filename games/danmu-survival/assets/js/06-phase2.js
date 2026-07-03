@@ -215,6 +215,7 @@
   P2.resolveCombat = function (enemy, level) {
     const s = S();
     const lv = s.player.ability.level;
+    level = U.clamp(Number(level) || 1, Math.max(1, lv - 1), lv + 3);
     const myRoll = U.roll(20), enRoll = U.roll(20);
     const my = lv * 10 + myRoll, en = level * 10 + enRoll;
     if (my >= en) {
@@ -291,12 +292,20 @@
       const cost = Math.min(s.resources.defense, 1);
       if (!cost && s.crystals < 2) return Game.toast('需要 1 防身物资或 2 晶核');
       if (cost) s.resources.defense--; else s.crystals -= 2;
+      DS.recalcSpace(s);
       b.security += 2; b.trust += 1; s.story.atBase = true; s.story.baseName = s.story.baseName || '临时营地';
       append('sys', '你加固门窗与哨位。基地防御 +2，信任 +1。');
     } else if (kind === 'trade') {
       if (s.crystals < 2) return Game.toast('至少需要 2 晶核交易');
       s.crystals -= 2; b.supplies += 3; b.trust += 1; s.story.atBase = true; s.story.baseName = s.story.baseName || '临时营地';
       append('sys', '你用晶核换来压缩粮、药和电池。基地补给 +3，信任 +1。');
+    } else if (kind === 'upgrade') {
+      const a = s.player.ability;
+      const cost = Math.max(3, a.level * 3);
+      if (s.crystals < cost) return Game.toast('晶核不足，升级需要 ' + cost);
+      s.crystals -= cost;
+      append('sys', `你消耗 ${cost} 枚晶核淬炼异能。`);
+      P2.gainXP(a.xpNext);
     } else if (kind === 'radio') {
       if (!s.hasRadio) P2.obtainRadio('你修好一台旧收音机，旋钮里传出西郊基地的断续呼号。');
       else Game.openNews();
@@ -406,6 +415,7 @@
       const paidWater = Math.min(s.resources.water || 0, 2);
       s.resources.food -= paidFood;
       s.resources.water -= paidWater;
+      DS.recalcSpace(s);
       b.supplies += paidFood + paidWater;
       b.trust += paidFood + paidWater >= 2 ? 1 : 0;
     } else if (route === 'strength') {
@@ -558,6 +568,7 @@
       <p class="hint">晶核：击杀丧尸缴获，可在剧情里向商人/基地<strong>交易、以物易物、交保护费</strong>（直接在输入框说出你的意图即可）。</p>
       <div class="bag-list">${rows}</div>`, [
         { label: s.hasRadio ? '收听电波' : '修收音机', onClick: () => P2.baseAction('radio') },
+        { label: '晶核升级', onClick: () => P2.baseAction('upgrade') },
         { label: '加固防线', onClick: () => P2.baseAction('fortify') },
         { label: '晶核交易', onClick: () => P2.baseAction('trade') },
         { label: '关闭', cls: 'btn-primary' },
@@ -569,6 +580,7 @@
     const heal = { meds: 25, food: 8, water: 6 }[k] || 0;
     const name = { meds: '药品', food: '食物', water: '水' }[k] || '物品';
     r[k]--;
+    DS.recalcSpace(s);
     const before = s.story.hp; s.story.hp = U.clamp(s.story.hp + heal, 0, s.story.hpMax);
     append('sys', `你使用了${name}，恢复 ${s.story.hp - before} HP（❤️${s.story.hp}）。`);
     P2.renderHUD(); P2.render(); DS.save(); P2.openBag();

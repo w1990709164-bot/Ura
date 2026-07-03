@@ -1682,10 +1682,9 @@ function changeAffection(charId, delta) {
   AFFECTION_STAGES.forEach((stage, index) => {
     if (cs.affection >= stage.range[0]) newStage = index;
   });
-  if (newStage > cs.stage) {
-    cs.stage = newStage;
-    return 'stage_up';
-  }
+  const oldStage = cs.stage || 0;
+  cs.stage = newStage;
+  if (newStage > oldStage) return 'stage_up';
   return null;
 }
 
@@ -1748,6 +1747,7 @@ function loadFromSlot(slot) {
 
 function persistAll() {
   try {
+    G._savedAt = Date.now();
     localStorage.setItem(SAVE_KEY, JSON.stringify(G));
   } catch(e) {
     console.warn('Save failed:', e);
@@ -1763,6 +1763,7 @@ function sanitizeState() {
   if (!G.player || typeof G.player !== 'object') G.player = fresh.player;
   if (!G.player.stats) G.player.stats = fresh.player.stats;
   if (!G.player.wand)  G.player.wand  = fresh.player.wand;
+  G.player.gold = Math.max(0, Math.floor(Number(G.player.gold) || 0));
   if (!Array.isArray(G.player.inventory)) G.player.inventory = [];
   if (!G.gameDate) G.gameDate = fresh.gameDate;
   if (!Array.isArray(G.currentOptions))      G.currentOptions = [];
@@ -1780,6 +1781,16 @@ function sanitizeState() {
     const init = buildInitialCharacterState();
     Object.keys(init).forEach(id => { if (!G.characters[id]) G.characters[id] = init[id]; });
   }
+  Object.keys(G.characters).forEach(id => {
+    const cs = G.characters[id];
+    cs.affection = Math.max(0, Math.min(100, Number(cs.affection) || 0));
+    let stageIndex = 0;
+    AFFECTION_STAGES.forEach((stage, index) => {
+      if (cs.affection >= stage.range[0]) stageIndex = index;
+    });
+    cs.stage = stageIndex;
+    if (cs.affection > 0) cs.metPlayer = true;
+  });
 
   // 学院字段归一化：非法/旧版取值一律清空
   if (G.player.house && !HOUSES[G.player.house]) G.player.house = '';

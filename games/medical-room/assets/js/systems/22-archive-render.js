@@ -76,6 +76,21 @@ const CHAR_DATA = {
   },
 };
 
+if (!CHAR_DATA.merrick) {
+  CHAR_DATA.merrick = {
+    landscape:'Midnight Naval Harbor',
+    landscapeDesc:'black water, dock lights, wet concrete and a command tower that never goes dark',
+    spirit:'gray wolf',
+    spiritDesc:'old command instinct, protective and disciplined, always counting who is still standing',
+    spiritStatus:'watching',
+    spiritLoc:'at the end of the pier',
+    landscapeStatus:'stable / guarded',
+    explored:'not entered',
+    location:'briefing',
+    ability:'S'
+  };
+}
+
 function renderArchive() {
   const body = document.getElementById('archive-body');
   body.innerHTML = `<div class="section-title">角色档案</div>`;

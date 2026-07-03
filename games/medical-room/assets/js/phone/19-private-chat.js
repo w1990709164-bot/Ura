@@ -6,6 +6,13 @@
 let currentChatId = null;
 let pcIsTyping = false;
 
+function pcFetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs || 45000);
+  return fetch(url, Object.assign({}, options, { signal: controller.signal }))
+    .finally(() => clearTimeout(timer));
+}
+
 // 每日私聊好感度上限
 const DAILY_CHAT_TRUST_CAP = 15;
 
@@ -174,11 +181,18 @@ async function sendPrivateMessage() {
     saveGame();
   } catch(e) {
     typing.remove();
-    showToast('消息发送失败');
+    G.chatHistories[charId] = (G.chatHistories[charId] || []).filter(m => !(m.role === 'user' && m.content === text));
+    G.chatHistories[charId].push({role:'assistant',content:'（通讯暂时不稳定。你可以稍后重试，或先退出私聊。）'});
+    renderPCMessages(charId);
+    renderContactList();
+    saveGame();
+    showToast('消息发送失败，已结束等待');
     console.error(e);
+  } finally {
+    pcIsTyping=false;
+    const sendBtn = document.getElementById('pc-send');
+    if (sendBtn) sendBtn.disabled=false;
   }
-  pcIsTyping=false;
-  document.getElementById('pc-send').disabled=false;
 }
 
 // 每日私聊好感度累计
@@ -294,11 +308,13 @@ ${identityMap[charId]||'你说英语，后跟中文翻译。'}
 
   let rawReply = '';
   if (isOAI) {
-    const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model,max_tokens:300,messages:[{role:'system',content:sys},...msgs]})});
+    const r = await pcFetchWithTimeout(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},body:JSON.stringify({model,max_tokens:300,messages:[{role:'system',content:sys},...msgs]})}, 45000);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const data = await r.json();
     rawReply = data.choices?.[0]?.message?.content||'...';
   } else {
-    const r = await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:300,system:sys,messages:msgs})});
+    const r = await pcFetchWithTimeout(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:300,system:sys,messages:msgs})}, 45000);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     const data = await r.json();
     rawReply = data.content?.[0]?.text||'...';
   }

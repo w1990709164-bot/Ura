@@ -56,6 +56,15 @@ const CHARS = [
   {id:'kick',    name:'Kick',                        unit:'Ghosts · 电子战',    init:'KC', bags:8},
 ];
 
+// Runtime data repairs for older builds/saves.
+if (!CHARS.some(c => c.id === 'merrick')) {
+  CHARS.splice(Math.max(0, CHARS.findIndex(c => c.id === 'hesh')), 0, {
+    id:'merrick', name:'Thomas A. Merrick', unit:'Ghosts', init:'TM', bags:8
+  });
+}
+const kickChar = CHARS.find(c => c.id === 'kick');
+if (kickChar && (!kickChar.unit || String(kickChar.unit).includes('?'))) kickChar.unit = 'Ghosts';
+
 function toggleKeyVis() {
   const inp = document.getElementById('init-key');
   inp.type = inp.type === 'password' ? 'text' : 'password';
