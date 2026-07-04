@@ -448,18 +448,10 @@ function processHorae(h) {
   // Crucially: ALL data in THIS horae block (trust, mental, etc.) is still written to
   // the PRE-SWITCH session, because this response was generated for that patient.
   // The switch takes effect so that the NEXT round uses the new patient.
-  if (h.patient_id && h.patient_id !== 'null' && G.patients[h.patient_id] && h.patient_id !== G.clinicSession) {
-    const isScheduled = G.schedule.some(s => s.id === h.patient_id);
-    if (isScheduled) {
-      // Mark old session complete if it had turns
-      if (G.clinicSession && G.sessionTurns > 0 && !G.completedToday.includes(G.clinicSession)) {
-        G.completedToday.push(G.clinicSession);
-        renderPhoneSchedule();
-      }
-      G.clinicSession = h.patient_id;
-      G.sessionTurns = 0;
-    }
-  }
+  const aiSuggestedPatient =
+    h.patient_id && h.patient_id !== 'null' && G.patients[h.patient_id]
+      ? h.patient_id
+      : null;
 
   // ── id resolution: GAME STATE wins, AI is only a fallback ──
   // Priority: 1) G.clinicSession (game-owned state)
@@ -470,9 +462,9 @@ function processHorae(h) {
     const next = G.schedule.find(s => !G.completedToday.includes(s.id));
     if (next) id = next.id;
   }
-  if (!id && h.patient_id && h.patient_id !== 'null' && G.patients[h.patient_id]) {
-    const isScheduled = G.schedule.some(s => s.id === h.patient_id);
-    if (isScheduled) id = h.patient_id;
+  if (!id && aiSuggestedPatient) {
+    const isScheduled = G.schedule.some(s => s.id === aiSuggestedPatient);
+    if (isScheduled) id = aiSuggestedPatient;
   }
 
   // Commit resolved id to clinicSession so all comparisons below work

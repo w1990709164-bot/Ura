@@ -29,7 +29,19 @@ function loadGame(){
     if(!G.chatLog) G.chatLog=[];
     if(!G.dailyTasks) G.dailyTasks=[];
     if(!G.todayRanking) G.todayRanking=[];
+    if(!G.messages) G.messages=[];
+    if(!G.history) G.history=[];
+    if(!G.currentTask) G.currentTask=null;
     G.totalDay=G.totalDay||1;
+    CHARS.forEach(c=>{
+      const cs = G.chars[c.id];
+      if(cs.goodFeel === undefined) cs.goodFeel = 0;
+      if(cs.obsession === undefined) cs.obsession = 20;
+      if(cs.taskDone === undefined) cs.taskDone = false;
+      if(cs.taskToday === undefined) cs.taskToday = null;
+    });
+    if(typeof charPovData !== 'undefined' && (!charPovData || typeof charPovData !== 'object')) charPovData = {};
+    if(typeof currentCharPovId !== 'undefined' && currentCharPovId && !G.dailyTasks.some(t=>t.charId===currentCharPovId)) currentCharPovId = null;
     return true;
   } catch(e){ return false; }
 }

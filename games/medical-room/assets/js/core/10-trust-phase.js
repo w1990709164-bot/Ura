@@ -8,7 +8,7 @@
 const PHASE_THRESHOLDS = [100, 150, 200, 250, 300, 350, 400, 450, 500, 600];
 
 function getTrustPhases(bagCount) {
-  return PHASE_THRESHOLDS.slice(0, bagCount);
+  return PHASE_THRESHOLDS.slice(0, 10);
 }
 
 // Phase labels by index

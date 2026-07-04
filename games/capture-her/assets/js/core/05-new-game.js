@@ -20,6 +20,10 @@ function startNewGame() {
   if(!month||!day){ err.textContent='请选择生日'; err.style.display='block'; return; }
   if(!G.apiKey){ err.textContent='请先在设置中填写API密钥'; err.style.display='block'; return; }
   err.style.display='none';
+  if (typeof resetGameState === 'function') resetGameState();
+  G.apiKey = localStorage.getItem('LW_API_KEY') || G.apiKey || '';
+  G.apiEndpoint = localStorage.getItem('LW_API_URL') || G.apiEndpoint || '';
+  G.apiModel = localStorage.getItem('LW_API_MODEL') || G.apiModel || 'claude-sonnet-4-20250514';
   G.player = {name, appearance, birthday:{month,day}};
   G.month = month; G.day = day;
   G.totalDay = 1;

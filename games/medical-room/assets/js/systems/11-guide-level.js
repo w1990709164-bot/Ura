@@ -99,13 +99,13 @@ function checkPhaseUp(charId) {
   const p = G.patients[charId];
   if (!c || !p) return;
   const phase = p.trustPhase || 0;
-  if (phase >= c.bags) return;
+  if (phase >= 9) return;
   const threshold = PHASE_THRESHOLDS[phase] || 100;
   if ((p.trustAccum || 0) >= threshold) {
     p.trustPhase = phase + 1;
     p.trustAccum = 0;
     p.trust = (p.trustPhase) * 12; // 保留基础信任值，防止归零
-    unlockBag(charId, p.trustPhase);
+    unlockBag(charId, Math.min(p.trustPhase, c.bags));
   }
 }
 

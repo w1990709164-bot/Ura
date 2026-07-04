@@ -5,6 +5,12 @@ function showPanel(name) {
   // Hide all panels
   document.getElementById('scene-area').style.display = name==='scene' ? 'flex' : 'none';
   document.getElementById('map-panel').style.display = name==='map' ? 'flex' : 'none';
+  const drawer = document.getElementById('bottom-drawer');
+  const inputArea = document.getElementById('input-area');
+  if (drawer) drawer.style.display = 'flex';
+  if (inputArea && document.getElementById('options-area')?.style.display !== 'flex') {
+    inputArea.style.display = 'flex';
+  }
 
   // Reset all nav items, then activate the correct one
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));

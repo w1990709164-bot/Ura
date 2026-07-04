@@ -11,7 +11,8 @@ function openTaskOverlay(tasks) {
         <span class="task-card-tag ${gradeClass[t.grade]||'grade-d'}">${t.grade}级</span>
         <span class="task-card-tag" style="color:var(--sand);border-color:var(--sand-dim)">📍 ${t.location}</span>
       </div>
-      <div class="task-card-desc">${t.desc}</div>
+	      <div class="task-card-desc">${t.desc}</div>
+	      <div class="task-card-rec">活动规则：接取后进入任务剧情；完成检定或剧情明确收束后结算奖励。若 AI 分镜失败，可返回任务卡重新进入。</div>
       <div class="task-card-members">成员：${t.members}</div>
       <div class="task-card-rec">推荐属性：${t.recommended}</div>
       <div class="task-card-actions">

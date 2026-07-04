@@ -36,6 +36,10 @@ function startNewGame() {
   }
 
   err.style.display = 'none';
+  if (typeof resetGameState === 'function') resetGameState();
+  G.apiKey = localStorage.getItem('LW_API_KEY') || G.apiKey || '';
+  G.apiEndpoint = localStorage.getItem('LW_API_URL') || G.apiEndpoint || '';
+  G.apiModel = localStorage.getItem('LW_API_MODEL') || G.apiModel || 'claude-sonnet-4-20250514';
   G.player = { name, appearance, birthday: { month, day } };
   G.month = month;
   G.day = day;

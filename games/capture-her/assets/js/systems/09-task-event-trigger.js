@@ -9,9 +9,10 @@ async function triggerNextTaskEvent() {
   }
   const task = pending.find(t=>t.charId===currentCharPovId) || pending[0];
   const c = CHARS.find(x=>x.id===task.charId);
+  if(!task.taskDesc) task.taskDesc = '完成一次主动日常互动，观察角色在系统任务下的真实反应';
 
   document.getElementById('tnc-char').textContent = c.name;
-  document.getElementById('tnc-task').textContent = task.taskDesc;
+  document.getElementById('tnc-task').textContent = task.taskDesc + '｜规则：至少互动2轮后才会结算完成';
   const notif = document.getElementById('task-notif');
   notif.style.display='flex';
   setTimeout(()=>{ notif.style.display='none'; }, 3000);

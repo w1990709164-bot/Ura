@@ -1769,6 +1769,7 @@ function sanitizeState() {
   if (!Array.isArray(G.currentOptions))      G.currentOptions = [];
   if (!Array.isArray(G.storyHistory))        G.storyHistory = [];
   if (!Array.isArray(G.unlockedAchievements))G.unlockedAchievements = [];
+  G.unlockedAchievements = G.unlockedAchievements.filter(id => ACH_MAP[id]);
   if (!Array.isArray(G.saves))               G.saves = [null, null, null];
   if (!G.flags)         G.flags = {};
   if (!G.sortingScores) G.sortingScores = fresh.sortingScores;
@@ -2129,7 +2130,7 @@ function fallbackProgressAfterChoice(playerChoice, story, stateUpdate) {
   const changed = stateUpdate?.affectionChanges && Object.values(stateUpdate.affectionChanges).some(v=>Number(v));
   if (!changed) {
     inferTouchedCharacters(`${playerChoice}\n${story}`).forEach(id => {
-      changeAffection(id, 2);
+      changeAffection(id, 4);
       if (G.characters[id]) G.characters[id].metPlayer = true;
     });
   }
@@ -3169,9 +3170,9 @@ function renderAchievements() {
     const cells = items.map(a => {
       const unlocked = G.unlockedAchievements.includes(a.id);
       if (a.hidden && !unlocked) return ''; // 隐藏成就未解锁不显示
-      return `<div class="ach-cell ${unlocked ? 'unlocked' : 'locked'}" title="${unlocked ? a.desc : '???'}">
-        <div class="ach-icon">${unlocked ? a.icon : '？'}</div>
-        <div class="ach-name">${unlocked ? a.name : '未知'}</div>
+      return `<div class="ach-cell ${unlocked ? 'unlocked' : 'locked'}" title="${unlocked || !a.hidden ? a.desc : '???'}">
+        <div class="ach-icon">${unlocked || !a.hidden ? a.icon : '？'}</div>
+        <div class="ach-name">${unlocked || !a.hidden ? a.name : '未知'}</div>
       </div>`;
     }).join('');
     if (!cells.trim()) return '';

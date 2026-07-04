@@ -24,7 +24,7 @@ async function loadAutoSave(){
   let snap=null;
   const _lar=await Store.get('cod_autosave'); if(_lar) try{snap=JSON.parse(_lar);}catch(e){}
   if(!snap){ showMsg('没有自动存档'); return; }
-  Object.assign(G,snap);
+  Object.assign(G,normalizeParallelSave(snap));
   loadGlobalApiIntoState(); // API 以主页为准，不用存档里的旧值
   show('s-game');
   updateBountyTimer();
@@ -57,7 +57,7 @@ async function loadFromSlot(i){
   const _lgsr=await Store.get('cod_saves'); if(_lgsr) try{saves=JSON.parse(_lgsr);}catch(e){}
   const s=saves[i];
   if(!s){ showMsg('该档位无存档'); return; }
-  Object.assign(G,s);
+  Object.assign(G,normalizeParallelSave(s));
   loadGlobalApiIntoState(); // API 以主页为准，不用存档里的旧值
   show('s-game');
   updateBountyTimer();
@@ -75,8 +75,23 @@ async function loadGame(){
   let best=manualFirst||null;
   if(autoSnap && (!best || autoSnap.day >= best.day)) best=autoSnap;
   if(!best){ showMsg('没有找到存档'); return; }
-  Object.assign(G,best);
+  Object.assign(G,normalizeParallelSave(best));
   loadGlobalApiIntoState(); // API 以主页为准，不用存档里的旧值
   show('s-game');
   updateBountyButtons();
+}
+
+function normalizeParallelSave(save){
+  const fixed = Object.assign({}, save || {});
+  if(!fixed.chars || typeof fixed.chars !== 'object') fixed.chars = JSON.parse(JSON.stringify(CHARS_DATA));
+  Object.keys(CHARS_DATA).forEach(k=>{
+    fixed.chars[k] = Object.assign({}, CHARS_DATA[k], fixed.chars[k] || {});
+    if(!fixed.chars[k].rel) fixed.chars[k].rel = CHARS_DATA[k].rel || STAGES[0];
+    if(!Number.isFinite(Number(fixed.chars[k].stage))) fixed.chars[k].stage = 0;
+    if(!Number.isFinite(Number(fixed.chars[k].aff))) fixed.chars[k].aff = 0;
+    if(!Number.isFinite(Number(fixed.chars[k].maxAff))) fixed.chars[k].maxAff = STAGE_MAX[fixed.chars[k].stage] || 100;
+  });
+  if(!fixed.dialogueHistory || typeof fixed.dialogueHistory !== 'object') fixed.dialogueHistory = {};
+  if(!Array.isArray(fixed.saves)) fixed.saves = [null,null,null];
+  return fixed;
 }

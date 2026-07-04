@@ -128,12 +128,23 @@
       if (!raw) return false;
       const data = JSON.parse(raw);
       if (!data || !data.version) return false;
-      TF.state = data;
+      TF.state = Object.assign(TF.newState(), data);
+      TF.state.player = Object.assign(TF.newState().player, data.player || {});
+      TF.state.weibo = Object.assign(TF.newState().weibo, data.weibo || {});
+      if (!TF.state.leads) TF.state.leads = {};
+      if (!TF.state.logs) TF.state.logs = [];
       return true;
     } catch (e) { console.error('读档失败', e); return false; }
   };
   TF.hasSave = function () { return !!localStorage.getItem(TF.SAVE_KEY); };
   TF.clearSave = function () { localStorage.removeItem(TF.SAVE_KEY); };
+
+  window.addEventListener('pagehide', () => {
+    if (TF.state && TF.state.screen !== 'title') TF.save();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && TF.state && TF.state.screen !== 'title') TF.save();
+  });
 
   /* ---------- 日志 ---------- */
   TF.log = function (text, type) {

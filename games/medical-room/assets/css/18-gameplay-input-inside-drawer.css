@@ -4,9 +4,15 @@
   gap:8px;
   padding-top:4px;
   align-items:flex-end;
+  flex-shrink:0;
+  position:sticky;
+  bottom:0;
+  background:rgba(8,13,24,0.97);
+  padding-bottom:env(safe-area-inset-bottom);
 }
 #input-box {
   flex:1;
+  min-width:0;
   background:var(--bg3);
   border:1px solid var(--border2);
   border-radius:6px;

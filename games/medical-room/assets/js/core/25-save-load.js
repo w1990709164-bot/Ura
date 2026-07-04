@@ -4,6 +4,7 @@
 function saveGame() {
   try {
     const save = {
+      _savedAt: Date.now(),
       player: G.player,
       apiKey: G.apiKey,
       apiEndpoint: G.apiEndpoint,
@@ -95,7 +96,9 @@ function loadGame() {
       if (!p.spiritLoc) p.spiritLoc = '';
       if (p.trustPhase === undefined) p.trustPhase = 0;
       if (p.trustAccum === undefined) p.trustAccum = 0;
+      if (p.trustPhase > 9) p.trustPhase = 9;
     });
+    saveGame();
     return true;
   } catch(e){ return false; }
 }

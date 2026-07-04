@@ -15,6 +15,14 @@ function openDialogue(charKey){
   document.getElementById('tb-charemo').textContent=c.mood;
   document.getElementById('dlg-overlay').classList.add('open');
   if(!G.dialogueHistory[charKey]) G.dialogueHistory[charKey]=[];
+  const lastAssistant = G.dialogueHistory[charKey].slice().reverse().find(m=>m.role==='assistant');
+  if(lastAssistant){
+    try{
+      renderDialogue(JSON.parse(lastAssistant.content), charKey);
+      setDlgLoading(false);
+      return;
+    }catch(e){}
+  }
   consumeStamina(2);
   startDialogue(charKey);
 }

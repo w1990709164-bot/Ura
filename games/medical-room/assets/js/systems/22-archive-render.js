@@ -144,7 +144,7 @@ function openCharArchive(charId) {
     <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 12px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:1px">关系阶段</div>
-        <div style="font-family:var(--hud);font-size:12px;font-weight:700;color:var(--cyan)">${PHASE_LABELS[p.trustPhase||0]||'戒备'} · 第${(p.trustPhase||0)+1}/${c.bags}</div>
+        <div style="font-family:var(--hud);font-size:12px;font-weight:700;color:var(--cyan)">${PHASE_LABELS[p.trustPhase||0]||'戒备'} · 第${(p.trustPhase||0)+1}/10</div>
       </div>
       <div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border)">
         <div style="height:100%;background:linear-gradient(90deg,var(--cyan-dim),var(--cyan));border-radius:3px;width:${getPhaseProgress(charId).pct}%;transition:width 0.8s ease"></div>

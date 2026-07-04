@@ -26,6 +26,7 @@ function advancePhase() {
       addSysMsg('白天结束', '今日所有任务事件已触发，进入傍晚。');
     }
   } else {
-    showLeaderboard();
+    if (typeof advanceDay === 'function') advanceDay();
+    else showLeaderboard();
   }
 }

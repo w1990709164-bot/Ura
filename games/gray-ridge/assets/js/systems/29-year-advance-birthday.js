@@ -13,6 +13,17 @@ async function advanceYear() {
     return;
   }
 
+  // Get top 3 bond characters for birthday
+  const top3 = CHARS
+    .map(c=>({c, b:G.bonds[c.id]||{}}))
+    .sort((a,b)=>((b.b.stage*100+b.b.value)-(a.b.stage*100+a.b.value)))
+    .slice(0,3)
+    .filter(x=>(x.b.stage||0)>0 || (x.b.value||0)>0);
+
+  // Generate birthday gifts via AI
+  showToast('🎂 生辰将至…');
+  const giftData = await generateBirthdayGifts(top3);
+
   G.gameYear++;
   G.apUsedThisYear = [];
   G._freeToBond = 0;
@@ -27,17 +38,6 @@ async function advanceYear() {
   // Random heat check (成人期才会触发，这里幼崽期不触发)
   saveGame();
   updateTopBar();
-
-  // Get top 3 bond characters for birthday
-  const top3 = CHARS
-    .map(c=>({c, b:G.bonds[c.id]||{}}))
-    .sort((a,b)=>((b.b.stage*100+b.b.value)-(a.b.stage*100+a.b.value)))
-    .slice(0,3)
-    .filter(x=>(x.b.stage||0)>0 || (x.b.value||0)>0);
-
-  // Generate birthday gifts via AI
-  showToast('🎂 生辰将至…');
-  const giftData = await generateBirthdayGifts(top3);
   triggerYearTransition(G.gameYear, giftData);
 }
 

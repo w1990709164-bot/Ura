@@ -67,8 +67,10 @@ function sendCustomOption() {
   selectOption(text);
 }
 function hideOptions() {
-  document.getElementById('options-area').style.display = 'none';
-  document.getElementById('input-area').style.display = 'flex';
+  const opts = document.getElementById('options-area');
+  const input = document.getElementById('input-area');
+  if (opts) opts.style.display = 'none';
+  if (input) input.style.display = 'flex';
 }
 function selectOption(text) {
   hideOptions();

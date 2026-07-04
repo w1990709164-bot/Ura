@@ -300,6 +300,11 @@ const programmeMechanics = `节目机制锁：
 8. 成人/成熟小游戏只在设置和关系门槛允许时出现：天堂七分钟、心跳一致、糖果吻奖励、无摄像机房间、Love Room同床共枕等都必须有明确同意、可退出机制和镜头边界；内容关闭时改写为暧昧淡出或非亲密奖励。
 9. 职业现实不是猎奇道具：战场创伤、应激、失联、召回、保密任务只能写成现实压力与边界协商，不能被爱情瞬间治愈。`;
 
+const mechanicsClarifier = `Production rule clarity:
+- Every generated beat must explicitly state the active rule, partner/group, current time slot, win/loss or exit condition, and whether the player can refuse or rewrite the rule.
+- Never change a confirmed partner, date target, SMS sender, clothing choice, location, or result unless the producer announces that change inside the scene.
+- If the model is unsure, keep the last confirmed fact and write a producer clarification instead of inventing a contradiction.`;
+
 const studioBible = `演播室观察嘉宾：
 - Soap：熟悉Ghost与TF141，活跃、敢开玩笑，但涉及创伤和任务风险时会收敛；不替Ghost承认感情。
 - Gaz：细心稳重，善于指出镜头剪辑遗漏的边界与照顾动作。
@@ -1241,6 +1246,7 @@ async function directorScene(){
 ${focus.map(id=>characterBible[id]).join("\n")}
 ${proseBible}
 ${programmeMechanics}
+${mechanicsClarifier}
 ${beat.format==="observer"||state.day===10||state.day===16?studioBible:""}
 ${continuityBrief()}
 近期记忆：${JSON.stringify(state.memories.slice(-12))}
@@ -1332,6 +1338,7 @@ async function generateConsequence(choice){
 角色圣经：${focus.map(id=>characterBible[id]).join("\n")}
 ${proseBible}
 ${programmeMechanics}
+${mechanicsClarifier}
 ${continuityBrief()}
 写500-850字，聚焦这个选择如何真实改变谈话、站位、镜头内外关系与角色判断。必须给选择带来具体后果，可以是好感、误会、尴尬、尊重或醋意，不要所有选择都得到奖励。不得替玩家新增台词、心理和动作。不要开启新场景，不要总结道理。结尾停在一个有余味的动作或未完成的话上。
 只允许使用：
@@ -1566,7 +1573,7 @@ async function settleSignals(){
     state.signalHistory=state.signalHistory.filter(entry=>entry.day!==state.day);
     state.signalHistory.push({day:state.day,playerTarget:state.signalSent,playerText:state.signalSentText,senders:[...finalSenders]});
   }catch(e){
-    const msg=readableApiError(e);
+    const msg="正文为空："+readableApiError(e);
     if(/有效短信|朋友圈|格式|正文为空|响应结构/.test(msg)){
       state.receivedSignals=fallbackSignals();
       state.socialPosts.push(...completeSocialPosts([]).map(post=>({...post,day:state.day,at:new Date().toISOString()})));
@@ -1747,6 +1754,7 @@ async function sendFree(){
 关系：${JSON.stringify(relationSnapshot())}
 ${proseBible}
 ${programmeMechanics}
+${mechanicsClarifier}
 ${continuityBrief()}
 
 写450-750字。必须承接玩家这句话/行动，让它真实影响当前谈话、站位、镜头内外关系或节目组反应；不要忽略玩家输入，不要继续旧的三个预设选项，不要替玩家追加新的台词、心理或动作。只能收束当前场景的余波，不能跳到下一时段、下一地点或第二天。若玩家要求单采、填写短信、质疑节目组、拒绝规则或主动约人，应让节目机制给出可执行回应。`;
