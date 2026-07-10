@@ -111,9 +111,23 @@
   DS.state = DS.attachRuntime(DS.newState());
 
   /* ---------- 存档 ---------- */
+  DS.makeSaveSnapshot = function () {
+    const s = JSON.parse(JSON.stringify(DS.state));
+    if (Array.isArray(s.log)) s.log = s.log.slice(0, 120);
+    if (s.story) {
+      if (Array.isArray(s.story.history)) s.story.history = s.story.history.slice(-24);
+      if (typeof s.story.narrative === 'string' && s.story.narrative.length > 30000) {
+        s.story.narrative = s.story.narrative.slice(-30000);
+      }
+      if (Array.isArray(s.story.danmaku)) s.story.danmaku = s.story.danmaku.slice(-80);
+      if (Array.isArray(s.story.choices)) s.story.choices = s.story.choices.slice(0, 6);
+    }
+    s._savedAt = Date.now();
+    return s;
+  };
   DS.save = function () {
     try {
-      localStorage.setItem(DS.SAVE_KEY, JSON.stringify(DS.state));
+      localStorage.setItem(DS.SAVE_KEY, JSON.stringify(DS.makeSaveSnapshot()));
       return true;
     } catch (e) { console.error('存档失败', e); return false; }
   };
@@ -135,7 +149,7 @@
   DS.SLOT_PREFIX = 'DS_SLOT_';
   DS.saveSlot = function (n) {
     try {
-      const s = DS.state;
+      const s = DS.makeSaveSnapshot();
       localStorage.setItem(DS.SLOT_PREFIX + n, JSON.stringify(s));
       localStorage.setItem(DS.SLOT_PREFIX + n + '_meta', JSON.stringify({
         t: Date.now(), phase: s.phase,

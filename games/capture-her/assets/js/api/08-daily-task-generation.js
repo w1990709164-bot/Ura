@@ -38,11 +38,27 @@ async function generateTaskDescs(cb) {
       });
     }
   } catch(e){ console.warn('Task gen failed:', e); }
+  fillFallbackTaskDescs();
 
   showMorningNotifs();
   refreshCharPovTaskHeaders();
   saveGame();
   if(cb) cb();
+}
+
+function fillFallbackTaskDescs() {
+  const templates = [
+    c => `让${c.name}主动开口问你一个私人问题`,
+    c => `和${c.name}完成一次不超过十分钟的共同任务`,
+    c => `让${c.name}在旁人面前替你说一句话`,
+    c => `发现${c.name}今天藏起来的一点异常`,
+    c => `让${c.name}接受你的一次合理帮助`,
+  ];
+  G.dailyTasks.forEach((t, i)=>{
+    if (t.taskDesc && !/生成中/.test(t.taskDesc)) return;
+    const c = CHARS.find(x=>x.id===t.charId) || {name:t.charId};
+    t.taskDesc = templates[i % templates.length](c);
+  });
 }
 
 function showMorningNotifs() {

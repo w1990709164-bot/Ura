@@ -39,7 +39,7 @@ async function saveToSlot(i){
   for(const k in rest.dialogueHistory){
     trimmedHistory[k] = rest.dialogueHistory[k].slice(-10);
   }
-  const snap={ ...rest, dialogueHistory:trimmedHistory, date:getDate(), name:G.playerName, api:{...API} };
+  const snap={ ...rest, dialogueHistory:trimmedHistory, date:getDate(), savedAt:Date.now(), name:G.playerName, api:{...API} };
   if(!G.saves) G.saves=[null,null,null];
   G.saves[i]=snap;
   try{
@@ -72,8 +72,15 @@ async function loadGame(){
   const _bsr=await Store.get('cod_autosave'); if(_bsr) try{autoSnap=JSON.parse(_bsr);}catch(e){}
   const manualFirst=saves.find(s=>s!==null);
   // 选day最大的
-  let best=manualFirst||null;
-  if(autoSnap && (!best || autoSnap.day >= best.day)) best=autoSnap;
+  const scoreSave = s => {
+    if(!s) return -1;
+    const day = Number(s.day) || 0;
+    const time = Number(s.timeIdx) || 0;
+    const savedAt = Number(s.savedAt || s._savedAt || 0);
+    return day * 100000000 + time * 1000000 + Math.floor(savedAt / 1000);
+  };
+  let best=[...saves.filter(Boolean), autoSnap].filter(Boolean)
+    .sort((a,b)=>scoreSave(b)-scoreSave(a))[0] || manualFirst || null;
   if(!best){ showMsg('没有找到存档'); return; }
   Object.assign(G,normalizeParallelSave(best));
   loadGlobalApiIntoState(); // API 以主页为准，不用存档里的旧值

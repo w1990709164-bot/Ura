@@ -56,6 +56,7 @@ function updateSlotDisplay() {
     return `<span style="color:var(--text3)">${s.label}</span>`;
   });
   el.innerHTML = parts.join('<span style="color:var(--border2)">·</span>');
+  if (typeof refreshManualSessionControl === 'function') refreshManualSessionControl();
 }
 
 function checkEmergencies() {
@@ -89,6 +90,7 @@ function travelTo(locId, locName) {
   if (locId !== 'clinic') {
     G.clinicSession = null;
     G.sessionTurns = 0;
+    if (typeof refreshManualSessionControl === 'function') refreshManualSessionControl();
   }
 
   // Push scene change to AI history so it knows location changed

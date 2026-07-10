@@ -14,6 +14,19 @@ function normalizeAttrKey(attr){
   const byName = STATS_DEF.find(s=>s.name===a);          // 中文名 → 键
   if(byName) return byName.key;
   const lower = a.toLowerCase();
+  const aliases = {
+    '体魄':'tq', '体格':'tq', '力量':'tq', 'strength':'tq', 'body':'tq', 'toughness':'tq',
+    '敏捷':'mj', '速度':'mj', '反应':'mj', 'agility':'mj', 'dexterity':'mj', 'speed':'mj',
+    '精准':'jz', '准度':'jz', '射击':'jz', '命中':'jz', 'accuracy':'jz', 'aim':'jz',
+    '技术':'js', '工程':'js', '机械':'js', 'tech':'js', 'technology':'js', 'engineering':'js',
+    '智识':'zs', '知识':'zs', '情报':'zs', '分析':'zs', 'intelligence':'zs', 'knowledge':'zs',
+    '情商':'qs', '魅力':'qs', '沟通':'qs', '社交':'qs', 'eq':'qs', 'charisma':'qs', 'social':'qs',
+    '医疗':'yl', '治疗':'yl', '急救':'yl', 'medicine':'yl', 'medical':'yl', 'first aid':'yl'
+  };
+  if(aliases[a] || aliases[lower]) return aliases[a] || aliases[lower];
+  for(const [name,key] of Object.entries(aliases)){
+    if(a.includes(name) || lower.includes(name)) return key;
+  }
   const byKeyCI = STATS_DEF.find(s=>s.key.toLowerCase()===lower);
   return byKeyCI ? byKeyCI.key : 'tq';
 }

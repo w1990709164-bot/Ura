@@ -554,6 +554,29 @@ function normalizeState(){
   state.signalTarget=state.signalTarget||null;
   state.signalText=state.signalText||"";
   state.signalSentText=state.signalSentText||"";
+  if(state.signalSent && state.signalSentText && !state.signalText) state.signalText=state.signalSentText;
+  state.socialPosts=dedupeSocialPosts(state.socialPosts);
+  state.receivedSignals=(state.receivedSignals||[]).filter(s=>s && s.text);
+}
+function dedupeSocialPosts(posts){
+  const seen=new Set();
+  return (posts||[]).filter(post=>{
+    const key=[post.day,post.author,post.text].join("|");
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function bumpRelations(ids, delta={}, memory){
+  [...new Set((ids||[]).filter(id=>state.relations[id]))].forEach(id=>{
+    const r=state.relations[id];
+    ["heart","trust","respect","jealousy","safety"].forEach(k=>{
+      if(delta[k]!=null) r[k]=Math.max(0,Math.min(100,r[k]+Number(delta[k])));
+    });
+    const gate=Math.min(6,Math.floor(Math.min(r.heart,r.trust,r.respect)/18));
+    r.stage=Math.max(r.stage,gate);
+  });
+  if(memory) state.memories.push(memory);
 }
 function load(){
   try {
@@ -645,6 +668,7 @@ async function handleAgencyButton(button){
     const text=prompt("填写你今天要发布的朋友圈：","");
     if(!text?.trim()) return;
     state.socialPosts.push({day:state.day,author:"player",text:text.trim(),at:new Date().toISOString()});
+    bumpRelations(cast.map(c=>c.id),{respect:1},`Day ${state.day}：玩家主动发布朋友圈。`);
     save(); renderProgramPanel();
     await triggerAgencyAction(`我发布了一条朋友圈：“${text.trim()}”。请让节目中的真实关系对此产生自然反应，但不要让所有人都围着这条动态评论。`);
     return;
@@ -655,6 +679,7 @@ async function handleAgencyButton(button){
     const question=prompt("填写第一个匿名问题：","");
     if(!question?.trim()) return;
     state.anonymousTalks.push({day:state.day,target,questions:[question.trim()]});
+    bumpRelations([target],{trust:2,respect:1},`Day ${state.day}：玩家向 ${target} 发起匿名谈心。`);
     save();
     await triggerAgencyAction(`我开启对${target}的匿名谈心，亲自提出第一个问题：“${question.trim()}”。请保持双方身份暂不公开，并在回答后让我决定是否继续追问。`);
     return;
@@ -697,6 +722,14 @@ function renderSignalResults(){
     box.innerHTML=`<h3>短信生成失败</h3>
       <div class="day-summary">${escapeHtml(state.signalError)}。短信尚未结算，关系与日期均未改变。</div>
       <button id="retrySignals" class="primary-btn wide">重新生成今晚短信</button>`;
+    $("#retrySignals").onclick=()=>settleSignals();
+    return;
+  }
+  if(state.signalSent && !state.receivedSignals?.length){
+    box.classList.remove("hidden");
+    box.innerHTML=`<h3>短信待生成</h3>
+      <div class="day-summary">今晚的心动对象已保存。若这是读档后的状态，可以继续生成当晚短信。</div>
+      <button id="retrySignals" class="primary-btn wide">生成今晚短信</button>`;
     $("#retrySignals").onclick=()=>settleSignals();
     return;
   }
@@ -1530,6 +1563,11 @@ async function sendSignal(id, text=""){
 }
 
 async function settleSignals(){
+  if(state.signalSent && state.receivedSignals?.length){
+    state.signalError=null;
+    save(); renderSignals();
+    return;
+  }
   const cfg=getApiConfig();
   try{
     const prompt=`你是COD成年女性向恋综《交火心跳：21日》的匿名短信生成器。不要输出JSON，不要Markdown。
@@ -1562,10 +1600,12 @@ async function settleSignals(){
     const finalSenders=new Set(state.receivedSignals.map(s=>s.sender).filter(Boolean));
     const posts=completeSocialPosts(parseTaggedSocial(raw));
     state.socialPosts.push(...posts.map(post=>({...post,day:state.day,at:new Date().toISOString()})));
+    state.socialPosts=dedupeSocialPosts(state.socialPosts);
     state.signalError=null;
     if(!state.signalCommitted){
       const r=state.relations[state.signalSent];
       r.heart+=12; r.trust+=3; r.stage=Math.max(1,r.stage);
+      bumpRelations([state.signalSent],{respect:2,safety:1},`Day ${state.day}：玩家主动发送心动短信给 ${state.signalSent}。`);
       state.signalCommitted=true;
       unlock("signal");
     }
@@ -1577,10 +1617,12 @@ async function settleSignals(){
     if(/有效短信|朋友圈|格式|正文为空|响应结构/.test(msg)){
       state.receivedSignals=fallbackSignals();
       state.socialPosts.push(...completeSocialPosts([]).map(post=>({...post,day:state.day,at:new Date().toISOString()})));
+      state.socialPosts=dedupeSocialPosts(state.socialPosts);
       state.signalError=null;
       if(!state.signalCommitted){
         const r=state.relations[state.signalSent];
         r.heart+=12; r.trust+=3; r.stage=Math.max(1,r.stage);
+        bumpRelations([state.signalSent],{respect:2,safety:1},`Day ${state.day}：玩家主动发送心动短信给 ${state.signalSent}。`);
         state.signalCommitted=true;
         unlock("signal");
       }
@@ -1774,10 +1816,7 @@ ${continuityBrief()}
     state.momentTurns[momentKey()]=(state.momentTurns[momentKey()]||0)+(state.followUpMode?1:0);
     state.followUpMode=false;
     if(focus.length){
-      focus.forEach(id=>{
-        const r=state.relations[id];
-        r.trust=Math.min(100,r.trust+1); r.respect=Math.min(100,r.respect+1);
-      });
+      bumpRelations(focus,{trust:2,respect:2,heart:1},`Day ${state.day} ${state.day>1?slotNames[state.daySlot]:"序章"}：玩家自由行动影响了 ${focus.join("、")}。`);
     }
     save(); renderCast();
     if(state.day>1){

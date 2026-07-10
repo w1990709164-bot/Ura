@@ -8,7 +8,7 @@ async function autoSave(){
   for(const k in rest.dialogueHistory){
     trimmedHistory[k] = rest.dialogueHistory[k].slice(-10);
   }
-  const snap={ ...rest, dialogueHistory:trimmedHistory, date:getDate(), name:G.playerName, api:{...API}, isAuto:true };
+  const snap={ ...rest, dialogueHistory:trimmedHistory, date:getDate(), savedAt:Date.now(), name:G.playerName, api:{...API}, isAuto:true };
   try{
     let saves=[null,null,null];
     const _sr=await Store.get('cod_saves'); if(_sr) try{saves=JSON.parse(_sr);}catch(e){}

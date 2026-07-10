@@ -139,6 +139,7 @@
             <textarea id="input-box" placeholder="输入对话或行动…" rows="1"></textarea>
             <div style="display:flex;gap:6px;align-items:center">
               <button id="landscape-btn" onclick="triggerLandscapeEntry(G.clinicSession)" title="进入精神图景" style="flex-shrink:0;width:38px;height:38px;background:rgba(0,180,255,0.06);border:1px solid rgba(0,180,255,0.2);border-radius:6px;color:#4a8ab0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s" onmousedown="this.style.borderColor='#00e5ff';this.style.color='#00e5ff'">🌀</button>
+              <button id="manual-end-session" onclick="requestManualSessionEnd()" title="手动结束当前看诊" style="display:none;flex-shrink:0;height:38px;padding:0 10px;background:rgba(0,255,204,0.06);border:1px solid rgba(0,255,204,0.24);border-radius:6px;color:#00ffcc;font-family:var(--mono);font-size:10px;cursor:pointer;letter-spacing:1px">END</button>
               <button id="send-btn" onclick="sendMessage()" disabled>发送</button>
             </div>
           </div>

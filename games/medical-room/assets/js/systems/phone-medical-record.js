@@ -339,6 +339,34 @@ function cancelSessionEnd() {
   if (bg)    bg.remove();
 }
 
+function requestManualSessionEnd() {
+  const charId = G.clinicSession;
+  if (!charId || !G.patients[charId]) {
+    showToast('当前没有进行中的看诊');
+    return;
+  }
+  const c = CHARS.find(x => x.id === charId);
+  const p = G.patients[charId];
+  if (!c || !p) return;
+  if ((G.sessionTurns || 0) < 1 && !confirm('本次看诊刚开始，仍要手动结束吗？')) return;
+  if ((p.visitCount || 0) === 0) {
+    p.visitCount = 1;
+    p.lastVisit = `第${G.day}天`;
+    if (typeof unlockContact === 'function') unlockContact(charId);
+  }
+  const phase = (typeof PHASE_LABELS !== 'undefined' ? PHASE_LABELS[p.trustPhase||0] : null) || '戒备';
+  const summary = `玩家手动结束本次看诊。当前关系阶段：${phase}；感官负荷${p.mental||50}，应激${p.stress||30}。`;
+  showSessionSummary(charId, summary);
+}
+
+function refreshManualSessionControl() {
+  const btn = document.getElementById('manual-end-session');
+  if (!btn) return;
+  btn.style.display = G.clinicSession && G.currentLocation === 'clinic' && !G.completedToday.includes(G.clinicSession)
+    ? 'inline-flex'
+    : 'none';
+}
+
 function confirmSessionEnd(charId) {
   const modal = document.getElementById('session-summary-modal');
   const bg    = document.getElementById('session-summary-bg');
@@ -357,6 +385,7 @@ function confirmSessionEnd(charId) {
   // 清空当前接诊
   G.clinicSession = null;
   G.sessionTurns  = 0;
+  refreshManualSessionControl();
 
   // 刷新预约系统（变灰）
   renderPhoneSchedule();

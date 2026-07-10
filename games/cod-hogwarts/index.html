@@ -1695,10 +1695,37 @@ function getAffectionLabel(charId) {
 }
 
 // ── 背包工具 ──────────────────────────────────────────────
+function normalizeInventoryItem(item) {
+  const aliases = {
+    mandrake:'mandragora',
+    mandrake_root:'mandragora',
+    mandragora_root:'mandragora',
+    dragonblood:'dragblood',
+    dragon_blood:'dragblood',
+    bezoar_stone:'bezoar',
+    pearlwater:'moonwater',
+  };
+  const rawId = item?.id || item?.item_id || item?.key || item?.name;
+  const id = aliases[String(rawId || '').trim()] || String(rawId || '').trim();
+  const fromAlchemy = (typeof INGREDIENTS !== 'undefined' && INGREDIENTS[id]) ? INGREDIENTS[id] : null;
+  const fixed = { ...(fromAlchemy || {}), ...(item || {}), id };
+  if (!fixed.type && fromAlchemy) fixed.type = 'ingredient';
+  if (!fixed.type && typeof INGREDIENTS !== 'undefined' && INGREDIENTS[id]) fixed.type = 'ingredient';
+  if (!fixed.name || fixed.name === 'undefined' || fixed.name === '未定义') fixed.name = fromAlchemy?.name || id;
+  if (!fixed.desc && fromAlchemy?.desc) fixed.desc = fromAlchemy.desc;
+  fixed.quantity = Math.max(1, Number(fixed.quantity || fixed.qty || 1) || 1);
+  return fixed;
+}
+
 function addItem(item) {
+  item = normalizeInventoryItem(item);
+  if (!item.id) return;
   const existing = G.player.inventory.find(i => i.id === item.id);
   if (existing) {
     existing.quantity = (existing.quantity || 1) + (item.quantity || 1);
+    if ((!existing.name || existing.name === 'undefined' || existing.name === '未定义') && item.name) existing.name = item.name;
+    if (!existing.type && item.type) existing.type = item.type;
+    if (!existing.desc && item.desc) existing.desc = item.desc;
   } else {
     G.player.inventory.push({ ...item, quantity: item.quantity || 1 });
   }
@@ -1765,6 +1792,7 @@ function sanitizeState() {
   if (!G.player.wand)  G.player.wand  = fresh.player.wand;
   G.player.gold = Math.max(0, Math.floor(Number(G.player.gold) || 0));
   if (!Array.isArray(G.player.inventory)) G.player.inventory = [];
+  G.player.inventory = G.player.inventory.map(normalizeInventoryItem).filter(i => i.id);
   if (!G.gameDate) G.gameDate = fresh.gameDate;
   if (!Array.isArray(G.currentOptions))      G.currentOptions = [];
   if (!Array.isArray(G.storyHistory))        G.storyHistory = [];

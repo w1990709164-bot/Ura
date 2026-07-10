@@ -210,6 +210,7 @@ const SCHEDULE_POOL = [
   {id:'krueger', type:'pre',  time:'14:30', reason:'感官评估',       priority:12},
   {id:'graves',  type:'walk', time:'随时',  reason:'主动求诊',       priority:13},
   {id:'logan',   type:'pre',  time:'16:30', reason:'心理辅导',       priority:14},
+  {id:'kick',    type:'pre',  time:'11:30', reason:'电子战感官负荷复查', priority:15},
 ];
 
 function generateSchedule() {
@@ -393,6 +394,7 @@ function startSessionFrom(charId) {
     G.clinicSession = charId;
     G.sessionTurns = 0;
   }
+  if (typeof refreshManualSessionControl === 'function') refreshManualSessionControl();
   showPanel('scene');
   updateSlotDisplay();
   renderPhoneSchedule();

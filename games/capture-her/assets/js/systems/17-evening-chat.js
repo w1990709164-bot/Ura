@@ -48,13 +48,13 @@ async function generateEveningChat(){
   } catch(e){ console.warn('Chat gen failed:',e); }
 }
 
-function addChatMessage(chatId,text,isSystem=false){
+function addChatMessage(chatId,text,isSystem=false,save=true){
   if(!chatId && !isSystem) return;
   if(!text) return;
   chatId = chatId || ''; text = String(text);
   const now=new Date();
   const time=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-  G.chatLog.push({chatId,text,time,isSystem});
+  if(save) G.chatLog.push({chatId,text,time,isSystem});
   const container=document.getElementById('chat-messages');
   if(!container) return;
   const d=document.createElement('div'); d.className='chat-msg';
@@ -66,7 +66,7 @@ function addChatMessage(chatId,text,isSystem=false){
   }
   container.appendChild(d);
   setTimeout(()=>container.scrollTop=container.scrollHeight,50);
-  saveGame();
+  if(save) saveGame();
 }
 
 function renderChat(){
@@ -76,5 +76,5 @@ function renderChat(){
     const d=document.createElement('div'); d.className='chat-divider'; d.textContent='群聊将在傍晚激活';
     container.appendChild(d); return;
   }
-  G.chatLog.forEach(m=>addChatMessage(m.chatId,m.text,m.isSystem));
+  G.chatLog.forEach(m=>addChatMessage(m.chatId,m.text,m.isSystem,false));
 }
